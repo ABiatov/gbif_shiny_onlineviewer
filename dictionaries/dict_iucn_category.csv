@@ -1,0 +1,10 @@
+iucnRedListCategory,IUCN_Red_List
+EX,Вимерлий (Extinct (EX))
+EW,Вимерлий в природі (Extinct in the Wild (EW))
+CR,У критичній небезпеці (Critically Endangered CR))
+EN,Зникаючий (Endangered (EN))
+VU,Уразливий (Vulnerable (VU))
+NT,Майже під загрозою (Near threatened (NT))
+LC,Найменша осторога (Least Concern (LC))
+DD,Відомостей недостатньо (Data Deficient (DD))
+NE,Неоцінений (Not Evaluated (NE))
