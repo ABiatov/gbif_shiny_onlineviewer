@@ -7,12 +7,15 @@ setwd("C:/Users/admin/Documents/GitHub/gbif_shiny_onlineviewer/")
 
 ## Library import ####
 library(sf)
+library(sp)
 #require(raster)
 require(rgeos)
 require(rgbif)
 library(dplyr)
 library(data.table)
 require(writexl)
+library(magrittr)
+library(officer)
 
 # Calling custom function
 source("scripts/config.R")
@@ -61,6 +64,7 @@ RECIEVED_DATA <- occ_search(scientificName = specieses_list,
 
 DF_RECIEVED_DATA<- rbindlist(lapply(RECIEVED_DATA, function(x) x$data), fill = TRUE, use.names = TRUE)
 
+
 # write.csv(DF_RECIEVED_DATA, "outputs/DF_RECIEVED_DATA.csv")
 #colnames(DF_RECIEVED_DATA)
 
@@ -99,8 +103,49 @@ DF_REPORT <- DF_PREVIEW %>%
 write_xlsx(DF_REPORT, "outputs/DF_REPORT.xlsx")
 
 
+## Create DF_PREPRINT dataframe ####
 
+DF_PREPRINT <- DF_REPORT %>%
+  dplyr::select(all_of(fields_list_to_DF_PREPRINT)) %>%
+  group_by(scientificName,  # настроить корректно групбай чтоб не удаляло лишние поля или джойнить их DF_REPORT
+           NameUA,          # TODO to config
+           RedBookUA,
+           IUCN_Red_List) %>%
+  summarise(Amount = n()) %>%
+  na.omit()
 
+## Export dataframe DF_PREPRINT to XLSX  ####
 
+# write_xlsx(DF_PREPRINT, "outputs/DF_PREPRINT.xlsx")
+  
+# DOCX generation ####
 
+## Generate map for print ####
 
+# TODO generate Simple map wiz extent aoi_buffered +- 5%
+
+src <- tempfile(fileext = ".png")
+png(filename = src, width = 5, height = 6, units = 'in', res = 300)
+plot(aoi_buffered,  border = 'blue')
+plot(aoi_geometry, add = TRUE, border = 'red')
+#plot(DF_REPORT$Latitude, DF_REPORT$Longitude, add = TRUE)
+dev.off()
+
+## Generate document
+
+my_doc <- read_docx() 
+styles_info(my_doc)
+
+my_doc <- my_doc %>% 
+  body_add_par(txt_report_header, style = "heading 1") %>% 
+  body_add_par("", style = "Normal") %>% # blank paragraph
+  body_add_par(txt_about_gbif_viewer, style = "Normal") %>% 
+  body_add_img(src = src, width = 3, height = 3, style = "centered") %>%
+  body_add_par("", style = "Normal") %>% # blank paragraph
+  body_add_par("Перелік видів", style = "heading 2") %>% 
+  body_add_table(DF_PREPRINT, style = "table_template")
+
+print(my_doc, target = "outputs/report.docx")
+
+# Cleaning workspace ####
+rm(list = ls()) # Reset R`s brain
