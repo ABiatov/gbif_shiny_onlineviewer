@@ -37,3 +37,20 @@ refactor_fields_list_to_DF_REPORT <- c("scientificName", "NameUA",
                                         "URL_kingdom", "URL_class",
                                         "URL_dataset"
                                        )
+
+fields_list_to_DF_PREPRINT <- c("scientificName", "NameUA",
+                         #     "PotectedStatus",
+                              "RedBookUA",
+                              "IUCN_Red_List",
+                              "URL_species"
+                              )
+
+# DOCX text blocks ####
+
+txt_report_header <- "Зведені відомості про реєстрації рідкісних та таких, що перебувають під охороною, видів"
+
+txt_about_gbif_viewer <- "GBIF Viewer: an open web-based biodiversity conservation decision-making tool for policy and governance. Спільний проєкт The Habitat Foundation та Української Природоохоронної Групи, за підтримки NLBIF: The Netherlands Biodiversity Information Facility"
+
+
+
+
