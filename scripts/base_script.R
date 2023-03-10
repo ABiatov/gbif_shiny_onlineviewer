@@ -127,25 +127,23 @@ DF_PREPRINT <- DF_REPORT %>%
 sf_points <- st_as_sf(DF_PREVIEW, dim = "XY", remove = FALSE, na.fail = F, 
                    coords = c("Longitude", "Latitude"), crs = "+proj=longlat +datum=WGS84 +no_defs")
 
-cols <- c("Plantae" = "#4daf4a", "Fungi" = "#377eb8", "Animalia" = "#ff7f00")
-
 # TODO generate Simple map wiz extent aoi_buffered +- 5%
 
 src <- tempfile(fileext = ".png")
 png(filename = src, width = 5, height = 5, units = 'in', res = 300)
 
-ggplot(data=sf_points)+
+ggplot()+
   base_map(bbox = st_bbox(aoi_buffered), 
            basemap = 'mapnik', 
            increase_zoom = 2) +
-  geom_sf(aes(color=kingdom),size=2)+
-  geom_sf(data = aoi_buffered, colour = "blue", fill=NA)+
-  geom_sf(data = aoi_geometry, colour = "red", fill = NA)+
-  scale_colour_manual(
-    values = cols, name=NULL ) +
+  geom_sf(data=sf_points, aes(color=kingdom),size=2)+
+  scale_colour_manual(values = kingdom_colors, name=NULL ) +
+  geom_sf(data = aoi_buffered, colour = "blue", fill=NA, lwd = 1)+
+  geom_sf(data = aoi_geometry, colour = "red", fill = NA, lwd = 1)+
   theme_minimal()+
   theme(axis.text = element_blank())+
-  theme(legend.position = "bottom")+
+  theme(legend.position = "bottom",
+        legend.margin=margin())+
   labs(caption = "Basemap attribution: © OpenStreetMap contributors")
 
 dev.off()
