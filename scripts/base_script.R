@@ -12,6 +12,8 @@ library(sp)
 require(rgeos)
 require(rgbif)
 library(dplyr)
+require(ggplot2)
+library(basemapR)
 library(data.table)
 require(writexl)
 library(magrittr)
@@ -122,13 +124,28 @@ DF_PREPRINT <- DF_REPORT %>%
 
 ## Generate map for print ####
 
+sf_points <- st_as_sf(DF_PREVIEW, dim = "XY", remove = FALSE, na.fail = F, 
+                   coords = c("Longitude", "Latitude"), crs = "+proj=longlat +datum=WGS84 +no_defs")
+
 # TODO generate Simple map wiz extent aoi_buffered +- 5%
 
 src <- tempfile(fileext = ".png")
-png(filename = src, width = 5, height = 6, units = 'in', res = 300)
-plot(aoi_buffered,  border = 'blue')
-plot(aoi_geometry, add = TRUE, border = 'red')
-#plot(DF_REPORT$Latitude, DF_REPORT$Longitude, add = TRUE)
+png(filename = src, width = 5, height = 5, units = 'in', res = 300)
+
+ggplot()+
+  base_map(bbox = st_bbox(aoi_buffered), 
+           basemap = 'mapnik', 
+           increase_zoom = 2) +
+  geom_sf(data=sf_points, aes(color=kingdom),size=2)+
+  scale_colour_manual(values = kingdom_colors, name=NULL ) +
+  geom_sf(data = aoi_buffered, colour = "blue", fill=NA, lwd = 1)+
+  geom_sf(data = aoi_geometry, colour = "red", fill = NA, lwd = 1)+
+  theme_minimal()+
+  theme(axis.text = element_blank())+
+  theme(legend.position = "bottom",
+        legend.margin=margin())+
+  labs(caption = "Basemap attribution: © OpenStreetMap contributors")
+
 dev.off()
 
 ## Generate document
@@ -140,7 +157,7 @@ my_doc <- my_doc %>%
   body_add_par(txt_report_header, style = "heading 1") %>% 
   body_add_par("", style = "Normal") %>% # blank paragraph
   body_add_par(txt_about_gbif_viewer, style = "Normal") %>% 
-  body_add_img(src = src, width = 3, height = 3, style = "centered") %>%
+  body_add_img(src = src, width = 5, height = 5, style = "centered") %>%
   body_add_par("", style = "Normal") %>% # blank paragraph
   body_add_par("Перелік видів", style = "heading 2") %>% 
   body_add_table(DF_PREPRINT, style = "table_template")
@@ -148,4 +165,4 @@ my_doc <- my_doc %>%
 print(my_doc, target = "outputs/report.docx")
 
 # Cleaning workspace ####
-rm(list = ls()) # Reset R`s brain
+# rm(list = ls()) # Reset R`s brain
