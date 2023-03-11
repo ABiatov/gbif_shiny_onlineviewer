@@ -58,8 +58,10 @@ aoi_WKT <- st_as_text(aoi_buffered)
 
 ## Query to GBIF ####
 
+# RECIEVED_DATA <- occ_data(scientificName = specieses_list, 
 RECIEVED_DATA <- occ_search(scientificName = specieses_list, 
-                            return = "data", hasCoordinate = T, 
+                            return = "data", 
+                            hasCoordinate = T, 
                             geometry = aoi_WKT, 
                             limit = query_limit
                             )
