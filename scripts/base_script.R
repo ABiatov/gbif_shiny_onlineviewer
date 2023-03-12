@@ -58,6 +58,10 @@ aoi_WKT <- st_as_text(aoi_buffered)
 
 ## Query to GBIF ####
 
+# TODO Cenge occ_search() to occ_download()
+# https://docs.ropensci.org/rgbif/articles/getting_occurrence_data.html
+# https://docs.ropensci.org/rgbif/reference/occ_download.html
+
 # RECIEVED_DATA <- occ_data(scientificName = specieses_list, 
 RECIEVED_DATA <- occ_search(scientificName = specieses_list, 
                             return = "data", 
