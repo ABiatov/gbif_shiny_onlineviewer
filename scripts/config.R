@@ -1,6 +1,20 @@
 CRS_used_in_calculations <- 3537 # WGS 84 / North Pole LAEA Europe
 query_limit = 1000
 
+
+# draw_new_shape_options
+draw_new_shape_options <- drawShapeOptions(
+  # clickable = TRUE,
+  weight = 1,
+  opacity = 0.8,
+  fillOpacity = 0.3,
+  color = 'black',
+  fillColor = 'blue')
+
+buffered_polygon_options <- pathOptions(color = "#03F", weight = 2, opacity = 0.9, fill = FALSE, zIndexOffset = 10) 
+
+
+
 fields_dict_red_book_ua <- c("scientificName", "RedBookUA")
 
 fields_list_to_DF_PREVIEW <- c("key", "scientificName", 
