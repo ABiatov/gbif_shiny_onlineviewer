@@ -23,6 +23,7 @@ library(DT)
 
 # Calling custom function
 source("scripts/config.R")
+source("functions/polygon_bufferisation.R")
 
 # import data ####
 adm_2 <- st_read("./regions/adm_2.shp")
@@ -83,10 +84,9 @@ ui = fluidPage(
                              ),
                            
                            # Butten for send GBIF request
-                           submitButton("Побудувати буфер"),
+                           submitButton("Побудувати / Видалити буфер"),
                            br(),
-                           actionButton("act_get_gbif_data", label = "Отримати GBIF дані"),#  Активная кнопка
-                           # Кнопка подтверждения
+                           actionButton("act_get_gbif_data", label = "Отримати GBIF дані"), # на эту кнопку повесить запрос данных из GBIF
                            ),
   #### Main map panel for displaying outputs ####
                          mainPanel(
@@ -152,15 +152,11 @@ server = function(input, output, session) {
   
   
   ## Draw polygon ####
-  aoi_poly <- eventReactive(input$map_draw_new_feature,{
-    coords <- input$map_draw_new_feature$geometry$coordinates %>% unlist %>% matrix(nc = 2, byrow = T)
-    sp_aoi_polygon <- sp::Polygon(coords) %>% list %>% sp::Polygons(ID=1) %>% list %>% sp::SpatialPolygons()
-    sf_aoi_polygon <- st_as_sfc(sp_curent_polygon) %>% st_set_crs(4326)
-    # sf_aoi_buffered <- st_transform(sf_aoi_polygon, CRS_used_in_calculations) %>%
-    #   st_buffer(dist = buff_radius, nQuadSegs = 4) %>%
-    #   st_transform(4326)
-    # aoi_WKT <- st_as_text(sf_aoi_buffered)
-  })
+  # aoi_poly <- eventReactive(input$map_draw_new_feature,{
+  #   coords <- input$map_draw_new_feature$geometry$coordinates %>% unlist %>% matrix(nc = 2, byrow = T)
+  #   sp_aoi_polygon <- sp::Polygon(coords) %>% list %>% sp::Polygons(ID=1) %>% list %>% sp::SpatialPolygons()
+  #   sf_aoi_polygon <- st_as_sfc(sp_curent_polygon) %>% st_set_crs(4326)
+  # })
   
   observeEvent(input$map_draw_new_feature, {
     clearShapes(map) # clean map
@@ -168,33 +164,20 @@ server = function(input, output, session) {
     id = input$map_draw_new_feature$properties$"_leaflet_id"
     print("leaflet_id")
     print(id)
-    # print(input$map_draw_new_feature$geometry$coordinate)
-    # print(input$map_draw_new_feature$geometry$coordinates %>% unlist %>% matrix(nc = 2, byrow = T))
     coords <- input$map_draw_new_feature$geometry$coordinates %>% unlist %>% matrix(nc = 2, byrow = T)
-    # print(coords)
-    # print(str(coords))
     curent_polygon <- sp::Polygon(coords) %>% list %>% sp::Polygons(ID=1) %>% list %>% sp::SpatialPolygons()
-    # print(str(curent_polygon))
-    # print(curent_polygon)
     sf_curent_polygon <- st_as_sfc(curent_polygon) %>% st_set_crs(4326) # it work
     curent_polygon_WKT <- st_as_text(sf_curent_polygon) # it work
     
-    sf_curent_buffered <- st_transform(sf_curent_polygon, CRS_used_in_calculations) %>%
-      # st_buffer(dist = 5000, nQuadSegs = 4) %>%
-      st_buffer(dist = as.numeric(input$buffer_radius), nQuadSegs = 4) %>%
-      st_transform(4326)
-
+    sf_curent_buffered <- polygon_bufferisation(sf_curent_polygon, input$buffer_radius)
+    
     map %>% addPolygons(data = sf_curent_buffered, layerId = id,   # add buffered polygon to map
                          options = buffered_polygon_options 
                         )
+    
     curent_buffered_WKT <- st_as_text(sf_curent_buffered) # it work
     reaktive_bufered_polygon_wkt(curent_buffered_WKT)    # write curent_buffered_WKT in my custom global reactive value
 
-    # 
-    # 
-    # aoi_WKT <- st_as_text(st_as_sfc(curent_polygon)) # it work
-    # print(curent_polygon_WKT)
-    # print(curent_buffered_WKT)
   })
   
   observeEvent(input$map_draw_edited_features, {
@@ -203,10 +186,7 @@ server = function(input, output, session) {
     coords <- input$map_draw_edited_features$features[[1]]$geometry$coordinates %>% unlist %>% matrix(nc = 2, byrow = T)
     curent_polygon <- sp::Polygon(coords) %>% list %>% sp::Polygons(ID=1) %>% list %>% sp::SpatialPolygons()
     sf_curent_polygon <- st_as_sfc(curent_polygon) %>% st_set_crs(4326)
-    sf_curent_buffered <- st_transform(sf_curent_polygon, CRS_used_in_calculations) %>%
-      # st_buffer(dist = 5000, nQuadSegs = 4) %>%
-      st_buffer(dist = as.numeric(input$buffer_radius), nQuadSegs = 4) %>%
-      st_transform(4326)
+    sf_curent_buffered <- polygon_bufferisation(sf_curent_polygon, input$buffer_radius)
 
     map %>% addPolygons(data = sf_curent_buffered, layerId = id,   # add buffered polygon to map
                         options = buffered_polygon_options
@@ -223,10 +203,7 @@ server = function(input, output, session) {
     reaktive_bufered_polygon_wkt("")    # write curent_buffered_WKT in my custom global reactive value
     # removeShape(map, id_to_del) # TODO it
   })
-  
-  
-  
-  
+
   
   # add bufered polygon on map
   
@@ -241,8 +218,6 @@ server = function(input, output, session) {
   output$redbook_table <- DT::renderDataTable(df_redbook)
   
   observe({   # применяется для доступа к реактивным переменным, распечатки их в консоль и отладки
-    # print(input$redbook_finder)
-    # print(input$map_center)
     print("reaktive_bufered_polygon_wkt: ")
     print(reaktive_bufered_polygon_wkt())
     print("done")
