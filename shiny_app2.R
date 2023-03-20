@@ -1,3 +1,6 @@
+# my directory
+# setwd("C:/Mamba/Work/Presentations/2022-03_GBIF_Viewer/all_23-03-17/gbif_shiny_onlineviewer-main")
+
 # Biodiversity Viewer v.0.1
 
 # use https://mastering-shiny.org/action-layout.html
@@ -8,8 +11,7 @@
 # library(tidyverse)
 library(dplyr)
 library(shiny)
-library(shinyWidgets)
-# library(shinyjs)
+library(shinyWidgets)                                              ######## NEW
 library(sf)
 library(sp)
 library(rgeos)
@@ -17,22 +19,16 @@ library(rgeos)
 library(rgbif)
 library(leaflet)
 library(leaflet.extras)
-library(leafem)
 library(DT)
 
-# TODO add function polygon_bufferisation(polygon, radius)
-
-# Calling custom function
-source("scripts/config.R")
-source("functions/polygon_bufferisation.R")
-
 # import data ####
-## import spatial data ####
+adm_2 <- st_read("./regions/adm_2.shp")
+## import spatial data                                             ######## NEW
 Ukr_0 <- st_read("regions/gadm41_UKR_0.shp")
 Ukr_1 <- st_read("regions/gadm41_UKR_1.shp")
 Ukr_2 <- st_read("regions/gadm41_UKR_2.shp")
 
-## load Red lists ####
+## load Red lists ----
 load(file = "dictionaries/df_protected_status.Rdata")
 load(file = "dictionaries/red_book_vrazlyvyi.Rdata")
 load(file = "dictionaries/red_book_ridkisnyi.Rdata")
@@ -71,7 +67,6 @@ ui = fluidPage(
                                        unique(Ukr_2$NAME_2),
                                        selected = c(unique(Ukr_2$NAME_2)),
                                        options = list(`actions-box` = TRUE), multiple = T),
-                           ## Select Conservation status ####
                            checkboxGroupInput(
                              inputId = "redbook_finder",
                              label = "Охоронні категорії Червоної книги України",
@@ -83,27 +78,7 @@ ui = fluidPage(
                                           "red_book_znykaiuchyi", "red_book_znyklyi_v_pryrodi",
                                           "red_book_znyklyi", "red_book_nedostatno_vidomyi", 
                                           "red_book_neotsinenyi")
-                             ),
-                           
-                           ## Select buffer radius ####
-                           radioButtons(
-                             inputId = "buffer_radius",
-                             label = "Буфер довкола області інтересу",
-                             choices = c(
-                               "немає" = 0,
-                               "1 км" = 1000,
-                               "5 км" = 5000,
-                               "10 км" = 10000,
-                               "20 км" = 20000
-                               ),
-                             selected = 5000
-                             ),
-                           
-                           ## Button for generate buffer ####
-                           submitButton("Побудувати / Видалити буфер"),
-                           br(),
-                           ## Button for send GBIF request ####
-                           actionButton("act_get_gbif_data", label = "Отримати GBIF дані"), # на эту кнопку повесить запрос данных из GBIF
+                             )
                            ),
   #### Main map panel for displaying outputs ####
                          mainPanel(
@@ -127,13 +102,8 @@ ui = fluidPage(
   )
 )
 
-# Beckend ####
+# Back end ####
 server = function(input, output, session) {
-  
-  # Create a global reactive value
-  ## Create a global reactive value for WKT guffered polygon
-  reaktive_bufered_polygon_wkt <- reactiveVal() # Create a global reactive value for WKT guffered polygon
-  
   ## create object with selected oblasts ####
   obl <- reactive(subset(Ukr_1, Ukr_1$NL_NAME_1 %in% input$regions))
   ## conditional selection of raions based on selected oblast ####
@@ -144,115 +114,56 @@ server = function(input, output, session) {
   })
   ## create object with selected raion ##
   raion <- reactive(subset(Ukr_2, Ukr_2$NAME_2 %in% input$raions))
-  
-  ## create the leaflet map ####
+  ## create the leaflet map (made it also reactive) ####
   main_map <- reactive(
     leaflet() %>% addTiles() %>% addSearchOSM() %>% # removed setView(36.39, 49.65, zoom = 11) to allow map zoom to selected area
-      leafem::addMouseCoordinates() %>%
       addDrawToolbar(
         polylineOptions = FALSE,
-        # polygonOptions = TRUE,
-        polygonOptions = drawPolygonOptions(
-          showArea = TRUE,
-          repeatMode = F,
-          shapeOptions = draw_new_shape_options,
-          # zIndexOffset = 30
-          ),
-        # rectangleOptions = TRUE,
-        rectangleOptions = drawRectangleOptions(
-          showArea = TRUE,
-          repeatMode = F,
-          shapeOptions = draw_new_shape_options),
+        polygonOptions = TRUE,
+        rectangleOptions = TRUE,
         circleOptions = FALSE,
         markerOptions = FALSE,
         circleMarkerOptions = FALSE,
         # markerOptions = drawMarkerOptions(markerIcon = myMarkerIcon(2)),
         singleFeature = TRUE,
-        # editOptions = FALSE, # hidden editTool button
-        editOptions = editToolbarOptions(
-          edit = TRUE, # hidden edit button
-          remove = TRUE),
-      ) %>% addPolygons(data = raion(), weight = 2, fill = F) # now raions are added
+        editOptions = editToolbarOptions()
+      )  %>% addPolygons(data = raion(), weight = 2, fill = F) # now raions are added
   )
   
-  output$map <- renderLeaflet({ main_map }) ## () are added as now it is a reactive object
-  
-  
-  # create map proxy to make further changes to existing map
-  map <- leafletProxy("map", session)
-  
-  ## Add admin division layers to map if checkbox "Обрати способ вводу територїї" choused "Вибрти з адмінподілу"  ####
-  # observeEvent(input , {map %>% addPolygons(data = raion(), weight = 2, fill = F)})
+  output$map <- renderLeaflet({ main_map() }) ## () are added as now it is a reactive object
   
   ## Draw polygon ####
-  # aoi_poly <- eventReactive(input$map_draw_new_feature,{
-  #   coords <- input$map_draw_new_feature$geometry$coordinates %>% unlist %>% matrix(nc = 2, byrow = T)
-  #   sp_aoi_polygon <- sp::Polygon(coords) %>% list %>% sp::Polygons(ID=1) %>% list %>% sp::SpatialPolygons()
-  #   sf_aoi_polygon <- st_as_sfc(sp_curent_polygon) %>% st_set_crs(4326)
-  # })
+  bb.poly <- eventReactive(input$map_draw_new_feature,{
+    coords <- input$map_draw_new_feature$geometry$coordinates %>%
+      unlist %>% matrix(nc = 2, byrow = T)
+    if(nrow(coords) >= 4) {
+      bb.poly <- sp::Polygon(coords) %>% list %>% sp::Polygons(ID=1) %>% list %>% sp::SpatialPolygons()
+    }
+  })
   
   observeEvent(input$map_draw_new_feature, {
-    clearShapes(map) # clean map
-    # Leaflet ID to edit
-    id = input$map_draw_new_feature$properties$"_leaflet_id"
-    print("leaflet_id")
-    print(id)
-    coords <- input$map_draw_new_feature$geometry$coordinates %>% unlist %>% matrix(nc = 2, byrow = T)
-    curent_polygon <- sp::Polygon(coords) %>% list %>% sp::Polygons(ID=1) %>% list %>% sp::SpatialPolygons()
-    sf_curent_polygon <- st_as_sfc(curent_polygon) %>% st_set_crs(4326) # it work
-    curent_polygon_WKT <- st_as_text(sf_curent_polygon) # it work
-    
-    sf_curent_buffered <- polygon_bufferisation(sf_curent_polygon, input$buffer_radius)
-    
-    map %>% addPolygons(data = sf_curent_buffered, layerId = id,   # add buffered polygon to map
-                         options = buffered_polygon_options 
-                        )
-    
-    curent_buffered_WKT <- st_as_text(sf_curent_buffered) # it work
-    reaktive_bufered_polygon_wkt(curent_buffered_WKT)    # write curent_buffered_WKT in my custom global reactive value
-
+    # print("New Feature")
+    print(input$map_draw_new_feature)
+    # print(str(bb.poly())) # class 'SpatialPolygons' [package "sp"]
+    # print(st_as_text(bb.poly())) # Error
   })
-  
-  observeEvent(input$map_draw_edited_features, {
-    clearShapes(map) # clean map
-    # generate new buffer
-    coords <- input$map_draw_edited_features$features[[1]]$geometry$coordinates %>% unlist %>% matrix(nc = 2, byrow = T)
-    curent_polygon <- sp::Polygon(coords) %>% list %>% sp::Polygons(ID=1) %>% list %>% sp::SpatialPolygons()
-    sf_curent_polygon <- st_as_sfc(curent_polygon) %>% st_set_crs(4326)
-    sf_curent_buffered <- polygon_bufferisation(sf_curent_polygon, input$buffer_radius)
-
-    map %>% addPolygons(data = sf_curent_buffered, layerId = id,   # add buffered polygon to map
-                        options = buffered_polygon_options
-    )
-    
-    curent_buffered_WKT <- st_as_text(sf_curent_buffered) # it work
-    reaktive_bufered_polygon_wkt(curent_buffered_WKT)    # write curent_buffered_WKT in my custom global reactive value
-    
-  })
-  
-  # Delete buffered polygon with source polygon
-  observeEvent(input$map_draw_deleted_features, {
-    clearShapes(map) # delet all shapes from map
-    reaktive_bufered_polygon_wkt("")    # write curent_buffered_WKT in my custom global reactive value
-    # removeShape(map, id_to_del) # TODO it
-  })
-
-  
-  # add bufered polygon on map
-  
-  # # observe({
-  # observeEvent(
-  #   
-  # map %>% addPolygons(data = buffered_polygon())
-  # })
   
   
   ## Red book table ####
   output$redbook_table <- DT::renderDataTable(df_redbook)
   
   observe({   # применяется для доступа к реактивным переменным, распечатки их в консоль и отладки
-    print("reaktive_bufered_polygon_wkt: ")
-    print(reaktive_bufered_polygon_wkt())
+    # print(input$redbook_finder)
+    # print(input$map_center)
+    # print(bb.poly)
+    # print(str(bb.poly)) # function
+    # print(input$map_draw_new_feature)
+    # print(str(input$map_draw_new_feature))
+    # print(input$map_draw_new_feature$geometry)
+    # print(input$map_draw_new_feature$geometry$coordinates) # list of coordinates
+    # print(str(input$map_draw_new_feature$geometry$coordinates))
+    # print(paste("x: ", x())) # обращение к реактивной переменно: x()
+    # print(selected_zone)
     print("done")
   })
   
