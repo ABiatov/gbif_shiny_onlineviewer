@@ -1,0 +1,15 @@
+Button run query
+/ Oss Data
+// sidebarPanel Component: Obtain Occurrence Data
+/// Query Database
+
+
+Buffer
+
+/ Process Env
+// sidebarPanel Component: Process Environmental Data
+/// Modules Available: Draw Study Region   # переключение этих пунктов отображает разные импуты
+//// Study region buffer distance (degree)
+
+
+
