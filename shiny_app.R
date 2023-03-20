@@ -100,7 +100,7 @@ ui = fluidPage(
                              ),
                            
                            ## Button for generate buffer ####
-                           submitButton("Побудувати / Видалити буфер"),
+                           # submitButton("Побудувати / Видалити буфер"),
                            br(),
                            ## Button for send GBIF request ####
                            actionButton("act_get_gbif_data", label = "Отримати GBIF дані"), # на эту кнопку повесить запрос данных из GBIF
@@ -146,8 +146,10 @@ server = function(input, output, session) {
   raion <- reactive(subset(Ukr_2, Ukr_2$NAME_2 %in% input$raions))
   
   ## create the leaflet map ####
-  main_map <- reactive(
-    leaflet() %>% addTiles() %>% addSearchOSM() %>% # removed setView(36.39, 49.65, zoom = 11) to allow map zoom to selected area
+  main_map <-  leaflet() %>% addTiles() %>% setView(36.39, 49.65, zoom = 11) %>% 
+      # addSearchOSM() %>% 
+      fitBounds(lng1 = 22.14, lat1 = 52.35,  # set view by extent: p1 - top lext, p2 - bottom right
+                lng2 = 40.22, lat2 = 33.68) %>% # to allow map zoom to selected area
       leafem::addMouseCoordinates() %>%
       addDrawToolbar(
         polylineOptions = FALSE,
@@ -172,8 +174,8 @@ server = function(input, output, session) {
         editOptions = editToolbarOptions(
           edit = TRUE, # hidden edit button
           remove = TRUE),
-      ) %>% addPolygons(data = raion(), weight = 2, fill = F) # now raions are added
-  )
+      ) #%>% addPolygons(data = raion(), weight = 2, fill = F) # now raions are added
+  
   
   output$map <- renderLeaflet({ main_map }) ## () are added as now it is a reactive object
   
@@ -182,6 +184,7 @@ server = function(input, output, session) {
   map <- leafletProxy("map", session)
   
   ## Add admin division layers to map if checkbox "Обрати способ вводу територїї" choused "Вибрти з адмінподілу"  ####
+  # map %>% addPolygons(data = raion(), weight = 2, fill = F)}
   # observeEvent(input , {map %>% addPolygons(data = raion(), weight = 2, fill = F)})
   
   ## Draw polygon ####
