@@ -1,3 +1,5 @@
+# setwd("C:/Mamba/Work/Presentations/2023-03_GBIF_Viewer/all_23-03-20/gbif_shiny_onlineviewer-add_filter_geometry_by_region")
+
 # Biodiversity Viewer v.0.1
 
 # use https://mastering-shiny.org/action-layout.html
@@ -8,6 +10,7 @@
 # library(tidyverse)
 library(dplyr)
 library(shiny)
+library(shinyWidgets)
 # library(shinyjs)
 library(sf)
 library(sp)
@@ -26,8 +29,12 @@ source("scripts/config.R")
 source("functions/polygon_bufferisation.R")
 
 # import data ####
-adm_2 <- st_read("./regions/adm_2.shp")
-## load Red lists ----
+## import spatial data ####
+Ukr_0 <- st_read("regions/gadm41_UKR_0.shp")
+Ukr_1 <- st_read("regions/gadm41_UKR_1.shp")
+Ukr_2 <- st_read("regions/gadm41_UKR_2.shp")
+
+## load Red lists ####
 load(file = "dictionaries/df_protected_status.Rdata")
 load(file = "dictionaries/red_book_vrazlyvyi.Rdata")
 load(file = "dictionaries/red_book_ridkisnyi.Rdata")
@@ -51,25 +58,36 @@ ui = fluidPage(
   titlePanel("Biodiversity Viewer"),
   # Tabs
   tabsetPanel(type = "tabs",
-  ## Tab main map ####
+              ## Tab main map ####
               tabPanel("Карта", 
-  ### Sidebar layout with input and output definitions ####
+                       ### Sidebar layout with input and output definitions ####
                        sidebarLayout(
-  #### Sidebar panel for inputs ####
+                         #### Sidebar panel for inputs ####
                          sidebarPanel(
+                           ## Oblast selection ####
+                           pickerInput('regions', 'Оберіть область', unique(Ukr_1$NL_NAME_1),
+                                       selected = c(unique(Ukr_1$NL_NAME_1)),
+                                       options = list(`actions-box` = TRUE), multiple = T),
+                           ## Raion selection ####
+                           pickerInput('raions', 'Оберіть район',
+                                       unique(Ukr_2$NAME_2),
+                                       selected = NULL, #c(unique(Ukr_2$NAME_2)), # no regions initially selected
+                                       options = list(`actions-box` = TRUE), multiple = T),
+                           ## Select Conservation status ####
                            checkboxGroupInput(
                              inputId = "redbook_finder",
                              label = "Охоронні категорії Червоної книги України",
                              choices = c("вразливий" = "red_book_vrazlyvyi", "рідкісний" = "red_book_ridkisnyi",
-                               "зникаючий" = "red_book_znykaiuchyi", "зниклий в природі" = "red_book_znyklyi_v_pryrodi",
-                               "зниклий" = "red_book_znyklyi", "недостатньо відомий" = "red_book_nedostatno_vidomyi",
-                               "неоцінений" = "red_book_neotsinenyi" ),
+                                         "зникаючий" = "red_book_znykaiuchyi", "зниклий в природі" = "red_book_znyklyi_v_pryrodi",
+                                         "зниклий" = "red_book_znyklyi", "недостатньо відомий" = "red_book_nedostatno_vidomyi",
+                                         "неоцінений" = "red_book_neotsinenyi" ),
                              selected = c("red_book_vrazlyvyi", "red_book_ridkisnyi",
                                           "red_book_znykaiuchyi", "red_book_znyklyi_v_pryrodi",
                                           "red_book_znyklyi", "red_book_nedostatno_vidomyi", 
                                           "red_book_neotsinenyi")
-                             ),
+                           ),
                            
+                           ## Select buffer radius ####
                            radioButtons(
                              inputId = "buffer_radius",
                              label = "Буфер довкола області інтересу",
@@ -79,30 +97,31 @@ ui = fluidPage(
                                "5 км" = 5000,
                                "10 км" = 10000,
                                "20 км" = 20000
-                               ),
-                             selected = 5000
                              ),
-                           
-                           # Butten for send GBIF request
-                           submitButton("Побудувати / Видалити буфер"),
-                           br(),
-                           actionButton("act_get_gbif_data", label = "Отримати GBIF дані"), # на эту кнопку повесить запрос данных из GBIF
+                             selected = 5000
                            ),
-  #### Main map panel for displaying outputs ####
+                           
+                           ## Button for generate buffer ####
+                           #submitButton("Побудувати / Видалити буфер"),
+                           #br(),
+                           ## Button for send GBIF request ####
+                           actionButton("act_get_gbif_data", label = "Отримати GBIF дані"), # на эту кнопку повесить запрос данных из GBIF
+                         ),
+                         #### Main map panel for displaying outputs ####
                          mainPanel(
                            leafletOutput("map",  width = "100%", height="85vh"),
-                           )
                          )
-                       ),
-  ## Tab - Попередній перегляд ####
+                       )
+              ),
+              ## Tab - Попередній перегляд ####
               tabPanel("Попередній перегляд", 
                        
-                       ),
-  ## Tab - Генерування звітів ####              
+              ),
+              ## Tab - Генерування звітів ####              
               tabPanel("Генерування звітів",
                        
-                       ),
-  ## Tab Червона Книга України - for testing ####              
+              ),
+              ## Tab Червона Книга України - for testing ####              
               tabPanel("Червона Книга України",
                        # tableOutput("my_table")
                        DT::dataTableOutput("redbook_table"),
@@ -110,13 +129,18 @@ ui = fluidPage(
   )
 )
 
-# Beckend ####
+# Back end ####
 server = function(input, output, session) {
   
-  reaktive_bufered_polygon_wkt <- reactiveVal() # Create a (single) reactive value which can see all time (global variables)
+  # Create a global reactive value
+  ## Create a global reactive value for WKT guffered polygon
+  reaktive_bufered_polygon_wkt <- reactiveVal() # Create a global reactive value for WKT guffered polygon
   
   ## create the leaflet map ####
-  main_map <- leaflet() %>% addTiles() %>% addSearchOSM() %>% setView(36.39, 49.65, zoom = 11) %>%
+  main_map <-  leaflet() %>% addTiles() %>% #setView(36.39, 49.65, zoom = 11) %>% # to set view around Homilsha forest
+    # addSearchOSM() %>% 
+    #fitBounds(lng1 = 22.14, lat1 = 52.35,  # set view by extent: p1 - top lext, p2 - bottom right # extent is set later
+    #          lng2 = 40.22, lat2 = 33.68) %>% # to allow map zoom to selected area
     leafem::addMouseCoordinates() %>%
     addDrawToolbar(
       polylineOptions = FALSE,
@@ -126,7 +150,7 @@ server = function(input, output, session) {
         repeatMode = F,
         shapeOptions = draw_new_shape_options,
         # zIndexOffset = 30
-        ),
+      ),
       # rectangleOptions = TRUE,
       rectangleOptions = drawRectangleOptions(
         showArea = TRUE,
@@ -141,15 +165,52 @@ server = function(input, output, session) {
       editOptions = editToolbarOptions(
         edit = TRUE, # hidden edit button
         remove = TRUE),
-      
-    ) #  %>% addPolygons(data = adm_2)
-
-  output$map <- renderLeaflet({ main_map })
-
+    )
+  
+  output$map <- renderLeaflet({
+    main_map
+  })
+  
   # create map proxy to make further changes to existing map
   map <- leafletProxy("map", session)
   
+  ## create object with selected oblasts ####
+  obl <- reactive(subset(Ukr_1, Ukr_1$NL_NAME_1 %in% input$regions))
+  obl_bounds <- reactive(obl() %>% st_bbox() %>% as.character()) # to set extent around selected oblasts
+  ## conditional selection of raions based on selected oblast ####
+  observeEvent(input$regions, {
+    clearShapes(map) # clean map
+    updatePickerInput(session = session, inputId = "raions",
+                      choices = subset(unique(Ukr_2$NAME_2), Ukr_2$NL_NAME_1 %in% input$regions),
+                      selected = NULL) # raions are shown but nothing is selected initially
+    map %>%  # oblasts are not added because I don't see a sense in it (YY)
+      addPolygons(data = obl(), weight = 2, fill = F) %>%
+      fitBounds(lng1 = obl_bounds()[1], lat1 = obl_bounds()[2], # set view by extent: p1 - top lext, p2 - bottom right
+                lng2 = obl_bounds()[3], lat2 = obl_bounds()[4]) # extent is set after selection of oblast
+  })
   
+  ## create object with selected raion ##
+  raion <- reactive(subset(Ukr_2, Ukr_2$NAME_2 %in% input$raions))
+  raion_bounds <- reactive(raion() %>% st_bbox() %>% as.character()) # to set extent around selected raions
+  ## change map based on selected raions ####
+  observeEvent(input$raions, {
+    clearShapes(map) # clean map
+    raion_buffered <- polygon_bufferisation(raion(), input$buffer_radius)
+    map %>% 
+      addPolygons(data = raion(), weight = 2, fill = F) %>%
+      fitBounds(lng1 = raion_bounds()[1], lat1 = raion_bounds()[2],  # set view by extent: p1 - top lext, p2 - bottom right
+                lng2 = raion_bounds()[3], lat2 = raion_bounds()[4]) %>% # to allow map zoom to selected area
+      addPolygons(data = raion_buffered, #layerId = id,   # add buffered polygon to map
+                  options = buffered_polygon_options)
+    
+    raion_buffered_geom <- st_geometry(raion_buffered) # to extract geometry
+    raion_buffered_WKT <- st_as_text(raion_buffered_geom) # to transform geometry to WKT
+    reaktive_bufered_polygon_wkt(raion_buffered_WKT)    # write raion_buffered_WKT in my custom global reactive value
+  })
+  
+  ## Add admin division layers to map if checkbox "Обрати способ вводу територїї" choused "Вибрти з адмінподілу"  ####
+  # map %>% addPolygons(data = raion(), weight = 2, fill = F)}
+  # observeEvent(input , {map %>% addPolygons(data = raion(), weight = 2, fill = F)})
   
   ## Draw polygon ####
   # aoi_poly <- eventReactive(input$map_draw_new_feature,{
@@ -172,12 +233,12 @@ server = function(input, output, session) {
     sf_curent_buffered <- polygon_bufferisation(sf_curent_polygon, input$buffer_radius)
     
     map %>% addPolygons(data = sf_curent_buffered, layerId = id,   # add buffered polygon to map
-                         options = buffered_polygon_options 
-                        )
+                        options = buffered_polygon_options 
+    )
     
     curent_buffered_WKT <- st_as_text(sf_curent_buffered) # it work
     reaktive_bufered_polygon_wkt(curent_buffered_WKT)    # write curent_buffered_WKT in my custom global reactive value
-
+    
   })
   
   observeEvent(input$map_draw_edited_features, {
@@ -187,7 +248,7 @@ server = function(input, output, session) {
     curent_polygon <- sp::Polygon(coords) %>% list %>% sp::Polygons(ID=1) %>% list %>% sp::SpatialPolygons()
     sf_curent_polygon <- st_as_sfc(curent_polygon) %>% st_set_crs(4326)
     sf_curent_buffered <- polygon_bufferisation(sf_curent_polygon, input$buffer_radius)
-
+    
     map %>% addPolygons(data = sf_curent_buffered, layerId = id,   # add buffered polygon to map
                         options = buffered_polygon_options
     )
@@ -203,14 +264,13 @@ server = function(input, output, session) {
     reaktive_bufered_polygon_wkt("")    # write curent_buffered_WKT in my custom global reactive value
     # removeShape(map, id_to_del) # TODO it
   })
-
+  
   
   # add bufered polygon on map
-  
-  # # observe({
-  # observeEvent(
-  #   
-  # map %>% addPolygons(data = buffered_polygon())
+  # observe({
+  #   observeEvent(
+  #     map %>% addPolygons(data = buffered_polygon())
+  #     )
   # })
   
   
