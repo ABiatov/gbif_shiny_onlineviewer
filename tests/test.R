@@ -1,24 +1,41 @@
+library(shiny)
+library(ggplot2)
+
 ## Only run examples in interactive R sessions
 if (interactive()) {
   
-  ui <- fluidPage(
-    sliderInput("obs", "Number of observations", 0, 1000, 500),
-    actionButton("goButton", "Go!", class = "btn-success"),
-    plotOutput("distPlot")
-  )
-  
-  server <- function(input, output) {
-    output$distPlot <- renderPlot({
-      # Take a dependency on input$goButton. This will run once initially,
-      # because the value changes from NULL to 0.
-      input$goButton
+  ## App 1: Sample usage
+  shinyApp(
+    ui = fluidPage(
+      column(4,
+             numericInput("x", "Value", 5),
+             br(),
+             actionButton("button", "Show")
+      ),
+      column(8, tableOutput("table"))
+    ),
+    server = function(input, output) {
+      # Take an action every time button is pressed;
+      # here, we just print a message to the console
+      observeEvent(input$button, {
+        cat("Showing", input$x, "rows\n")
+      })
+      # The observeEvent() above is equivalent to:
+      # observe({
+      #    cat("Showing", input$x, "rows\n")
+      #   }) %>%
+      #   bindEvent(input$button)
       
-      # Use isolate() to avoid dependency on input$obs
-      dist <- isolate(rnorm(input$obs))
-      hist(dist)
-    })
-  }
-  
-  shinyApp(ui, server)
-  
-}
+      # Take a reactive dependency on input$button, but
+      # not on any of the stuff inside the function
+      df <- eventReactive(input$button, {
+        head(cars, input$x)
+      })
+      output$table <- renderTable({
+        df()
+      })
+    }
+  )
+}  
+
+

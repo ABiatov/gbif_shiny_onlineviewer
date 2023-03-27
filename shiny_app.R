@@ -115,7 +115,7 @@ ui = fluidPage(
               ),
               ## Tab - Попередній перегляд ####
               tabPanel("Попередній перегляд", 
-                       
+                       DT::dataTableOutput("gbif_table")
               ),
               ## Tab - Генерування звітів ####              
               tabPanel("Генерування звітів",
@@ -272,6 +272,47 @@ server = function(input, output, session) {
   #     map %>% addPolygons(data = buffered_polygon())
   #     )
   # })
+
+  specieses_list <- eventReactive(eventExpr = input$act_get_gbif_data,
+                                  valueExpr = { red_book_vrazlyvyi
+                                    # c("red_book_vrazlyvyi", "red_book_ridkisnyi",
+                                    #   "red_book_znykaiuchyi", "red_book_znyklyi_v_pryrodi",
+                                    #   "red_book_znyklyi", "red_book_nedostatno_vidomyi", 
+                                    #   "red_book_neotsinenyi")
+                                  }
+  )
+  
+
+  recieved_data <- eventReactive(eventExpr = input$act_get_gbif_data,
+                                 valueExpr = {
+                                   occ_search(scientificName = specieses_list(),
+                                              return = "data",
+                                              hasCoordinate = T,
+                                              geometry = reaktive_bufered_polygon_wkt(),
+                                              limit = query_limit)
+                                 }
+  )
+
+  df_recieved_data <- reactive(rbindlist(lapply(recieved_data(), function(x) x$data), fill = TRUE, use.names = TRUE))
+
+
+
+  # add request result to webmap
+  observe({
+    map %>%
+      addCircleMarkers(data = df_recieved_data(), lng = ~decimalLongitude, lat = ~decimalLatitude, # add circle markers from dataframe
+                       # radius = 10,  # static radius
+                       radius = 2,  # calculation radius
+                       color = "red",
+                       popup = ~name # simple popup from field "scientificName"
+                       # popup = ~paste0("<center>" ,"<b>", scientificName, "</b>", "</center>", "<br>",   # popup with HTML
+                       #                 "Население: ", population, " чел." )
+      )
+  }
+  )
+
+  # render result of request in tab "Попередній перегляд"
+  output$gbif_table <- DT::renderDataTable(df_recieved_data())
   
   
   ## Red book table ####
@@ -280,6 +321,12 @@ server = function(input, output, session) {
   observe({   # применяется для доступа к реактивным переменным, распечатки их в консоль и отладки
     print("reaktive_bufered_polygon_wkt: ")
     print(reaktive_bufered_polygon_wkt())
+    print("redbook_finder: ")
+    print(input$redbook_finder)
+    print("specieses_list: ")
+    print(specieses_list())
+    print("recieved_data: ")
+    print(str(recieved_data()))
     print("done")
   })
   
