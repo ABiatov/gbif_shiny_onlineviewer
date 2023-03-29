@@ -4,6 +4,7 @@
 # Environment preparation ####
 rm(list = ls()) # Reset R`s brain
 library(readxl)
+library(dplyr)
 
 # Inputs ####
 work_path <- "C:/Users/admin/Documents/GitHub/gbif_shiny_onlineviewer/dictionaries"
