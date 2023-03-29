@@ -21,6 +21,7 @@ library(leaflet)
 library(leaflet.extras)
 library(leafem)
 library(DT)
+library(data.table)
 
 # TODO add function polygon_bufferisation(polygon, radius)
 
