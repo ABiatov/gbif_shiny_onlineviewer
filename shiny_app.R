@@ -325,9 +325,9 @@ server = function(input, output, session) {
     print("redbook_finder: ")
     print(input$redbook_finder)
     print("specieses_list: ")
-    print(specieses_list())
+    print(str(specieses_list()))
     print("recieved_data: ")
-    print(str(recieved_data()))
+    # print(str(recieved_data()))
     print("done")
   })
   
