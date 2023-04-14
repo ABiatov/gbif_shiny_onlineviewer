@@ -4,6 +4,7 @@
 # Environment preparation ####
 rm(list = ls()) # Reset R`s brain
 library(readxl)
+library(dplyr)
 
 # Inputs ####
 work_path <- "C:/Users/admin/Documents/GitHub/gbif_shiny_onlineviewer/dictionaries"
@@ -45,6 +46,7 @@ red_book_ridkisnyi <- subset(df_protected_status, df_protected_status[[redbook_s
 
 # "зникаючий"
 red_book_znykaiuchyi <- subset(df_protected_status, df_protected_status[[redbook_status_field]] == "зникаючий")[[species_name]]
+
 
 # "зниклий"
 red_book_znyklyi <- subset(df_protected_status, df_protected_status[[redbook_status_field]] == "зниклий")[[species_name]]

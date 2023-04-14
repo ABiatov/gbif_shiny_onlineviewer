@@ -1,0 +1,236 @@
+Column Name,Meta Data,Minimal,Default,Custom
+gbifID,Gbif ID of Occurrence,0,0,1
+abstract,x,0,0,1
+accessRights,Access Rights,0,0,1
+accrualMethod,x,0,0,1
+accrualPeriodicity,x,0,0,1
+accrualPolicy,x,0,0,1
+alternative,x,0,0,1
+audience,x,0,0,1
+available,x,0,0,1
+bibliographicCitation,Bibliographic Citation of occurrence,0,0,1
+conformsTo,x,0,0,1
+contributor,x,0,0,1
+coverage,x,0,0,1
+created,Date occurrence was Created,0,0,1
+creator,x,0,0,1
+date,Date occurrence occurred,0,0,1
+dateAccepted,Date occurrence was accepted,0,0,1
+dateCopyrighted,Date occurrence was copyrighted,0,0,1
+dateSubmitted,x,0,0,1
+description,x,0,0,1
+educationLevel,x,0,0,1
+extent,x,0,0,1
+format,x,0,0,1
+hasFormat,x,0,0,1
+hasPart,x,0,0,1
+hasVersion,x,0,0,1
+identifier,x,0,0,1
+instructionalMethod,x,0,0,1
+isFormatOf,x,0,0,1
+isPartOf,x,0,0,1
+isReferencedBy,x,0,0,1
+isReplacedBy,x,0,0,1
+isRequiredBy,x,0,0,1
+isVersionOf,x,0,0,1
+issued,x,0,0,1
+language,x,0,0,1
+license,x,0,0,1
+mediator,x,0,0,1
+medium,x,0,0,1
+modified,x,0,0,1
+provenance,x,0,0,1
+publisher,x,0,0,1
+references,References,0,1,1
+relation,x,0,0,1
+replaces,x,0,0,1
+requires,x,0,0,1
+rights,x,0,1,1
+rightsHolder,x,0,1,1
+source,x,0,0,1
+spatial,x,0,0,1
+subject,x,0,0,1
+tableOfContents,x,0,0,1
+temporal,x,0,0,1
+title,x,0,0,1
+type,x,0,0,1
+valid,x,0,0,1
+institutionID,ID of institution occurrence was collected with,0,0,1
+collectionID,ID of collection occurrence is a part of,0,0,1
+datasetID,ID of dataset occurrence is a part of,0,0,1
+institutionCode,Code of institution occurrence was collected with,0,1,1
+collectionCode,Code of collection occurrence is a part of,0,0,1
+datasetName,Name of Dataset,0,0,1
+ownerInstitutionCode,x,0,0,1
+basisOfRecord,x,0,0,1
+informationWithheld,x,0,1,1
+dataGeneralizations,x,0,0,1
+dynamicProperties,x,0,0,1
+occurrenceID,ID of occurrence,0,0,1
+catalogNumber,x,0,1,1
+recordNumber,x,0,0,1
+recordedBy,x,0,0,1
+individualCount,x,0,0,1
+organismQuantity,x,0,0,1
+organismQuantityType,x,0,0,1
+sex,Sex of observed organism,0,1,1
+lifeStage,Lifestage of observed organism,0,1,1
+reproductiveCondition,Reproductive Condition of observed organism,0,0,1
+behavior,behavior of observed organism,0,0,1
+establishmentMeans,x,0,0,1
+occurrenceStatus,x,0,0,1
+preparations,x,0,0,1
+disposition,x,0,0,1
+associatedReferences,x,0,0,1
+associatedSequences,x,0,0,1
+associatedTaxa,x,0,0,1
+otherCatalogNumbers,x,0,0,1
+occurrenceRemarks,x,0,0,1
+organismID,ID of organism,0,0,1
+organismName,x,0,0,1
+organismScope,x,0,0,1
+associatedOccurrences,x,0,0,1
+associatedOrganisms,x,0,0,1
+previousIdentifications,x,0,0,1
+organismRemarks,x,0,0,1
+materialSampleID,x,0,0,1
+eventID,x,0,0,1
+parentEventID,x,0,0,1
+fieldNumber,x,0,0,1
+eventDate,Event Date,0,0,1
+eventTime,Event Time,0,0,1
+startDayOfYear,x,0,0,1
+endDayOfYear,x,0,0,1
+year,Year of observation,0,0,1
+month,Month of observation,0,0,1
+day,Day of observation,0,0,1
+verbatimEventDate,Date of observation,0,1,1
+habitat,x,0,0,1
+samplingProtocol,x,0,0,1
+samplingEffort,x,0,0,1
+sampleSizeValue,x,0,0,1
+sampleSizeUnit,x,0,0,1
+fieldNotes,x,0,0,1
+eventRemarks,x,0,0,1
+locationID,x,0,0,1
+higherGeographyID,x,0,0,1
+higherGeography,x,0,0,1
+continent,x,0,0,1
+waterBody,x,0,0,1
+islandGroup,x,0,0,1
+island,x,0,0,1
+countryCode,Country Code,0,1,1
+stateProvince,x,0,0,1
+county,x,0,0,1
+municipality,x,0,0,1
+locality,x,0,0,1
+verbatimLocality,x,0,0,1
+verbatimElevation,Elevation of occurrence,0,0,1
+verbatimDepth,Depth of occurrence,0,0,1
+minimumDistanceAboveSurfaceInMeters,x,0,0,1
+maximumDistanceAboveSurfaceInMeters,x,0,0,1
+locationAccordingTo,x,0,0,1
+locationRemarks,x,0,0,1
+decimalLatitude,Decimal Latitude of Occurrence,1,1,1
+decimalLongitude,Decimal Longitude of Occurrence,1,1,1
+coordinateUncertaintyInMeters,x,0,1,1
+coordinatePrecision,x,0,0,1
+pointRadiusSpatialFit,x,0,0,1
+verbatimCoordinateSystem,x,0,0,1
+verbatimSRS,x,0,0,1
+footprintWKT,x,0,0,1
+footprintSRS,x,0,0,1
+footprintSpatialFit,x,0,0,1
+georeferencedBy,x,0,0,1
+georeferencedDate,x,0,0,1
+georeferenceProtocol,x,0,0,1
+georeferenceSources,x,0,0,1
+georeferenceVerificationStatus,x,0,0,1
+georeferenceRemarks,x,0,0,1
+geologicalContextID,x,0,0,1
+earliestEonOrLowestEonothem,x,0,0,1
+latestEonOrHighestEonothem,x,0,0,1
+earliestEraOrLowestErathem,x,0,0,1
+latestEraOrHighestErathem,x,0,0,1
+earliestPeriodOrLowestSystem,x,0,0,1
+latestPeriodOrHighestSystem,x,0,0,1
+earliestEpochOrLowestSeries,x,0,0,1
+latestEpochOrHighestSeries,x,0,0,1
+earliestAgeOrLowestStage,x,0,0,1
+latestAgeOrHighestStage,x,0,0,1
+lowestBiostratigraphicZone,x,0,0,1
+highestBiostratigraphicZone,x,0,0,1
+lithostratigraphicTerms,x,0,0,1
+group,x,0,0,1
+formation,x,0,0,1
+member,x,0,0,1
+bed,x,0,0,1
+identificationID,x,0,0,1
+identificationQualifier,x,0,0,1
+typeStatus,x,0,0,1
+identifiedBy,x,0,0,1
+dateIdentified,x,0,0,1
+identificationReferences,x,0,0,1
+identificationVerificationStatus,x,0,0,1
+identificationRemarks,x,0,0,1
+taxonID,x,1,1,1
+scientificNameID,x,0,0,1
+acceptedNameUsageID,x,0,0,1
+parentNameUsageID,x,0,0,1
+originalNameUsageID,x,0,0,1
+nameAccordingToID,x,0,0,1
+namePublishedInID,x,0,0,1
+taxonConceptID,x,0,0,1
+scientificName,Scientific Name of Organism,0,1,1
+acceptedNameUsage,x,0,0,1
+parentNameUsage,x,0,0,1
+originalNameUsage,x,0,0,1
+nameAccordingTo,x,0,0,1
+namePublishedIn,x,0,0,1
+namePublishedInYear,x,0,0,1
+higherClassification,x,0,0,1
+kingdom,Kingdom,0,1,1
+phylum,Phylum,0,1,1
+class,Class,0,1,1
+order,Order,0,1,1
+family,Family,0,1,1
+genus,Genus,0,1,1
+subgenus,Subgenus,0,1,1
+specificEpithet,x,0,1,1
+infraspecificEpithet,x,0,1,1
+taxonRank,x,0,1,1
+verbatimTaxonRank,x,0,0,1
+vernacularName,x,0,0,1
+nomenclaturalCode,x,0,0,1
+taxonomicStatus,x,0,0,1
+nomenclaturalStatus,x,0,0,1
+taxonRemarks,x,0,0,1
+datasetKey,x,0,1,1
+publishingCountry,x,0,0,1
+lastInterpreted,x,0,0,1
+elevation,x,0,0,1
+elevationAccuracy,x,0,0,1
+depth,x,0,0,1
+depthAccuracy,x,0,0,1
+distanceAboveSurface,x,0,0,1
+distanceAboveSurfaceAccuracy,x,0,0,1
+issue,x,0,0,1
+mediaType,x,0,0,1
+hasCoordinate,x,0,0,1
+hasGeospatialIssues,x,0,1,1
+taxonKey,Identification key for taxon,1,0,1
+kingdomKey,Identification key for kingdom,0,0,1
+phylumKey,Identification key for phylum,0,0,1
+classKey,Identification key for class,0,0,1
+orderKey,Identification key for order,0,0,1
+familyKey,Identification key for family,0,0,1
+genusKey,Identification key for genus,0,0,1
+subgenusKey,Identification key for subgenus,0,0,1
+speciesKey,Identification key for species,0,0,1
+species,Species Scientific Name,1,1,1
+genericName,x,0,1,1
+typifiedName,x,0,0,1
+protocol,x,0,0,1
+lastParsed,x,0,0,1
+lastCrawled,x,0,0,1
+repatriated,x,0,0,1

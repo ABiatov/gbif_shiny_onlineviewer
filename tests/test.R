@@ -1,24 +1,31 @@
+library(shiny)
+
 ## Only run examples in interactive R sessions
 if (interactive()) {
   
   ui <- fluidPage(
-    sliderInput("obs", "Number of observations", 0, 1000, 500),
-    actionButton("goButton", "Go!", class = "btn-success"),
-    plotOutput("distPlot")
+    sidebarLayout(
+      sidebarPanel(
+        fileInput("file1", "Choose CSV File", accept = ".csv"),
+        checkboxInput("header", "Header", TRUE)
+      ),
+      mainPanel(
+        tableOutput("contents")
+      )
+    )
   )
   
   server <- function(input, output) {
-    output$distPlot <- renderPlot({
-      # Take a dependency on input$goButton. This will run once initially,
-      # because the value changes from NULL to 0.
-      input$goButton
+    output$contents <- renderTable({
+      file <- input$file1
+      ext <- tools::file_ext(file$datapath)
       
-      # Use isolate() to avoid dependency on input$obs
-      dist <- isolate(rnorm(input$obs))
-      hist(dist)
+      req(file)
+      validate(need(ext == "csv", "Please upload a csv file"))
+      
+      read.csv(file$datapath, header = input$header)
     })
   }
   
   shinyApp(ui, server)
-  
 }
