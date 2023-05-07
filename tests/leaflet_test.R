@@ -10,7 +10,7 @@ name <- c("Gomilsha", "Zmiiv", "Mokhnach")
 villages <- data.frame(x, y, name)
 villages$population <- c(466, 13737, 231 )
   
-leaflet(
+map <- leaflet(
   options = leafletOptions(
     # dragging = FALSE, # ограничивает перемещение
     minZoom = 5,  # ограничивает zoom
@@ -40,4 +40,11 @@ leaflet(
                                    "Население: ", population, " чел." )
                    )
 
+map
+
+print("Map str: ")
+print(str(getMapData(map)))
+
+print("Map data: ")
+print(getMapData(map))
 

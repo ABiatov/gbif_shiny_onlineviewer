@@ -274,19 +274,26 @@ server = function(input, output, session) {
   #     )
   # })
 
-  specieses_list <- eventReactive(eventExpr = input$act_get_gbif_data,
-                                  valueExpr = { red_book_vrazlyvyi
-                                    # c("red_book_vrazlyvyi", "red_book_ridkisnyi",
-                                    #   "red_book_znykaiuchyi", "red_book_znyklyi_v_pryrodi",
-                                    #   "red_book_znyklyi", "red_book_nedostatno_vidomyi", 
-                                    #   "red_book_neotsinenyi")
+  species_list <- eventReactive(eventExpr = input$redbook_finder,
+                                  valueExpr = {
+                                    vectors_list <- list(red_book_vrazlyvyi, red_book_ridkisnyi,
+                                                         red_book_znykaiuchyi, red_book_znyklyi_v_pryrodi,
+                                                         red_book_znyklyi, red_book_nedostatno_vidomyi,
+                                                         red_book_neotsinenyi)
+                                    names(vectors_list) <- c("red_book_vrazlyvyi", "red_book_ridkisnyi",
+                                                             "red_book_znykaiuchyi", "red_book_znyklyi_v_pryrodi",
+                                                             "red_book_znyklyi", "red_book_nedostatno_vidomyi",
+                                                             "red_book_neotsinenyi")
+                                    spec_list <- vectors_list[input$redbook_finder]
+                                    names(spec_list) <- NULL
+                                    paste(unlist(spec_list))
                                   }
   )
   
 
   recieved_data <- eventReactive(eventExpr = input$act_get_gbif_data,
                                  valueExpr = {
-                                   occ_search(scientificName = specieses_list(),
+                                   occ_search(scientificName = species_list(),
                                               return = "data",
                                               hasCoordinate = T,
                                               geometry = reaktive_bufered_polygon_wkt(),
@@ -324,11 +331,19 @@ server = function(input, output, session) {
     print(reaktive_bufered_polygon_wkt())
     print("redbook_finder: ")
     print(input$redbook_finder)
-    print("specieses_list: ")
-    print(str(specieses_list()))
-    print("recieved_data: ")
+    print("species_list: ")
+    print(str(species_list()))
+  	print(length(species_list()))
+    # print("recieved_data: ")
     # print(str(recieved_data()))
+	print("df_recieved_data: ")
+    # print(str(df_recieved_data()))
+    # print(head(df_recieved_data()))
+    print(nrow(df_recieved_data()))
+    # print("Map info: ")
+    # print(getMapData(map))
     print("done")
+	print(Sys.time())
   })
   
   
