@@ -1,5 +1,5 @@
 CRS_used_in_calculations <- 3537 # WGS 84 / North Pole LAEA Europe
-query_limit = 1000
+query_limit = 50
 
 
 # draw_new_shape_options
