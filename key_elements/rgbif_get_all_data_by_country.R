@@ -35,16 +35,23 @@ response = occ_download(
 )
 
 gbif_dataset_metadata <- occ_download_meta(response)
-gbif_dataset_doi <- gbif_dataset_metadata$doi
 
-print(paste0("DOI: ", gbif_dataset_doi))
-print(paste0("https://doi.org/", gbif_dataset_doi))
+print(paste0("DOI: ", gbif_dataset_metadata$doi))
+print(paste0("https://doi.org/", gbif_dataset_metadata$doi)) # Example: https://doi.org/10.15468/dl.qpx7ya
+print(paste0("Dataset key: ", gbif_dataset_metadata$key))
+print(paste0("Download link: ", gbif_dataset_metadata$downloadLink))
 
-# You need to wait a few minutes until the dataset is ready for the server.
+
+# You need to wait for 20-25 minutes until the dataset is ready for the server.
+# Whan dataset show by doi link you can continue script
 
 # rm(df_dataset)
 
-damp_dataset <- occ_download_get(response, overwrite = TRUE)
+# damp_dataset <- occ_download_get(response, overwrite = TRUE)
+
+damp_dataset <- occ_download_get(gbif_dataset_metadata$key)
+
+
 df_dataset <-   occ_download_import(damp_dataset) %>%
   rename(Latitude = decimalLatitude, Longitude = decimalLongitude)
 
@@ -90,7 +97,7 @@ ggplot()+
   base_map(bbox = st_bbox(gbif_sf_dataset), 
            basemap = 'mapnik', 
            increase_zoom = 2) +
-  geom_sf(data=sf_points_clipped, aes(color="red"),size=2)+
+  geom_sf(data=gbif_sf_dataset, aes(color="red"),size=2)+
   # scale_colour_manual(values = kingdom_colors, name=NULL ) +
   theme_minimal()+
   theme(axis.text = element_blank())+
@@ -99,12 +106,12 @@ ggplot()+
   labs(caption = "Basemap attribution: © OpenStreetMap contributors")
 
 # Save GBIF points as Robject
-save(gbif_sf_dataset, file = "data/gbif_sf_dataset.Rdata")
 
 save(response, file = "data/gbif_response.Rdata")
 
 save(gbif_dataset_metadata, file = "data/gbif_dataset_metadata.Rdata")
 
+save(gbif_sf_dataset, file = "data/gbif_sf_dataset.Rdata")
 
 
 # Cleaning workspace ####
