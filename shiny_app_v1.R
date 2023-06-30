@@ -31,7 +31,7 @@ source("functions/polygon_bufferisation.R")
 
 # import data ####
 ## import spatial data ####
-Ukr_0 <- st_read("regions/gadm41_UKR_0.shp")
+# Ukr_0 <- st_read("regions/gadm41_UKR_0.shp")
 Ukr_1 <- st_read("regions/gadm41_UKR_1.shp")
 Ukr_2 <- st_read("regions/gadm41_UKR_2.shp")
 
@@ -181,6 +181,8 @@ server = function(input, output, session) {
   ## conditional selection of raions based on selected oblast ####
   observeEvent(input$regions, {
     clearShapes(map) # clean map
+    clearMarkers(map) # clean previously loaded markers
+    
     updatePickerInput(session = session, inputId = "raions",
                       choices = subset(unique(Ukr_2$NAME_2), Ukr_2$NL_NAME_1 %in% input$regions),
                       selected = NULL) # raions are shown but nothing is selected initially
@@ -196,7 +198,11 @@ server = function(input, output, session) {
   ## change map based on selected raions ####
   observeEvent(input$raions, {
     clearShapes(map) # clean map
-    raion_buffered <- polygon_bufferisation(raion(), input$buffer_radius)
+    clearMarkers(map) # clean previously loaded markers
+    
+    raion_buffered <- polygon_bufferisation(raion(), input$buffer_radius) %>%
+      st_union() # dissolve all created polygons to avoid overlaps
+    
     map %>% 
       addPolygons(data = raion(), weight = 2, fill = F) %>%
       fitBounds(lng1 = raion_bounds()[1], lat1 = raion_bounds()[2],  # set view by extent: p1 - top lext, p2 - bottom right
@@ -204,8 +210,9 @@ server = function(input, output, session) {
       addPolygons(data = raion_buffered, #layerId = id,   # add buffered polygon to map
                   options = buffered_polygon_options)
     
-    raion_buffered_geom <- st_geometry(raion_buffered) # to extract geometry
-    raion_buffered_WKT <- st_as_text(raion_buffered_geom) # to transform geometry to WKT
+    # raion_buffered_geom <- st_geometry(raion_buffered) # to extract geometry
+    # raion_buffered_WKT <- st_as_text(raion_buffered_geom) # to transform geometry to WKT
+    raion_buffered_WKT <- st_as_text(raion_buffered) # to transform geometry to WKT
     reaktive_bufered_polygon_wkt(raion_buffered_WKT)    # write raion_buffered_WKT in my custom global reactive value
   })
   
@@ -222,6 +229,7 @@ server = function(input, output, session) {
   
   observeEvent(input$map_draw_new_feature, {
     clearShapes(map) # clean map
+    clearMarkers(map) # clean previously loaded markers
     # Leaflet ID to edit
     id = input$map_draw_new_feature$properties$"_leaflet_id"
     print("leaflet_id")
@@ -244,6 +252,7 @@ server = function(input, output, session) {
   
   observeEvent(input$map_draw_edited_features, {
     clearShapes(map) # clean map
+    clearMarkers(map) # clean previously loaded markers
     # generate new buffer
     coords <- input$map_draw_edited_features$features[[1]]$geometry$coordinates %>% unlist %>% matrix(nc = 2, byrow = T)
     curent_polygon <- sp::Polygon(coords) %>% list %>% sp::Polygons(ID=1) %>% list %>% sp::SpatialPolygons()
@@ -262,6 +271,7 @@ server = function(input, output, session) {
   # Delete buffered polygon with source polygon
   observeEvent(input$map_draw_deleted_features, {
     clearShapes(map) # delet all shapes from map
+    clearMarkers(map) # clean previously loaded markers
     reaktive_bufered_polygon_wkt("")    # write curent_buffered_WKT in my custom global reactive value
     # removeShape(map, id_to_del) # TODO it
   })
