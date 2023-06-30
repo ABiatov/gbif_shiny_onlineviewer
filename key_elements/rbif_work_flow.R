@@ -40,6 +40,8 @@ class(df_dataset)
 # str(df_dataset)
 
 
+#
+
 # Preview result
 sf_points <- st_as_sf(df_dataset, dim = "XY", remove = FALSE, na.fail = F, 
                       coords = c("Longitude", "Latitude"), crs = "+proj=longlat +datum=WGS84 +no_defs")

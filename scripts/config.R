@@ -19,10 +19,11 @@ fields_dict_red_book_ua <- c("scientificName", "RedBookUA")
 
 fields_list_to_DF_PREVIEW <- c("key", "scientificName", 
                                "decimalLatitude", "decimalLongitude",
-                               "kingdom", "classKey",
+                               "kingdom", "classKey", "kingdomKey",
                                "eventDate", "datasetKey",
                                "iucnRedListCategory", "taxonKey",
-                               "kingdomKey"
+                               "identifier.1", "georeferencedBy", "georeferenceProtocol", "associatedReferences",
+                               "verbatimLocality", "occurrenceID", "coordinateUncertaintyInMeters"
                                )
 
 fields_as_factor <- c("scientificName", "kingdom", "classKey", 
