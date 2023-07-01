@@ -19,8 +19,11 @@ require(writexl)
 library(magrittr)
 library(officer)
 
+library(leaflet) # it need just for correct import some function from config.R It don't use in this script.
+library(leaflet.extras) # it need just for correct import some function from config.R It don't use in this script.
+
 # Calling custom function
-source("scripts/config.R")
+source("scripts/config_base_script.R")
 source("functions/import_dictionaries.R")
 
 ## INPUTS ####
@@ -133,6 +136,27 @@ DF_PREPRINT <- DF_REPORT %>%
 sf_points <- st_as_sf(DF_PREVIEW, dim = "XY", remove = FALSE, na.fail = F, 
                    coords = c("Longitude", "Latitude"), crs = "+proj=longlat +datum=WGS84 +no_defs")
 
+
+class(sf_points)
+
+sf_recieved_data <- st_intersection(sf_points, aoi_buffered) %>%
+  left_join(red_book_ua) %>%
+  left_join(dict_iucn_category) %>%
+  dplyr::select(all_of(refactor_fields_list_to_DF_REPORT))
+
+class(sf_recieved_data)
+
+df_recieved_data <- st_drop_geometry(sf_recieved_data)
+
+class(df_recieved_data)
+
+toString(nrow(df_recieved_data))
+
+
+write_xlsx(sf_points, "outputs/sf_points.xlsx")
+
+
+
 # TODO generate Simple map wiz extent aoi_buffered +- 5%
 
 src <- tempfile(fileext = ".png")
@@ -163,6 +187,7 @@ my_doc <- my_doc %>%
   body_add_par(txt_report_header, style = "heading 1") %>% 
   body_add_par("", style = "Normal") %>% # blank paragraph
   body_add_par(txt_about_gbif_viewer, style = "Normal") %>% 
+  body_add_par("", style = "Normal") %>% # blank paragraph
   body_add_img(src = src, width = 5, height = 5, style = "centered") %>%
   body_add_par("", style = "Normal") %>% # blank paragraph
   body_add_par("Перелік видів", style = "heading 2") %>% 
@@ -172,3 +197,10 @@ print(my_doc, target = "outputs/report.docx")
 
 # Cleaning workspace ####
 # rm(list = ls()) # Reset R`s brain
+
+date <- format(Sys.Date(), "%Y-%m-%d")
+text_with_date <- paste("Звіт згенеровано", date)
+text_with_date
+date
+str(date)
+str(text_with_date)
