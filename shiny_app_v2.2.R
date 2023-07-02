@@ -1,4 +1,4 @@
-# setwd("C:/Mamba/Work/Presentations/2023-03_GBIF_Viewer/all_23-05-11/gbif_shiny_onlineviewer-main")
+setwd("C:/Mamba/Work/Presentations/2023-03_GBIF_Viewer/all_23-05-11/gbif_shiny_onlineviewer-main")
 
 # Biodiversity Viewer v.0.1
 
@@ -32,28 +32,64 @@ source("functions/polygon_bufferisation.R")
 Ukr_Obl <- st_read("adm_shp/Ukr_Obl_NEW.shp")
 Ukr_Rai <- st_read("adm_shp/Ukr_Raion_NEW.shp")
 Ukr_OTG <- st_read("adm_shp/Ukr_OTG_NEW.shp")
-
+Ukr_OTG <- Ukr_OTG[order(Ukr_OTG$OTG_name), ]         # to sort OTG names similarly
+# Create vector with OTG
+choices_OTG <- Ukr_OTG$shapeID
+names(choices_OTG) <- Ukr_OTG$OTG_name
+choices_OTG <- choices_OTG[order(names(choices_OTG))] # to sort OTG names similarly
 
 ## load Red lists ####
 load(file = "dictionaries/df_protected_status.Rdata")
-# load(file = "dictionaries/red_book_vrazlyvyi.Rdata")
-# load(file = "dictionaries/red_book_ridkisnyi.Rdata")
-# load(file = "dictionaries/red_book_znykaiuchyi.Rdata")
-# load(file = "dictionaries/red_book_znyklyi_v_pryrodi.Rdata")
-# load(file = "dictionaries/red_book_znyklyi.Rdata")
-# load(file = "dictionaries/red_book_nedostatno_vidomyi.Rdata")
-# load(file = "dictionaries/red_book_neotsinenyi.Rdata")
-# load(file = "dictionaries/bern_appendix_2.Rdata")
-# load(file = "dictionaries/bern_appendix_3.Rdata")
-# load(file = "dictionaries/bern_resolution_6.Rdata")
-# load(file = "dictionaries/redlist_poltavska.Rdata")
-# load(file = "dictionaries/redlist_chernivetska.Rdata")
-# load(file = "dictionaries/invasive_specieses.Rdata")
+load(file = "dictionaries/red_book_vrazlyvyi.Rdata")
+load(file = "dictionaries/red_book_ridkisnyi.Rdata")
+load(file = "dictionaries/red_book_znykaiuchyi.Rdata")
+load(file = "dictionaries/red_book_znyklyi_v_pryrodi.Rdata")
+load(file = "dictionaries/red_book_znyklyi.Rdata")
+load(file = "dictionaries/red_book_nedostatno_vidomyi.Rdata")
+load(file = "dictionaries/red_book_neotsinenyi.Rdata")
+load(file = "dictionaries/bern_appendix_2.Rdata")
+load(file = "dictionaries/bern_appendix_3.Rdata")
+load(file = "dictionaries/bern_resolution_6.Rdata")
+load(file = "dictionaries/redlist_poltavska.Rdata")
+load(file = "dictionaries/redlist_chernivetska.Rdata")
+load(file = "dictionaries/invasive_specieses.Rdata")
 
 df_redbook <- dplyr::select(df_protected_status, all_of(c("base_name", "scientificName", "nameUk", "ЧКУ", "kingdom", "phylum", "class"))) %>% filter(ЧКУ != "NA")
 
 ## load prepared GBIF data ####
 load(file = "data/gbif_sf_dataset.Rdata")
+
+## Preparation of GBIF data -----
+# Originally these steps have to be done in separate script and performed once a month after downloading
+
+## Delete atlas data
+gbif_sf_dataset <- subset(gbif_sf_dataset, gbif_sf_dataset$datasetName != "EBCC Atlas of European Breeding Birds")
+
+## Lists of columns
+# for full table (excel)
+colnames_set1 <- c("gbifID", "bibliographicCitation", "identifier", "license", "publisher", "references",
+                   "rightsHolder", "type", "institutionID", "collectionID", "datasetID", "institutionCode",
+                   "collectionCode", "datasetName", "ownerInstitutionCode", "basisOfRecord", "informationWithheld",
+                   "occurrenceID", "catalogNumber", "recordNumber", "recordedBy", "recordedByID", "individualCount",
+                   "organismQuantity", "organismQuantityType", "sex", "lifeStage", "reproductiveCondition", "behavior",
+                   "establishmentMeans", "degreeOfEstablishment", "georeferenceVerificationStatus", "occurrenceStatus",
+                   "preparations", "disposition", "associatedReferences", "associatedSequences", "otherCatalogNumbers",
+                   "occurrenceRemarks", "organismID", "organismScope", "materialSampleID", "eventID", "parentEventID",
+                   "eventDate", "eventTime", "year", "month", "day", "verbatimEventDate", "habitat", "samplingProtocol",
+                   "sampleSizeValue", "sampleSizeUnit", "samplingEffort", "fieldNotes", "eventRemarks", "locationID",
+                   "waterBody", "locality", "verbatimLocality", "Latitude", "Longitude", "coordinateUncertaintyInMeters",
+                   "footprintWKT", "identifiedBy", "dateIdentified", "taxonID", "acceptedNameUsageID",
+                   "parentNameUsageID", "scientificName", "kingdom", "phylum", "class", "order", "family", "genus",
+                   "genericName", "infragenericEpithet", "specificEpithet", "infraspecificEpithet", "taxonRank",
+                   "vernacularName", "taxonomicStatus", "datasetKey", "publishingCountry", "lastInterpreted", "issue",
+                   "mediaType", "taxonKey", "acceptedTaxonKey", "kingdomKey", "phylumKey", "classKey", "orderKey",
+                   "familyKey", "genusKey", "speciesKey", "species", "acceptedScientificName", "verbatimScientificName",
+                   "typifiedName", "iucnRedListCategory")
+
+# for reduced table (to show the output in the application)
+colnames_set2 <- c("publisher", "datasetName", "recordedBy", "eventDate", "Latitude", "Longitude", "kingdom",
+                   "phylum", "class", "order", "family", "species")
+## End Preparation of GBIF data -----
 
 # Frontend ####
 ui = fluidPage(
@@ -68,7 +104,7 @@ ui = fluidPage(
                          #### Sidebar panel for inputs ####
                          sidebarPanel(
                            ## Oblast selection ####
-                           pickerInput('regions', 'Оберіть область', unique(Ukr_Obl$obl_name),
+                           pickerInput('regions', 'Оберіть область', sort(unique(Ukr_Obl$obl_name)),
                                        selected = c(unique(Ukr_Obl$obl_name)),
                                        options = list(`actions-box` = TRUE), multiple = T),
                            ## Raion selection ####
@@ -78,7 +114,7 @@ ui = fluidPage(
                                        options = list(`actions-box` = TRUE), multiple = T),
                            ## OTG selection ####
                            pickerInput('OTG', 'Оберіть територіальну громаду',
-                                       unique(Ukr_OTG$shapeID),
+                                       choices = choices_OTG,
                                        selected = NULL,
                                        options = list(`actions-box` = TRUE), multiple = T),
                            ## Select buffer radius ####
@@ -111,7 +147,7 @@ ui = fluidPage(
               ),
               ## Tab - Попередній перегляд ####
               tabPanel("Попередній перегляд", 
-                       DT::dataTableOutput("gbif_table")
+                       DT::dataTableOutput("gbif_table_set2")
               ),
               ## Tab - Генерування звітів ####              
               tabPanel("Генерування звітів",
@@ -179,7 +215,7 @@ server = function(input, output, session) {
     clearMarkers(map) # clean previously loaded markers
     
     updatePickerInput(session = session, inputId = "raions",
-                      choices = subset(unique(Ukr_Rai$raion_name), Ukr_Rai$obl_name %in% input$regions),
+                      choices = sort(subset(unique(Ukr_Rai$raion_name), Ukr_Rai$obl_name %in% input$regions)),
                       selected = NULL) # raions are shown but nothing is selected initially
     
     obl_geom <- st_geometry(obl()) # to extract geometry
@@ -206,7 +242,7 @@ server = function(input, output, session) {
     clearMarkers(map) # clean previously loaded markers
     
     updatePickerInput(session = session, inputId = "OTG",
-                      choices = subset(unique(Ukr_OTG$shapeID), Ukr_OTG$raion_name %in% input$raions),
+                      choices = subset(choices_OTG, Ukr_OTG$raion_name %in% input$raions),
                       selected = NULL)
 
     raion_buffered <- polygon_bufferisation(raion(), input$buffer_radius)
@@ -335,8 +371,10 @@ server = function(input, output, session) {
   )
 
   # render result of request in tab "Попередній перегляд"
-  output$gbif_table <- DT::renderDataTable(recieved_data())
-  
+  output$gbif_table_set2 <- DT::renderDataTable(recieved_data()[, colnames_set2])
+
+  # to create larger table for excel output
+  output$gbif_table_set1 <- DT::renderDataTable(recieved_data()[, colnames_set1])
   
   ## Red book table ####
   output$redbook_table <- DT::renderDataTable(df_redbook)
@@ -368,5 +406,6 @@ server = function(input, output, session) {
   
   
 }
+
 
 shinyApp(ui, server)

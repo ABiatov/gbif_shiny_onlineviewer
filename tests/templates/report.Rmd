@@ -43,6 +43,6 @@ plot(pressure)
 
 ![](uncg_logo.png) 
 ![](the_habitat_foundation_logo.png)
-
+![](logo-nlbif.png)
 
 
