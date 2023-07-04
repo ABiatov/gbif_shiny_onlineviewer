@@ -54,15 +54,18 @@ refactor_fields_list_to_DF_REPORT <- c("scientificName", "NameUA",
                                        )
 
 fields_list_to_DF_PREPRINT <- c("scientificName", 
-                                "kingdom",
-                                "NameUA",
-                                # "PotectedStatus",
-                                "RedBookUA",
-                                "IUCN_Red_List",
-                                "URL_species"
+                                "kingdom" #,
+                          #      "NameUA",
+                         #     "PotectedStatus",
+                         #     "RedBookUA",
+                         #     "IUCN_Red_List",
+                         #     "URL_species"
                               )
 
 # DOCX text blocks ####
+
+date <- format(Sys.Date(), "%Y-%m-%d")
+text_with_date <- paste("Звіт згенеровано", date)
 
 txt_report_header <- "Зведені відомості про реєстрації рідкісних та таких, що перебувають під охороною, видів"
 
