@@ -2,7 +2,7 @@
 # search by taxonID
 # search points by the name from protected status lists in rayons, export preview table as CSV and XLSX
 
-setwd("C:/Users/admin/Documents/GitHub/gbif_shiny_onlineviewer/app_v1")
+setwd("C:/Users/admin/Documents/GitHub/gbif_shiny_onlineviewer/gbif_app_v1")
 
 # Biodiversity Viewer v.0.1
 
