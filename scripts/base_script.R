@@ -119,11 +119,16 @@ write_xlsx(DF_REPORT, "outputs/DF_REPORT.xlsx")
 DF_PREPRINT <- DF_REPORT %>%
   dplyr::select(all_of(fields_list_to_DF_PREPRINT)) %>%
   group_by(scientificName,  # настроить корректно групбай чтоб не удаляло лишние поля или джойнить их DF_REPORT
+           kingdom,
            NameUA,          # TODO to config
            RedBookUA,
            IUCN_Red_List) %>%
   summarise(Amount = n()) %>%
+  # order_by(kingdom) %>%
   na.omit()
+
+DF_PREPRINT <- DF_PREPRINT[order(DF_PREPRINT$kingdom, DF_PREPRINT$scientificName), ]
+
 
 ## Export dataframe DF_PREPRINT to XLSX  ####
 
@@ -158,49 +163,49 @@ write_xlsx(sf_points, "outputs/sf_points.xlsx")
 
 
 # TODO generate Simple map wiz extent aoi_buffered +- 5%
-
-src <- tempfile(fileext = ".png")
-png(filename = src, width = 5, height = 5, units = 'in', res = 300)
-
-ggplot()+
-  base_map(bbox = st_bbox(aoi_buffered), 
-           basemap = 'mapnik', 
-           increase_zoom = 2) +
-  geom_sf(data=sf_points, aes(color=kingdom),size=2)+
-  scale_colour_manual(values = kingdom_colors, name=NULL ) +
-  geom_sf(data = aoi_buffered, colour = "blue", fill=NA, lwd = 1)+
-  geom_sf(data = aoi_geometry, colour = "red", fill = NA, lwd = 1)+
-  theme_minimal()+
-  theme(axis.text = element_blank())+
-  theme(legend.position = "bottom",
-        legend.margin=margin())+
-  labs(caption = "Basemap attribution: © OpenStreetMap contributors")
-
-dev.off()
-
-## Generate document
-
-my_doc <- read_docx() 
-styles_info(my_doc)
-
-my_doc <- my_doc %>% 
-  body_add_par(txt_report_header, style = "heading 1") %>% 
-  body_add_par("", style = "Normal") %>% # blank paragraph
-  body_add_par(txt_about_gbif_viewer, style = "Normal") %>% 
-  body_add_par("", style = "Normal") %>% # blank paragraph
-  body_add_img(src = src, width = 5, height = 5, style = "centered") %>%
-  body_add_par("", style = "Normal") %>% # blank paragraph
-  body_add_par("Перелік видів", style = "heading 2") %>% 
-  body_add_table(DF_PREPRINT, style = "table_template")
-
-print(my_doc, target = "outputs/report.docx")
-
-# Cleaning workspace ####
-# rm(list = ls()) # Reset R`s brain
-
-date <- format(Sys.Date(), "%Y-%m-%d")
-text_with_date <- paste("Звіт згенеровано", date)
-text_with_date
-date
-str(date)
-str(text_with_date)
+# 
+# src <- tempfile(fileext = ".png")
+# png(filename = src, width = 5, height = 5, units = 'in', res = 300)
+# 
+# ggplot()+
+#   base_map(bbox = st_bbox(aoi_buffered), 
+#            basemap = 'mapnik', 
+#            increase_zoom = 2) +
+#   geom_sf(data=sf_points, aes(color=kingdom),size=2)+
+#   scale_colour_manual(values = kingdom_colors, name=NULL ) +
+#   geom_sf(data = aoi_buffered, colour = "blue", fill=NA, lwd = 1)+
+#   geom_sf(data = aoi_geometry, colour = "red", fill = NA, lwd = 1)+
+#   theme_minimal()+
+#   theme(axis.text = element_blank())+
+#   theme(legend.position = "bottom",
+#         legend.margin=margin())+
+#   labs(caption = "Basemap attribution: © OpenStreetMap contributors")
+# 
+# dev.off()
+# 
+# ## Generate document
+# 
+# my_doc <- read_docx() 
+# styles_info(my_doc)
+# 
+# my_doc <- my_doc %>% 
+#   body_add_par(txt_report_header, style = "heading 1") %>% 
+#   body_add_par("", style = "Normal") %>% # blank paragraph
+#   body_add_par(txt_about_gbif_viewer, style = "Normal") %>% 
+#   body_add_par("", style = "Normal") %>% # blank paragraph
+#   body_add_img(src = src, width = 5, height = 5, style = "centered") %>%
+#   body_add_par("", style = "Normal") %>% # blank paragraph
+#   body_add_par("Перелік видів", style = "heading 2") %>% 
+#   body_add_table(DF_PREPRINT, style = "table_template")
+# 
+# print(my_doc, target = "outputs/report.docx")
+# 
+# # Cleaning workspace ####
+# # rm(list = ls()) # Reset R`s brain
+# 
+# date <- format(Sys.Date(), "%Y-%m-%d")
+# text_with_date <- paste("Звіт згенеровано", date)
+# text_with_date
+# date
+# str(date)
+# str(text_with_date)
