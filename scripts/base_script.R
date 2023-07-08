@@ -124,7 +124,7 @@ DF_PREPRINT <- DF_REPORT %>%
            RedBookUA,
            IUCN_Red_List) %>%
   summarise(Amount = n()) %>%
-  # order_by(kingdom) %>%
+  arrange(kingdom, scientificName) %>%
   na.omit()
 
 DF_PREPRINT <- DF_PREPRINT[order(DF_PREPRINT$kingdom, DF_PREPRINT$scientificName), ]
