@@ -26,6 +26,41 @@ path_gbif_sf_dataset <- "data/gbif_sf_dataset.Rdata"
 ## variables
 country_code <- "UA"
 taxon_id_field <- "key"
+taxon_id_gbif <- "speciesKey"
+
+colnames_set0 <- c("gbifID", "bibliographicCitation", "identifier", "license", "publisher", "references",
+                   "rightsHolder", "type", "institutionID", "collectionID", "datasetID", "institutionCode",
+                   "collectionCode", "datasetName", "ownerInstitutionCode", "basisOfRecord", "informationWithheld",
+                   "occurrenceID", "catalogNumber", "recordNumber", "recordedBy", "recordedByID", "individualCount",
+                   "organismQuantity", "organismQuantityType", "sex", "lifeStage", "reproductiveCondition", "behavior",
+                   "establishmentMeans", "degreeOfEstablishment", "georeferenceVerificationStatus", "occurrenceStatus",
+                   "preparations", "disposition", "associatedReferences", "associatedSequences", "otherCatalogNumbers",
+                   "occurrenceRemarks", "organismID", "organismScope", "materialSampleID", "eventID", "parentEventID",
+                   "eventDate", "eventTime", "year", "month", "day", "verbatimEventDate", "habitat", "samplingProtocol",
+                   "sampleSizeValue", "sampleSizeUnit", "samplingEffort", "fieldNotes", "eventRemarks", "locationID",
+                   "waterBody", "locality", "verbatimLocality", "Latitude", "Longitude", "coordinateUncertaintyInMeters",
+                   "footprintWKT", "identifiedBy", "dateIdentified", "taxonID", "acceptedNameUsageID",
+                   "parentNameUsageID", "scientificName", "kingdom", "phylum", "class", "order", "family", "genus",
+                   "genericName", "infragenericEpithet", "specificEpithet", "infraspecificEpithet", "taxonRank",
+                   "vernacularName", "taxonomicStatus", "datasetKey", "publishingCountry", "lastInterpreted", "issue",
+                   "mediaType", "taxonKey", "acceptedTaxonKey", "kingdomKey", "phylumKey", "classKey", "orderKey",
+                   "familyKey", "genusKey", "speciesKey", "species", "acceptedScientificName", "verbatimScientificName",
+                   "typifiedName", "iucnRedListCategory",
+                   "nameUk", "BernAppendix2", "BernAppendix3", "Bonn", "AEWA", 
+                   "IUCN", "BernResolution6", "ЧКУ", 
+                   "BernAppendix1", "CITES", "EUROBATS",      
+                   "ACCOBAMS", "BirdsDirective", "HabitatsDirective",
+                   "Invasive", "ЧС_Полтавська", "ЧС_Чернівецька", 
+                   "ЧС_Житомирська", "ЧС_Вінницька", "ЧС_Харківська", 
+                   "ЧС_Чернігівська", "ЧС_Черкаська", "ЧС_Івано_Франківська",
+                   "ЧС_Рівненська", "ЧС_Одеська", "ЧС_Сумська",    
+                   "ЧС_Закарпатська", "ЧС_Львівська", "ЧС_Миколаївська", 
+                   "ЧС_Донецька", "ЧС_Херсонська", "ЧС_Севастополь", 
+                   "ЧС_Тернопільська", "ЧС_Київ", "ЧС_Волинська",  
+                   "ЧС_Хмельницька", "ЧС_Запорізька", "ЧС_Кіровоградська",
+                   "ЧС_Луганська", "ЧС_Київська", "ЧС_Дніпропетровська",
+                   "matchType", "confidence", "status", "rank"
+                   )
 
 # Import needed support datasets ####
 
@@ -37,7 +72,9 @@ load(file = path_species_name_dataset)
 goodmatch <- matches[["goodmatch"]]
 badmatch <- matches[["badmatch"]]
 
-df_combined_specieses_status <- rbind(goodmatch, badmatch)
+# df_combined_specieses_status <- rbind(goodmatch, badmatch)
+df_combined_specieses_status <- goodmatch
+
 
 ## import spatial data ####
 country_polygon <- st_read(path_country_vector_layer)
@@ -52,7 +89,8 @@ vector_specieses_taxonId = df_combined_specieses_status[[taxon_id_field]]
 response = occ_download(
   pred_in("taxonKey", vector_specieses_taxonId),
   pred_in("hasCoordinate", TRUE),
-  pred_in("country", country_code),  
+  pred_in("country", country_code),
+  # format = "SIMPLE_CSV",
   user = gbif_user,
   pwd = gbif_pwd, 
   email = gbif_email
@@ -69,6 +107,11 @@ print(paste0("Download link: ", gbif_dataset_metadata$downloadLink))
 ## save response and GBIF dataset metadata
 save(response, file = path_gbif_response)
 save(gbif_dataset_metadata, file = path_gbif_dataset_metadata)
+
+## load sawed response
+# load(file = path_gbif_response)
+# load(file = path_gbif_dataset_metadata)
+
 
 # You need to wait for 20-25 minutes until the dataset is ready for the server.
 # When dataset show by doi link you can continue script
@@ -116,6 +159,76 @@ df_dataset <-   occ_download_import(damp_dataset) %>%
 
 class(df_dataset)
 
+# Join downloaded dataset and dataframe species statuses ####
+
+## rename field "key" to "speciesKey"
+colnames(df_combined_specieses_status)[colnames(df_combined_specieses_status) == taxon_id_field] <- taxon_id_gbif
+
+# rename fields: scientificName verbatimScientificName kingdom phylum class in df_dataset for correct join
+colnames(df_dataset)[colnames(df_dataset) == "scientificName"] <- "scientificName_gbif"
+colnames(df_dataset)[colnames(df_dataset) == "verbatimScientificName"] <- "verbatimScientificName_gbif"
+colnames(df_dataset)[colnames(df_dataset) == "kingdom"] <- "kingdom_gbif"
+colnames(df_dataset)[colnames(df_dataset) == "phylum"] <- "phylum_gbif"
+colnames(df_dataset)[colnames(df_dataset) == "class"] <- "class_gbif"
+
+
+# rm(df_joined_dataset)
+
+## Join dataframes
+df_joined_dataset <- inner_join(df_dataset, df_combined_specieses_status, by = taxon_id_gbif) %>% 
+  dplyr::select(all_of(colnames_set0)) 
+
+
+# df_selected_dataset <- df_joined_dataset %>% dplyr::select(all_of(colnames_set0)) 
+
+class(df_joined_dataset)
+
+## temp backup
+# save(df_dataset, file = "temp/df_dataset.Rdata") #temp for test
+# save(df_joined_dataset, file = "temp/df_joined_dataset.Rdata") #temp for test
+# 
+# write.csv(df_dataset, "temp/df_dataset.csv")  #temp for test
+# write.csv(df_joined_dataset, "temp/df_joined_dataset.csv")  #temp for test
+
+# Convert to SF object
+sf_points <- st_as_sf(df_joined_dataset, dim = "XY", remove = FALSE, na.fail = F, 
+                      coords = c("Longitude", "Latitude"), crs = "+proj=longlat +datum=WGS84 +no_defs")
+
+class(sf_points)
+
+# preview geometry column
+head(sf_points[tail(colnames(sf_points))])
+
+# clip by extent
+sf_points_croped_extent <- st_crop(sf_points, st_bbox(country_polygon)) # предварительная образка до экстента, похоже ускоряет обрезку до конечного полигона.
+
+# clip by polygon
+
+gbif_sf_dataset <- st_intersection(sf_points_croped_extent, country_polygon)
+
+
+# Save GBIF points as Robject
+
+
+# save(gbif_sf_dataset, file = "temp/gbif_sf_dataset.Rdata") #temp for test
+
+save(gbif_sf_dataset, file = path_gbif_sf_dataset)
+
+# Preview result
+require(ggplot2)
+library(basemapR)
+
+ggplot()+
+  base_map(bbox = st_bbox(gbif_sf_dataset), 
+           basemap = 'mapnik', 
+           increase_zoom = 2) +
+  geom_sf(data=gbif_sf_dataset, aes(color="red"),size=2)+
+  # scale_colour_manual(values = kingdom_colors, name=NULL ) +
+  theme_minimal()+
+  theme(axis.text = element_blank())+
+  theme(legend.position = "bottom",
+        legend.margin=margin())+
+  labs(caption = "Basemap attribution: © OpenStreetMap contributors")
 
 
 
