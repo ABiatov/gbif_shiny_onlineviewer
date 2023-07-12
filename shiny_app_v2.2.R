@@ -1,4 +1,4 @@
-setwd("C:/Mamba/Work/Presentations/2023-03_GBIF_Viewer/all_23-05-11/gbif_shiny_onlineviewer-main")
+# setwd("C:/Mamba/Work/Presentations/2023-03_GBIF_Viewer/all_23-07-03/gbif_shiny_onlineviewer-main")
 
 # Biodiversity Viewer v.0.1
 
@@ -54,7 +54,7 @@ load(file = "dictionaries/redlist_poltavska.Rdata")
 load(file = "dictionaries/redlist_chernivetska.Rdata")
 load(file = "dictionaries/invasive_specieses.Rdata")
 
-df_redbook <- dplyr::select(df_protected_status, all_of(c("base_name", "scientificName", "nameUk", "ЧКУ", "kingdom", "phylum", "class"))) %>% filter(ЧКУ != "NA")
+# df_redbook <- dplyr::select(df_protected_status, all_of(c("base_name", "scientificName", "nameUk", "ЧКУ", "kingdom", "phylum", "class"))) %>% filter(ЧКУ != "NA")
 
 ## load prepared GBIF data ####
 load(file = "data/gbif_sf_dataset.Rdata")
@@ -153,11 +153,11 @@ ui = fluidPage(
               tabPanel("Генерування звітів",
                        
               ),
-              ## Tab Червона Книга України - for testing ####              
-              tabPanel("Червона Книга України",
-                       # tableOutput("my_table")
-                       DT::dataTableOutput("redbook_table"),
-              )
+              # Tab Червона Книга України - for testing ####
+              # tabPanel("Червона Книга України",
+              #          # tableOutput("my_table")
+              #          # DT::dataTableOutput("redbook_table"),
+              # )
   )
 )
 
@@ -377,7 +377,7 @@ server = function(input, output, session) {
   output$gbif_table_set1 <- DT::renderDataTable(recieved_data()[, colnames_set1])
   
   ## Red book table ####
-  output$redbook_table <- DT::renderDataTable(df_redbook)
+#  output$redbook_table <- DT::renderDataTable(df_redbook)
   
   observe({   # применяется для доступа к реактивным переменным, распечатки их в консоль и отладки
     print("reaktive_bufered_polygon: ")

@@ -214,6 +214,8 @@ gbif_sf_dataset <- st_intersection(sf_points_croped_extent, country_polygon)
 
 save(gbif_sf_dataset, file = path_gbif_sf_dataset)
 
+write.csv(gbif_sf_dataset, "temp/gbif_sf_dataset.csv")
+
 # Preview result
 require(ggplot2)
 library(basemapR)
