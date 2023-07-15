@@ -117,6 +117,10 @@ ui = fluidPage(
                                        choices = choices_OTG,
                                        selected = NULL,
                                        options = list(`actions-box` = TRUE), multiple = T),
+                           ## Upload custom contour ####
+                          fileInput("userContours", "Завантажте власний kml/kmz файл",
+                                                  multiple = F,
+                                                  accept = c('.kml','.kmz')),
                            ## Select buffer radius ####
                            radioButtons(
                              inputId = "buffer_radius",
@@ -146,17 +150,17 @@ ui = fluidPage(
                        )
               ),
               ## Tab - Попередній перегляд ####
-              tabPanel("Попередній перегляд", 
+              tabPanel("Попередній перегляд",
                        DT::dataTableOutput("gbif_table_set2")
               ),
               ## Tab - Генерування звітів ####              
               tabPanel("Генерування звітів",
                        
               ),
-              # Tab Червона Книга України - for testing ####
+              # ## Tab Червона Книга України - for testing ####              
               # tabPanel("Червона Книга України",
               #          # tableOutput("my_table")
-              #          # DT::dataTableOutput("redbook_table"),
+              #          DT::dataTableOutput("redbook_table"),
               # )
   )
 )
@@ -221,9 +225,9 @@ server = function(input, output, session) {
     obl_geom <- st_geometry(obl()) # to extract geometry
     reaktive_bufered_polygon(obl_geom)
     
-    #obl_buffered <- polygon_bufferisation(obl(), input$buffer_radius)
-    #obl_buffered_geom <- st_geometry(obl_buffered) # to extract geometry
-    #reaktive_bufered_polygon(obl_buffered_geom)
+    obl_buffered <- polygon_bufferisation(obl(), input$buffer_radius)
+    obl_buffered_geom <- st_geometry(obl_buffered) # to extract geometry
+    reaktive_bufered_polygon(obl_buffered_geom)
     
 	map %>%
       addPolygons(data = obl(), weight = 2, fill = F) %>%
@@ -274,6 +278,30 @@ server = function(input, output, session) {
       fitBounds(lng1 = OTG_bounds()[1], lat1 = OTG_bounds()[2],  # set view by extent: p1 - top lext, p2 - bottom right
                 lng2 = OTG_bounds()[3], lat2 = OTG_bounds()[4]) %>%  # to allow map zoom to selected area
       addPolygons(data = OTG_buffered, #layerId = id,   # add buffered polygon to map
+                  options = buffered_polygon_options)
+  })
+  
+  ## Adding custom contours ## 
+  observeEvent(input$userContours, {
+    clearShapes(map) # clean map
+    clearMarkers(map) # clean previously loaded markers
+    
+    # read spatial object
+    uploaded_cont <-  st_read(input$userContours$datapath)
+    
+    uploaded_cont_buffered <- polygon_bufferisation(uploaded_cont, input$buffer_radius)
+    uploaded_cont_buffered_geom <- st_geometry(uploaded_cont_buffered) # to extract geometry
+    reaktive_bufered_polygon(uploaded_cont_buffered_geom)    # write raion_buffered in my custom global reactive value
+    
+    # calculate bounds
+    uploaded_cont_bounds <- uploaded_cont_buffered %>% st_bbox() %>% as.character()
+    
+    # add to map
+    map %>%
+      addPolygons(data = uploaded_cont, weight = 2, fill = F) %>%
+      fitBounds(lng1 = uploaded_cont_bounds[1], lat1 = uploaded_cont_bounds[2],
+                lng2 = uploaded_cont_bounds[3], lat2 = uploaded_cont_bounds[4]) %>%
+      addPolygons(data = uploaded_cont_buffered, #layerId = id,   # add buffered polygon to map
                   options = buffered_polygon_options)
   })
   
@@ -377,7 +405,7 @@ server = function(input, output, session) {
   output$gbif_table_set1 <- DT::renderDataTable(recieved_data()[, colnames_set1])
   
   ## Red book table ####
-#  output$redbook_table <- DT::renderDataTable(df_redbook)
+  # output$redbook_table <- DT::renderDataTable(df_redbook)
   
   observe({   # применяется для доступа к реактивным переменным, распечатки их в консоль и отладки
     print("reaktive_bufered_polygon: ")
