@@ -84,7 +84,23 @@ colnames_set1 <- c("gbifID", "bibliographicCitation", "identifier", "license", "
                    "vernacularName", "taxonomicStatus", "datasetKey", "publishingCountry", "lastInterpreted", "issue",
                    "mediaType", "taxonKey", "acceptedTaxonKey", "kingdomKey", "phylumKey", "classKey", "orderKey",
                    "familyKey", "genusKey", "speciesKey", "species", "acceptedScientificName", "verbatimScientificName",
-                   "typifiedName", "iucnRedListCategory")
+                   "typifiedName", "iucnRedListCategory",
+                   "nameUk", "BernAppendix2", "BernAppendix3", "Bonn", "AEWA", 
+                   # "IUCN", 
+                   "BernResolution6", "ЧКУ", 
+                   "BernAppendix1", "CITES", "EUROBATS",      
+                   "ACCOBAMS", "BirdsDirective", "HabitatsDirective",
+                   "Invasive", "ЧС_Полтавська", "ЧС_Чернівецька", 
+                   "ЧС_Житомирська", "ЧС_Вінницька", "ЧС_Харківська", 
+                   "ЧС_Чернігівська", "ЧС_Черкаська", "ЧС_Івано_Франківська",
+                   "ЧС_Рівненська", "ЧС_Одеська", "ЧС_Сумська",    
+                   "ЧС_Закарпатська", "ЧС_Львівська", "ЧС_Миколаївська", 
+                   "ЧС_Донецька", "ЧС_Херсонська", "ЧС_Севастополь", 
+                   "ЧС_Тернопільська", "ЧС_Київ", "ЧС_Волинська",  
+                   "ЧС_Хмельницька", "ЧС_Запорізька", "ЧС_Кіровоградська",
+                   "ЧС_Луганська", "ЧС_Київська", "ЧС_Дніпропетровська",
+                   "matchType", "confidence", "status", "rank"
+)
 
 # for reduced table (to show the output in the application)
 colnames_set2 <- c("publisher", "datasetName", "recordedBy", "eventDate", "Latitude", "Longitude", "kingdom",
