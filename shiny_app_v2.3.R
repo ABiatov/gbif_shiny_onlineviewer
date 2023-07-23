@@ -34,6 +34,66 @@ library(knitr)
 source("scripts/config.R")
 source("functions/polygon_bufferisation.R")
 
+# Lists of columns
+## for full table (excel)
+colnames_set1 <- c(
+  "gbifID",
+  # "bibliographicCitation", "identifier", "license", 
+  "publisher", 
+  # "references",  "rightsHolder", "type", "institutionID", "collectionID", "datasetID", 
+  # "institutionCode", "collectionCode", "datasetName", "ownerInstitutionCode", 
+  "basisOfRecord", 
+  # "informationWithheld",
+  # "occurrenceID", "catalogNumber", "recordNumber", "recordedBy", "recordedByID", "individualCount",
+  # "organismQuantity", "organismQuantityType", "sex", "lifeStage", "reproductiveCondition", "behavior",
+  # "establishmentMeans", "degreeOfEstablishment", "georeferenceVerificationStatus", "occurrenceStatus",
+  # "preparations", "disposition", "associatedReferences", "associatedSequences", "otherCatalogNumbers",
+  # "occurrenceRemarks", "organismID", "organismScope", "materialSampleID", "eventID", "parentEventID",
+  # "eventDate", "eventTime", 
+  "year", 
+  # "month", "day", 
+  "verbatimEventDate", 
+  # "habitat", "samplingProtocol",
+  # "sampleSizeValue", "sampleSizeUnit", "samplingEffort", "fieldNotes", "eventRemarks", "locationID",
+  # "waterBody", "locality", 
+  "verbatimLocality", 
+  "Latitude", "Longitude", "coordinateUncertaintyInMeters", "issue",
+  # "footprintWKT", "identifiedBy", "dateIdentified", 
+  "taxonID", "acceptedNameUsageID",
+  # "parentNameUsageID", 
+  "scientificName", "kingdom", "phylum", "class", "order", "family", "genus",
+  "genericName", "infragenericEpithet", "specificEpithet", "infraspecificEpithet", "taxonRank",
+  "vernacularName", "taxonomicStatus", "datasetKey", "publishingCountry",
+  "lastInterpreted", # "issue",
+  # "mediaType",
+  "taxonKey", "acceptedTaxonKey", "kingdomKey", "phylumKey", "classKey", "orderKey",
+  "familyKey", "genusKey", "speciesKey", "species", "acceptedScientificName", "verbatimScientificName",
+  "typifiedName", 
+  "iucnRedListCategory",
+  "nameUk", "BernAppendix2", "BernAppendix3", "Bonn", "AEWA", 
+  # "IUCN", 
+  "BernResolution6", "ЧКУ", 
+  "BernAppendix1", "CITES", "EUROBATS",      
+  "ACCOBAMS", "BirdsDirective", "HabitatsDirective",
+  "Invasive", "ЧС_Полтавська", "ЧС_Чернівецька", 
+  "ЧС_Житомирська", "ЧС_Вінницька", "ЧС_Харківська", 
+  "ЧС_Чернігівська", "ЧС_Черкаська", "ЧС_Івано_Франківська",
+  "ЧС_Рівненська", "ЧС_Одеська", "ЧС_Сумська",    
+  "ЧС_Закарпатська", "ЧС_Львівська", "ЧС_Миколаївська", 
+  "ЧС_Донецька", "ЧС_Херсонська", "ЧС_Севастополь", 
+  "ЧС_Тернопільська", "ЧС_Київ", "ЧС_Волинська",  
+  "ЧС_Хмельницька", "ЧС_Запорізька", "ЧС_Кіровоградська",
+  "ЧС_Луганська", "ЧС_Київська", "ЧС_Дніпропетровська",
+  "matchType", "confidence", "status", "rank"
+)
+
+## for reduced table (to show the output in the application)
+colnames_set2 <- c(
+  "nameUk", "species",
+  "year", "Latitude", "Longitude", "kingdom",
+  "phylum", "class", "order", "family", 
+  "publisher"  )
+
 # import data ####
 ## import spatial data ####
 Ukr_Obl <- st_read("adm_shp/Ukr_Obl_NEW.shp")
@@ -52,49 +112,10 @@ load(file = "data/gbif_sf_dataset.Rdata")
 ## Preparation of GBIF data -----
 # Originally these steps have to be done in separate script and performed once a month after downloading
 
-## Delete atlas data
-gbif_sf_dataset <- subset(gbif_sf_dataset, gbif_sf_dataset$datasetName != "EBCC Atlas of European Breeding Birds")
+## Delete atlas data end select collumns by list
+gbif_sf_dataset <- subset(gbif_sf_dataset, gbif_sf_dataset$datasetName != "EBCC Atlas of European Breeding Birds" , select = colnames_set1)
 
-## Lists of columns
-# for full table (excel)
-colnames_set1 <- c("gbifID", "bibliographicCitation", "identifier", "license", "publisher", "references",
-                   "rightsHolder", "type", "institutionID", "collectionID", "datasetID", "institutionCode",
-                   "collectionCode", "datasetName", "ownerInstitutionCode", "basisOfRecord", "informationWithheld",
-                   "occurrenceID", "catalogNumber", "recordNumber", "recordedBy", "recordedByID", "individualCount",
-                   "organismQuantity", "organismQuantityType", "sex", "lifeStage", "reproductiveCondition", "behavior",
-                   "establishmentMeans", "degreeOfEstablishment", "georeferenceVerificationStatus", "occurrenceStatus",
-                   "preparations", "disposition", "associatedReferences", "associatedSequences", "otherCatalogNumbers",
-                   "occurrenceRemarks", "organismID", "organismScope", "materialSampleID", "eventID", "parentEventID",
-                   "eventDate", "eventTime", "year", "month", "day", "verbatimEventDate", "habitat", "samplingProtocol",
-                   "sampleSizeValue", "sampleSizeUnit", "samplingEffort", "fieldNotes", "eventRemarks", "locationID",
-                   "waterBody", "locality", "verbatimLocality", "Latitude", "Longitude", "coordinateUncertaintyInMeters",
-                   "footprintWKT", "identifiedBy", "dateIdentified", "taxonID", "acceptedNameUsageID",
-                   "parentNameUsageID", "scientificName", "kingdom", "phylum", "class", "order", "family", "genus",
-                   "genericName", "infragenericEpithet", "specificEpithet", "infraspecificEpithet", "taxonRank",
-                   "vernacularName", "taxonomicStatus", "datasetKey", "publishingCountry", "lastInterpreted", "issue",
-                   "mediaType", "taxonKey", "acceptedTaxonKey", "kingdomKey", "phylumKey", "classKey", "orderKey",
-                   "familyKey", "genusKey", "speciesKey", "species", "acceptedScientificName", "verbatimScientificName",
-                   "typifiedName", "iucnRedListCategory",
-                   "nameUk", "BernAppendix2", "BernAppendix3", "Bonn", "AEWA", 
-                   # "IUCN", 
-                   "BernResolution6", "ЧКУ", 
-                   "BernAppendix1", "CITES", "EUROBATS",      
-                   "ACCOBAMS", "BirdsDirective", "HabitatsDirective",
-                   "Invasive", "ЧС_Полтавська", "ЧС_Чернівецька", 
-                   "ЧС_Житомирська", "ЧС_Вінницька", "ЧС_Харківська", 
-                   "ЧС_Чернігівська", "ЧС_Черкаська", "ЧС_Івано_Франківська",
-                   "ЧС_Рівненська", "ЧС_Одеська", "ЧС_Сумська",    
-                   "ЧС_Закарпатська", "ЧС_Львівська", "ЧС_Миколаївська", 
-                   "ЧС_Донецька", "ЧС_Херсонська", "ЧС_Севастополь", 
-                   "ЧС_Тернопільська", "ЧС_Київ", "ЧС_Волинська",  
-                   "ЧС_Хмельницька", "ЧС_Запорізька", "ЧС_Кіровоградська",
-                   "ЧС_Луганська", "ЧС_Київська", "ЧС_Дніпропетровська",
-                   "matchType", "confidence", "status", "rank"
-)
 
-# for reduced table (to show the output in the application)
-colnames_set2 <- c("publisher", "datasetName", "recordedBy", "eventDate", "Latitude", "Longitude", "kingdom",
-                   "phylum", "class", "order", "family", "species", "nameUk" )
 ## End Preparation of GBIF data -----
 
 # Frontend ####
