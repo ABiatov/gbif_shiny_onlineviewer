@@ -8,16 +8,20 @@ draw_new_shape_options <- drawShapeOptions(
   weight = 1,
   opacity = 0.8,
   fillOpacity = 0.3,
-  color = 'black',
+  color = '#ff0000',
   fillColor = 'blue')
+
+polygon_aoi_options <- pathOptions(color = "#ff0000", weight = 2, opacity = 0.9, fill = FALSE, zIndexOffset = 12)
 
 buffered_polygon_options <- pathOptions(color = "#03F", weight = 2, opacity = 0.9, fill = FALSE, zIndexOffset = 10) 
 
 
 
-fields_dict_red_book_ua <- c("scientificName", "RedBookUA")
+# Don't use in last version
+fields_dict_red_book_ua <- c("scientificName", "RedBookUA") 
 
-fields_list_to_DF_PREVIEW <- c("key", "scientificName", 
+# Don't use in last version
+fields_list_to_DF_PREVIEW <- c("key", "scientificName",  
                                "decimalLatitude", "decimalLongitude",
                                "kingdom", "classKey", "kingdomKey",
                                "eventDate", "datasetKey",
@@ -26,11 +30,12 @@ fields_list_to_DF_PREVIEW <- c("key", "scientificName",
                                "verbatimLocality", "occurrenceID", "coordinateUncertaintyInMeters"
                                )
 
+# Don't use in last version
 fields_as_factor <- c("scientificName", "kingdom", "classKey", 
                       "iucnRedListCategory", "taxonKey", "kingdomKey"
                       )
 
-
+# Don't use in last version
 refactor_fields_list_to_DF_PREVIEW <- c("scientificName", "NameUA",
                                         "Latitude", "Longitude",
                                         "kingdom", "classKey",
@@ -42,6 +47,7 @@ refactor_fields_list_to_DF_PREVIEW <- c("scientificName", "NameUA",
                                         "to_report"
                                         )
 
+# Don't use in last version
 refactor_fields_list_to_DF_REPORT <- c("scientificName", "NameUA",
                                         "Latitude", "Longitude",
                                         "kingdom", "classKey", "eventDate",
@@ -53,6 +59,7 @@ refactor_fields_list_to_DF_REPORT <- c("scientificName", "NameUA",
                                         "URL_dataset"
                                        )
 
+# Don't use in last version
 fields_list_to_DF_PREPRINT <- c("scientificName", 
                                 "kingdom" #,
                           #      "NameUA",
@@ -65,15 +72,22 @@ fields_list_to_DF_PREPRINT <- c("scientificName",
 # DOCX text blocks ####
 
 date <- format(Sys.Date(), "%Y-%m-%d")
-text_with_date <- paste("Звіт згенеровано", date)
-
-txt_report_header <- "Зведені відомості про реєстрації рідкісних та таких, що перебувають під охороною, видів"
-
-txt_about_gbif_viewer <- "GBIF Viewer: an open web-based biodiversity conservation decision-making tool for policy and governance. Спільний проєкт The Habitat Foundation та Української Природоохоронної Групи, за підтримки NLBIF: The Netherlands Biodiversity Information Facility, nlbif2022.014"
-
+text_with_date <- paste("Звіт згенеровано", date)  # in report.Rmd
 
 # pallet points on map
 kingdom_colors <- c("Plantae" = "#4daf4a", "Fungi" = "#377eb8", "Animalia" = "#ff7f00")
+
+
+
+
+# don't use it in last version 2.3
+txt_report_header <- "Зведені відомості про реєстрації рідкісних та таких, що перебувають під охороною, видів"
+
+
+# don't use it in last version 2.3
+txt_about_gbif_viewer <- "GBIF Viewer: an open web-based biodiversity conservation decision-making tool for policy and governance. Спільний проєкт The Habitat Foundation та Української Природоохоронної Групи, за підтримки NLBIF: The Netherlands Biodiversity Information Facility, nlbif2022.014"
+
+
 
 
 

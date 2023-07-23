@@ -5,6 +5,8 @@
 # use https://mastering-shiny.org/action-layout.html
 # https://shiny.rstudio.com/gallery/viscover.html
 # https://github.com/XiaodanLyu/viscover/blob/master/inst/shiny-examples/overlay/app.r
+gc()
+rm(list = ls())
 
 # Import libs ####
 # library(tidyverse)
@@ -24,15 +26,20 @@ library(leaflet.extras)
 library(leafem)
 library(DT)
 library(data.table)
+
 library(openxlsx)
 library(openxlsx2)
 library(rmarkdown)
-library(knitr)
-										  
+library(knitr) # to render table in docx
+library(lubridate) # for paring date to GBIF cite						  
 
 # Calling custom function
 source("scripts/config.R")
 source("functions/polygon_bufferisation.R")
+
+## load prepared GBIF data ####
+load(file = "data/gbif_dataset_metadata.Rdata")
+load(file = "data/gbif_sf_dataset.Rdata")
 
 # Lists of columns
 ## for full table (excel)
@@ -94,6 +101,10 @@ colnames_set2 <- c(
   "phylum", "class", "order", "family", 
   "publisher"  )
 
+## for reduced table (to instal to DOCX report)
+colnames_set3 <- c("scientificName", "nameUk", "kingdom") 
+
+
 # import data ####
 ## import spatial data ####
 Ukr_Obl <- st_read("adm_shp/Ukr_Obl_NEW.shp")
@@ -105,9 +116,16 @@ choices_OTG <- Ukr_OTG$shapeID
 names(choices_OTG) <- Ukr_OTG$OTG_name
 choices_OTG <- choices_OTG[order(names(choices_OTG))] # to sort OTG names similarly
 
+# Dataset DOI
+gbif_doi <- gbif_dataset_metadata$doi
+gbif_doi_url <- paste0("https://doi.org/", gbif_doi)
+string_gbif_doi <- paste0("DOI:", gbif_doi)
 
-## load prepared GBIF data ####
-load(file = "data/gbif_sf_dataset.Rdata")
+# Dataset Date
+gbif_dataset_date <- gbif_dataset_metadata$created
+parsed_gbif_dataset_date <- ymd_hms(gbif_dataset_date)
+formatted_gbif_dataset_date <- format(parsed_gbif_dataset_date, "%d %B %Y")
+
 
 ## Preparation of GBIF data -----
 # Originally these steps have to be done in separate script and performed once a month after downloading
@@ -184,6 +202,8 @@ ui = fluidPage(
                        # TODO gbif_table_set2 >> gbif_table_set3
                        sidebarLayout(
                          sidebarPanel(
+                           p("Натисніть кнопку <Застосувати фільтри>"),
+                           textOutput("nrow_filtred_data_map"),
                            pickerInput("iucn", "IUCN Red List",
                                        # choices = unique(data$iucnRedListCategory),
                                        choices = c(
@@ -238,7 +258,7 @@ ui = fluidPage(
                        ## Button for send GBIF request ####
                        downloadButton("downloadData_CSV", "Download CSV"),
                        downloadButton("downloadData_XLSX", "Download XLSX"),
-                       textOutput("nrow_clipped_data"),
+                       textOutput("nrow_filtred_data_tab"),
                        tags$hr(),
                        DT::dataTableOutput("gbif_table_set2"), # TODO gbif_table_set3
 					   p("GBIF Viewer: an open web-based biodiversity conservation decision-making tool for policy and governance. Спільний проєкт The Habitat Foundation та Української Природоохоронної Групи, за підтримки NLBIF: The Netherlands Biodiversity Information Facility, nlbif2022.014",
@@ -252,16 +272,14 @@ ui = fluidPage(
                        tags$hr(),
                        plotOutput("plot_map"),
                        tags$hr(),
+                       textOutput("nrow_filtred_data_doc"),
+                       # tags$br(),
                        DT::dataTableOutput("report_table"),
                        p("GBIF Viewer: an open web-based biodiversity conservation decision-making tool for policy and governance. Спільний проєкт The Habitat Foundation та Української Природоохоронної Групи, за підтримки NLBIF: The Netherlands Biodiversity Information Facility, nlbif2022.014",
                          # class = "footer-class"
                        )
               ),
-              # ## Tab Червона Книга України - for testing ####              
-              # tabPanel("Червона Книга України",
-              #          # tableOutput("my_table")
-              #          DT::dataTableOutput("redbook_table"),
-              # )
+
   )
 )
 
@@ -269,10 +287,13 @@ ui = fluidPage(
 server = function(input, output, session) {
   
   # Create a global reactive value
-  ## Create a global reactive value for WKT guffered polygon
+  ## Create a global reactive value for AOI polygon
+  reaktive_aoi_polygon <- reactiveVal()
+  
+  ## Create a global reactive value for guffered polygon
   reaktive_bufered_polygon <- reactiveVal() # Create a global reactive value for buffered polygon - now SF, not WKT!
   
-  reaktive_dissolved_polygon <- reactiveVal()  # Create second reactive value for dissolved polygon - also SF
+  # reaktive_dissolved_polygon <- reactiveVal()  # Create second reactive value for dissolved polygon - also SF
   
   ## create the leaflet map ####
   main_map <-  leaflet() %>% addTiles() %>%
@@ -310,6 +331,14 @@ server = function(input, output, session) {
   # create map proxy to make further changes to existing map
   map <- leafletProxy("map", session)
   
+  main_map2 <-  leaflet() %>% addTiles()  %>% leafem::addMouseCoordinates()
+
+  output$map2 <- renderLeaflet({
+    main_map2
+  })
+
+  map2 <- leafletProxy("map2", session)
+  
   ## create object with selected oblasts ####
   obl <- reactive(subset(Ukr_Obl, Ukr_Obl$obl_name %in% input$regions))
   obl_bounds <- reactive(obl() %>% st_bbox() %>% as.character()) # to set extent around selected oblasts
@@ -323,7 +352,7 @@ server = function(input, output, session) {
                       selected = NULL) # raions are shown but nothing is selected initially
     
     obl_geom <- st_geometry(obl()) # to extract geometry
-    reaktive_bufered_polygon(obl_geom)
+    reaktive_aoi_polygon(obl_geom)
     
     obl_buffered <- polygon_bufferisation(obl(), input$buffer_radius)
     obl_buffered_geom <- st_geometry(obl_buffered) # to extract geometry
@@ -348,14 +377,17 @@ server = function(input, output, session) {
     updatePickerInput(session = session, inputId = "OTG",
                       choices = subset(choices_OTG, Ukr_OTG$raion_name %in% input$raions),
                       selected = NULL)
-
+    
+    raion_geom <- st_geometry(raion()) # to extract geometry
+    reaktive_aoi_polygon(raion_geom)
+    
     raion_buffered <- polygon_bufferisation(raion(), input$buffer_radius) %>% 
 	st_union() # dissolve all created polygons to avoid overlaps
     raion_buffered_geom <- st_geometry(raion_buffered) # to extract geometry
     reaktive_bufered_polygon(raion_buffered_geom)    # write raion_buffered in my custom global reactive value
 	
     map %>% 
-      addPolygons(data = raion(), weight = 2, fill = F) %>%
+      addPolygons(data = raion(), options = polygon_aoi_options) %>%
       fitBounds(lng1 = raion_bounds()[1], lat1 = raion_bounds()[2],  # set view by extent: p1 - top lext, p2 - bottom right
                 lng2 = raion_bounds()[3], lat2 = raion_bounds()[4]) %>%  # to allow map zoom to selected area
       addPolygons(data = raion_buffered, #layerId = id,   # add buffered polygon to map
@@ -370,13 +402,16 @@ server = function(input, output, session) {
     clearShapes(map) # clean map
     clearMarkers(map) # clean previously loaded markers
     
+    OTG_geom <- st_geometry(OTG()) # to extract geometry
+    reaktive_aoi_polygon(OTG_geom)
+    
     OTG_buffered <- polygon_bufferisation(OTG(), input$buffer_radius) %>% 
 	st_union() # dissolve all created polygons to avoid overlaps
     OTG_buffered_geom <- st_geometry(OTG_buffered) # to extract geometry
     reaktive_bufered_polygon(OTG_buffered_geom)    # write raion_buffered in my custom global reactive value
     
     map %>% 
-      addPolygons(data = OTG(), weight = 2, fill = F) %>%
+      addPolygons(data = OTG(), options = polygon_aoi_options) %>%
       fitBounds(lng1 = OTG_bounds()[1], lat1 = OTG_bounds()[2],  # set view by extent: p1 - top lext, p2 - bottom right
                 lng2 = OTG_bounds()[3], lat2 = OTG_bounds()[4]) %>%  # to allow map zoom to selected area
       addPolygons(data = OTG_buffered, #layerId = id,   # add buffered polygon to map
@@ -391,6 +426,9 @@ server = function(input, output, session) {
     # read spatial object
     uploaded_cont <-  st_read(input$userContours$datapath)
     
+    uploaded_cont_geom <- st_geometry(uploaded_cont) # to extract geometry
+    reaktive_aoi_polygon(uploaded_cont_geom)
+    
     uploaded_cont_buffered <- polygon_bufferisation(uploaded_cont, input$buffer_radius) %>% 
 	st_union() # dissolve all created polygons to avoid overlaps
     uploaded_cont_buffered_geom <- st_geometry(uploaded_cont_buffered) # to extract geometry
@@ -401,9 +439,9 @@ server = function(input, output, session) {
     
     # add to map
     map %>%
-      addPolygons(data = uploaded_cont, weight = 2, fill = F) %>%
       fitBounds(lng1 = uploaded_cont_bounds[1], lat1 = uploaded_cont_bounds[2],
                 lng2 = uploaded_cont_bounds[3], lat2 = uploaded_cont_bounds[4]) %>%
+      addPolygons(data = reaktive_aoi_polygon(), options = polygon_aoi_options) %>%
       addPolygons(data = uploaded_cont_buffered, #layerId = id,   # add buffered polygon to map
                   options = buffered_polygon_options)
   })
@@ -458,24 +496,52 @@ server = function(input, output, session) {
   observeEvent(input$map_draw_deleted_features, {
     clearShapes(map) # delet all shapes from map
     clearMarkers(map) # clean previously loaded markers
-    
-	reaktive_bufered_polygon("")    # write curent_buffered_WKT in my custom global reactive value
+    reaktive_aoi_polygon("")
+	  reaktive_bufered_polygon("")    
     # removeShape(map, id_to_del) # TODO it
   })
   
+  
+  
   observeEvent(input$act_get_gbif_data, {
-    resulted_polygon <- reaktive_bufered_polygon() %>%
-      st_union() # dissolve all created polygons to avoid overlaps
+    # resulted_polygon <- reaktive_bufered_polygon() # %>%
+       # st_union() # dissolve all created polygons to avoid overlaps
     
-    reaktive_dissolved_polygon(resulted_polygon)
+    # reaktive_dissolved_polygon(resulted_polygon)
+    
+    # filteredData_bounds <- reaktive_dissolved_polygon %>% st_bbox() %>% as.character() 
+    
     
     clearShapes(map) # delet all shapes from map
+    # clearShapes(map2) # delet all shapes from map2
+    
     
     map %>%
       addPolygons(
-        data = reaktive_dissolved_polygon(), #layerId = id,   # add buffered polygon to map
+        data = reaktive_aoi_polygon(),
+        options = polygon_aoi_options
+      ) %>%
+      addPolygons(
+        # data = reaktive_dissolved_polygon(), #layerId = id,   # add buffered polygon to map
+        data = reaktive_bufered_polygon(), #layerId = id,   # add buffered polygon to map
         options = buffered_polygon_options
       )
+    
+    # map2 %>%
+    #   clearShapes() %>%
+    #   clearMarkers() %>%
+    #   fitBounds(
+    #     # lng1 = data_bounds[1], lat1 = data_bounds[2], # set view by extent: p1 - top lext, p2 - bottom right
+    #     # lng2 = data_bounds[3], lat2 = data_bounds[4]) %>% # extent is set after selection of oblast
+    #     lng1 = filteredData_bounds[1], lat1 = filteredData_bounds[2], # set view by extent: p1 - top lext, p2 - bottom right
+    #     lng2 = filteredData_bounds[3], lat2 = filteredData_bounds[4]) %>% # extent is set after selection of oblast
+    #   addPolygons(
+    #     data = reaktive_bufered_polygon(), #layerId = id,   # add buffered polygon to map
+    #     options = buffered_polygon_options
+    #   )
+    
+    
+    
   })
   
   
@@ -484,15 +550,17 @@ server = function(input, output, session) {
 
     eventExpr = input$act_get_gbif_data,
     valueExpr = {
-      st_intersection(gbif_sf_dataset, reaktive_dissolved_polygon() ) # use dissolved polygon for occurrence search
+      # st_intersection(gbif_sf_dataset, reaktive_dissolved_polygon() ) # use dissolved polygon for occurrence search
+      st_intersection(gbif_sf_dataset, reaktive_bufered_polygon() ) # use dissolved polygon for occurrence search
     }
   )
 
   # add request result to webmap
-  observe({
+  observeEvent(input$act_get_gbif_data, {
+  # observe({
     map %>%
       addCircleMarkers(
-        data = sf_clipped_data(), lng = ~Longitude, lat = ~Latitude, # add circle markers from dataframe
+        data = sf_clipped_data(), # lng = ~Longitude, lat = ~Latitude, # add circle markers from dataframe
         # radius = 10,  # static radius
         radius = 2,  # calculation radius
         color = "red",
@@ -500,8 +568,10 @@ server = function(input, output, session) {
         # popup = ~paste0("<center>" ,"<b>", scientificName, "</b>", "</center>", "<br>",   # popup with HTML
         #                 "Население: ", population, " чел." )
       )
-  }
-  )
+    
+    
+  })
+  
 
   
   # render result of request in tab "Попередній перегляд на мапі" ####
@@ -530,13 +600,11 @@ server = function(input, output, session) {
   
   filteredData_bounds <- reactive( sf_filteredData() %>% st_bbox() %>% as.character() )
   
-  main_map2 <-  leaflet() %>% addTiles()
+  # filteredData_bounds <- reactive( reaktive_bufered_polygon() %>% st_bbox() %>% as.character() )
   
-  output$map2 <- renderLeaflet({
-    main_map2
-  })
   
-  map2 <- leafletProxy("map2", session)
+  
+
   
   observe({
     map2 %>%
@@ -547,6 +615,15 @@ server = function(input, output, session) {
         # lng2 = data_bounds[3], lat2 = data_bounds[4]) %>% # extent is set after selection of oblast
       lng1 = filteredData_bounds()[1], lat1 = filteredData_bounds()[2], # set view by extent: p1 - top lext, p2 - bottom right
       lng2 = filteredData_bounds()[3], lat2 = filteredData_bounds()[4]) %>% # extent is set after selection of oblast
+      addPolygons(
+        data = reaktive_aoi_polygon(),
+        options = polygon_aoi_options
+      ) %>%
+      addPolygons(
+        # data = reaktive_dissolved_polygon(), #layerId = id,   # add buffered polygon to map
+        data = reaktive_bufered_polygon(), #layerId = id,   # add buffered polygon to map
+        options = buffered_polygon_options
+      ) %>%
       addCircleMarkers(data = sf_filteredData(), 
                        radius = 2,
                        color = "red",
@@ -578,10 +655,20 @@ server = function(input, output, session) {
     }
   )
   
-  string_nrow_clipped_data <- reactive(toString(nrow(df_filteredData())))
+  string_nrow_filtred_data <- reactive(
+    paste0("Кількість знахідок: ", toString(nrow(df_filteredData())) )
+    )
   
-  output$nrow_clipped_data <- renderText({
-    paste0("Кількість знахідок: ", string_nrow_clipped_data() )
+  output$nrow_filtred_data_map <- renderText({
+    string_nrow_filtred_data() 
+  })
+  
+  output$nrow_filtred_data_tab <- renderText({
+    string_nrow_filtred_data() 
+  })
+  
+  output$nrow_filtred_data_doc <- renderText({
+    string_nrow_filtred_data() 
   })
   
     
@@ -589,14 +676,17 @@ server = function(input, output, session) {
   ## Create DF_PREPRINT dataframe for Tab - Генерування звітів ####
   
   df_report_table <- reactive(df_filteredData() %>%
-    dplyr::select(all_of(fields_list_to_DF_PREPRINT)) %>%
-    group_by(scientificName,  # настроить корректно групбай чтоб не удаляло лишние поля или джойнить их DF_REPORT
+    dplyr::select(all_of(colnames_set3)) %>%
+    group_by(scientificName,  # настроить корректно групбай чтоб не удаляло лишние поля 
+             nameUk,
              kingdom #,
-             # NameUA,          # TODO to config
              # RedBookUA,
              # IUCN_Red_List
              ) %>%
     summarise(Amount = n()) %>%
+    arrange(kingdom, scientificName) %>%
+    dplyr::select(all_of(c("kingdom", "Amount", "nameUk", "scientificName"))) %>%
+    # colnames(c("Царство", "Кількість", "Українська назва", "Латинська назва")) %>%
     na.omit()
   )
   
@@ -617,7 +707,7 @@ server = function(input, output, session) {
       geom_sf(data=sf_filteredData(), aes(color=kingdom),size=2)+ # TODO сюда идут нефильтрованные данные. Возможно надо создать отдельную промежуточную переменную в которую будут писаться фильтрованные данные перед отправкой сюда
       scale_colour_manual(values = kingdom_colors, name=NULL ) +
       geom_sf(data = reaktive_bufered_polygon(), colour = "blue", fill=NA, lwd = 1)+
-      # geom_sf(data = aoi_geometry, colour = "red", fill = NA, lwd = 1)+ # TODO create global var for AOI
+      geom_sf(data = reaktive_aoi_polygon(), colour = "red", fill = NA, lwd = 1)+ # TODO create global var for AOI
       theme_minimal()+
       theme(axis.text = element_blank())+
       theme(legend.position = "bottom",
@@ -662,7 +752,7 @@ server = function(input, output, session) {
   )
 
   # to create larger table for excel output
-  output$gbif_table_set1 <- DT::renderDataTable(df_filteredData()[, colnames_set1])
+  # output$gbif_table_set1 <- DT::renderDataTable(df_filteredData()[, colnames_set1])
   
   ## Red book table ####
   # output$redbook_table <- DT::renderDataTable(df_redbook)
@@ -672,8 +762,10 @@ server = function(input, output, session) {
     print(reaktive_bufered_polygon())
     print(paste("class: ", class(reaktive_bufered_polygon()), sep=""))
     print("Dissolved polygon: ")
-    print(reaktive_dissolved_polygon())
-    print(paste("class: ", class(reaktive_dissolved_polygon()), sep=""))
+    # print(reaktive_dissolved_polygon())
+    print(reaktive_bufered_polygon())
+    # print(paste("class: ", class(reaktive_dissolved_polygon()), sep=""))
+    print(paste("class: ", class(reaktive_bufered_polygon()), sep=""))
     # print("recieved_data sample: ")
     # print(head(select(recieved_data(), recordedBy, eventDate, scientificName)))
     # print("redbook_finder: ")
