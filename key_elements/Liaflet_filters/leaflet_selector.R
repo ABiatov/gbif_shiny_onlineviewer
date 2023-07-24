@@ -71,7 +71,7 @@ ui <- fluidPage(
           
         
         mainPanel(
-          leafletOutput("map",  width = "100%", height="83vh"),
+          leafletOutput("map2",  width = "100%", height="83vh"),
         )
       ),
     )
@@ -108,17 +108,17 @@ server <- function(input, output, session) {
   
   
   
-  main_map <-  leaflet() %>% addTiles()
+  main_map2 <-  leaflet() %>% addTiles()
   
-  output$map <- renderLeaflet({
-    main_map
+  output$map2 <- renderLeaflet({
+    main_map2
   })
   
   # create map proxy to make further changes to existing map
-  map <- leafletProxy("map", session)
+  map2 <- leafletProxy("map2", session)
   
   observe({
-    map %>%
+    map2 %>%
       clearShapes() %>%
       clearMarkers() %>%
       fitBounds(
