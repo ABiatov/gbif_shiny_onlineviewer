@@ -198,11 +198,11 @@ ui = fluidPage(
                          )
               ),
               ## Tab - Попередній перегляд ####
-              tabPanel("Попередній перегляд га мапі",
+              tabPanel("Попередній перегляд на карті",
                        # TODO gbif_table_set2 >> gbif_table_set3
                        sidebarLayout(
                          sidebarPanel(
-                           p("Натисніть кнопку <Застосувати фільтри>"),
+                           p("Визначіть критерії пошуку та натисніть кнопку <Застосувати фільтри>"), # TODO format this sting
                            textOutput("nrow_filtred_data_map"),
                            pickerInput("iucn", "IUCN Red List",
                                        # choices = unique(data$iucnRedListCategory),
