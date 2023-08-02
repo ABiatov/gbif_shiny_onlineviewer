@@ -1,13 +1,4 @@
 
-
-# # Crop test data ####
-# load("~/GitHub/gbif_shiny_onlineviewer/data/gbif_sf_dataset.Rdata")
-# box = c(xmin = 35.79, ymin = 49.32, xmax = 36.74, ymax = 50.24)
-# data <- st_crop(gbif_sf_dataset, box) 
-# # plot(data)
-# rm(gbif_sf_dataset)
-# save(data, file = "~/GitHub/gbif_shiny_onlineviewer/key_elements/Liaflet_filters/data.Rdata")
-
 load("~/GitHub/gbif_shiny_onlineviewer/key_elements/Liaflet_filters/data.Rdata")
 
 library(shiny)
@@ -15,9 +6,6 @@ library(shinyWidgets)
 library(sf)
 library(dplyr)
 library(leaflet)
-# library(leaflet.extras)
-# library(leafem)
-
 
 
 
@@ -64,7 +52,7 @@ ui <- fluidPage(
           checkboxInput("birdsdirective", "Birds Directive", TRUE),
           checkboxInput("habitatsdirective", "Habitats Directive", TRUE),
           hr(),
-          checkboxInput("invasive", "Інвазивні/інвазійні/чужорідні види", FALSE),
+          # checkboxInput("invasive", "Інвазивні/інвазійні/чужорідні види", FALSE),
           actionButton("refresh_filters", "Застосувати фільтри", icon("refresh"), class = "btn-success"),
 
         ),
@@ -96,8 +84,8 @@ server <- function(input, output, session) {
                (input$eurobats & EUROBATS == "yes") |
                (input$accobams & ACCOBAMS == "yes") |
                (input$birdsdirective & BirdsDirective == "yes") |
-               (input$habitatsdirective & HabitatsDirective == "yes") |
-               (input$invasive & Invasive == "yes")
+               (input$habitatsdirective & HabitatsDirective == "yes") # |
+               # (input$invasive & Invasive == "yes")
              ) 
     )
   })
@@ -124,8 +112,6 @@ server <- function(input, output, session) {
       fitBounds(
         lng1 = data_bounds[1], lat1 = data_bounds[2], # set view by extent: p1 - top lext, p2 - bottom right
         lng2 = data_bounds[3], lat2 = data_bounds[4]) %>% # extent is set after selection of oblast
-                # lng1 = data_bounds()[1], lat1 = data_bounds()[2], # set view by extent: p1 - top lext, p2 - bottom right
-                # lng2 = data_bounds()[3], lat2 = data_bounds()[4]) %>% # extent is set after selection of oblast
       addCircleMarkers(data = filteredData(), 
                        radius = 2,
                        color = "red",
@@ -133,14 +119,6 @@ server <- function(input, output, session) {
                                        "<center>", scientificName, "</center>" )
       )
   })
-  
-  
-  # observe({
-  # #   print("data_bounds:")
-  # #   print(data_bounds())
-  #     # print("input$bern2 :")
-  #     # print(input$bern2)
-  # })
   
 }
 
