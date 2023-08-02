@@ -105,6 +105,21 @@ colnames_set2 <- c(
 ## for reduced table (to instal to DOCX report)
 colnames_set3 <- c("scientificName", "nameUk", "kingdom") 
 
+# Internetional agriments and conventions to filter
+vector_conventions <- c(
+  "Bern Appendix 1",
+  "Bern Appendix 2",
+  "Bern Appendix 3",
+  "Bern Resolution 6",
+  "Bonn",
+  "AEWA",
+  "CITES",
+  "EUROBATS",
+  "ACCOBAMS",
+  "Birds Directive",
+  "Habitats Directive"
+)
+
 
 # import data ####
 ## import spatial data ####
@@ -209,8 +224,12 @@ ui = fluidPage(
                            # dateRangeInput("inDateRange", label = "Date range input:", 
                            #                start = min(na.omit(gbif_sf_dataset$eventDate)),
                            #                end = Sys.Date() ),
+                           pickerInput("redbook", "Червона Книга України",
+                                       choices = c("вразливий", "рідкісний", "зникаючий", "неоцінений", "недостатньо відомий", "зниклий у природі"),
+                                       selected = c("вразливий", "рідкісний", "зникаючий", "неоцінений", "недостатньо відомий", "зниклий у природі"),
+                                       options = list(`actions-box` = TRUE), multiple = TRUE
+                           ),
                            pickerInput("iucn", "Червоний список IUCN",
-                                       # choices = unique(data$iucnRedListCategory),
                                        choices = c(
                                          "Вимерлий (Extinct, EX)" = "EX",
                                          "Вимерлий у природі (Extinct in the Wild, EW)" = "EW",
@@ -223,24 +242,25 @@ ui = fluidPage(
                                          "Неоцінений (Not Evaluated, NE)" = "NE"
                                        ),
                                        selected = c("EX", "EW", "CR", "EN", "VU", "NT", "LC", "DD", "NE"),
-                                       options = list(`actions-box` = TRUE), multiple = T
+                                       options = list(`actions-box` = TRUE), multiple = TRUE
                            ),
-                           pickerInput("redbook", "Червона Книга України",
-                                       choices = c("вразливий", "рідкісний", "зникаючий", "неоцінений", "недостатньо відомий", "зниклий у природі"),
-                                       selected = c("вразливий", "рідкісний", "зникаючий", "неоцінений", "недостатньо відомий", "зниклий у природі"),
-                                       options = list(`actions-box` = TRUE), multiple = T
+                           pickerInput("international_filters", "Міжнародні конвенції та угоди",
+                                       choices = c(
+                                         "Бернська конвенція. Додаток 1" = "Bern Appendix 1",
+                                         "Бернська конвенція. Додаток 2" = "Bern Appendix 2",
+                                         "Бернська конвенція. Додаток 3" = "Bern Appendix 3",
+                                         "Бернська конвенція. Резолюцію 6" = "Bern Resolution 6",
+                                         "Конвенція про збереження мігруючих видів диких тварин (Боннська конвенція)" = "Bonn",
+                                         "Угода про збереження афро-євразійських мігруючих водно-болотних птахів (AEWA)" = "AEWA",
+                                         "Конвенція про міжнародну торгівлю видами дикої фауни і флори, що перебувають під загрозою зникнення (CITES)" = "CITES",
+                                         "Угода про збереження популяцій європейських кажанів (EUROBATS)" = "EUROBATS",
+                                         "Угода про збереження китоподібних Чорного моря, Середземного моря та прилеглої акваторії Атлантичного океану (ACCOBAMS)" = "ACCOBAMS",
+                                         "Пташина директива ЄС" = "Birds Directive",
+                                         "Оселищна директива ЄС" = "Habitats Directive"
+                                       ),
+                                       selected = vector_conventions,
+                                       options = list(`actions-box` = TRUE), multiple = TRUE
                            ),
-                           checkboxInput("bern1", "Бернська конвенція. Додаток 1", TRUE),
-                           checkboxInput("bern2", "Бернська конвенція. Додаток 2", TRUE),
-                           checkboxInput("bern3", "Бернська конвенція. Додаток 3", TRUE),
-                           checkboxInput("bern6", "Бернська конвенція. Резолюцію 6", TRUE),
-                           checkboxInput("bonn", "Конвенція про збереження мігруючих видів диких тварин (Боннська конвенція)", TRUE), # Bonn
-                           checkboxInput("aewa", "Угода про збереження афро-євразійських мігруючих водно-болотних птахів (AEWA)", TRUE), # AEWA
-                           checkboxInput("cites", "Конвенція про міжнародну торгівлю видами дикої фауни і флори, що перебувають під загрозою зникнення (CITES)", TRUE), # CITES
-                           checkboxInput("eurobats", "Угода про збереження популяцій європейських кажанів (EUROBATS)", TRUE), # EUROBATS
-                           checkboxInput("accobams", "Угода про збереження китоподібних Чорного моря, Середземного моря та прилеглої акваторії Атлантичного океану (ACCOBAMS)", TRUE), # ACCOBAMS
-                           checkboxInput("birdsdirective", "Пташина директива ЄС", TRUE), # Birds Directive
-                           checkboxInput("habitatsdirective", "Оселищн директива ЄС", TRUE), # Habitats Directive
                            hr(),
                            checkboxInput("invasive", "Інвазивні / інвазійні / чужорідні види", FALSE),
                            actionButton("refresh_filters", "Застосувати фільтри", icon("refresh"), class = "btn-success"),
@@ -599,6 +619,7 @@ server = function(input, output, session) {
 
   
   # render result of request in tab "Попередній перегляд на мапі" ####
+  intern_filt_present <- reactive( vector_conventions %in% input$international_filters )
   
   sf_filteredData <- reactive({
     input$refresh_filters
@@ -606,17 +627,17 @@ server = function(input, output, session) {
     isolate(sf_clipped_data() %>%
               filter(iucnRedListCategory %in% input$iucn | 
                        ЧКУ %in% input$redbook | 
-                       (input$bern1 & BernAppendix1 == "yes") |
-                       (input$bern2 & BernAppendix2 == "yes") |
-                       (input$bern3 & BernAppendix3 == "yes") |
-                       (input$bern6 & BernResolution6 == "yes") |
-                       (input$bonn & Bonn == "yes") |
-                       (input$aewa & AEWA == "yes") |
-                       (input$cites & CITES == "yes") |
-                       (input$eurobats & EUROBATS == "yes") |
-                       (input$accobams & ACCOBAMS == "yes") |
-                       (input$birdsdirective & BirdsDirective == "yes") |
-                       (input$habitatsdirective & HabitatsDirective == "yes") |
+                       (intern_filt_present()[1] & BernAppendix1 == "yes" ) |
+                       (intern_filt_present()[2] & BernAppendix2 == "yes" ) |
+                       (intern_filt_present()[3] & BernAppendix3 == "yes" ) |
+                       (intern_filt_present()[4] & BernResolution6 == "yes" ) |
+                       (intern_filt_present()[5] & Bonn == "yes") |
+                       (intern_filt_present()[6] & AEWA == "yes") |
+                       (intern_filt_present()[7] & CITES == "yes") |
+                       (intern_filt_present()[8] & EUROBATS == "yes") |
+                       (intern_filt_present()[9] & ACCOBAMS == "yes") |
+                       (intern_filt_present()[10] & BirdsDirective == "yes") |
+                       (intern_filt_present()[11] & HabitatsDirective == "yes")|
                        (input$invasive & Invasive == "yes")
               ) 
     )

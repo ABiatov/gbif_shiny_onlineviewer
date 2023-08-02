@@ -40,6 +40,13 @@ knitr::kable(df_report_table())
 
 **GBIF Viewer**: an open web-based biodiversity conservation decision-making tool for policy and governance. Спільний проєкт The [Habitat Foundation](https://thehabitatfoundation.org/) та [Української Природоохоронної Групи](https://uncg.org.ua/), за підтримки [NLBIF: The Netherlands Biodiversity Information Facility](https://www.nlbif.nl/), nlbif2022.014
 
+```{r echo=FALSE, out.width='20%'}
+# TODO fix problem with pictures size
+knitr::include_graphics(c("uncg_logo.png", "the_habitat_foundation_logo.png", "logo-nlbif.png"))
+```
+
+
+
 ![](uncg_logo.png) 
 ![](the_habitat_foundation_logo.png)
 ![](logo-nlbif.png)
