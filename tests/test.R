@@ -4,13 +4,18 @@ library(shiny)
 if (interactive()) {
   
   ui <- fluidPage(
+    title = 'Download a PDF report',
     sidebarLayout(
       sidebarPanel(
-        fileInput("file1", "Choose CSV File", accept = ".csv"),
-        checkboxInput("header", "Header", TRUE)
+        helpText(),
+        selectInput('x', 'Build a regression model of mpg against:',
+                    choices = names(mtcars)[-1]),
+        radioButtons('format', 'Document format', c('PDF', 'HTML', 'Word'),
+                     inline = TRUE),
+        downloadButton('downloadReport')
       ),
       mainPanel(
-        tableOutput("contents")
+        plotOutput('regPlot')
       )
     )
   )

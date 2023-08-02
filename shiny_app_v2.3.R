@@ -30,6 +30,7 @@ library(data.table)
 library(openxlsx)
 library(openxlsx2)
 library(rmarkdown)
+library(tinytex)
 library(knitr) # to render table in docx
 library(lubridate) # for paring date to GBIF cite						  
 
@@ -204,7 +205,11 @@ ui = fluidPage(
                          sidebarPanel(
                            p("Визначіть критерії пошуку та натисніть кнопку <Застосувати фільтри>"), # TODO format this sting
                            textOutput("nrow_filtred_data_map"),
-                           pickerInput("iucn", "IUCN Red List",
+                           # dateRangeInput("dates", label = h3("Date range")), # Field: eventDate
+                           # dateRangeInput("inDateRange", label = "Date range input:", 
+                           #                start = min(na.omit(gbif_sf_dataset$eventDate)),
+                           #                end = Sys.Date() ),
+                           pickerInput("iucn", "Червоний список IUCN",
                                        # choices = unique(data$iucnRedListCategory),
                                        choices = c(
                                          "Вимерлий (Extinct, EX)" = "EX",
@@ -225,19 +230,19 @@ ui = fluidPage(
                                        selected = c("вразливий", "рідкісний", "зникаючий", "неоцінений", "недостатньо відомий", "зниклий у природі"),
                                        options = list(`actions-box` = TRUE), multiple = T
                            ),
-                           checkboxInput("bern1", "Bern Appendix 1", TRUE),
-                           checkboxInput("bern2", "Bern Appendix 2", TRUE),
-                           checkboxInput("bern3", "Bern Appendix 3", TRUE),
-                           checkboxInput("bern6", "Bern Resolution 6", TRUE),
-                           checkboxInput("bonn", "Bonn", TRUE),
-                           checkboxInput("aewa", "AEWA", TRUE),
-                           checkboxInput("cites", "CITES", TRUE),
-                           checkboxInput("eurobats", "EUROBATS", TRUE),
-                           checkboxInput("accobams", "ACCOBAMS", TRUE),
-                           checkboxInput("birdsdirective", "Birds Directive", TRUE),
-                           checkboxInput("habitatsdirective", "Habitats Directive", TRUE),
+                           checkboxInput("bern1", "Бернська конвенція. Додаток 1", TRUE),
+                           checkboxInput("bern2", "Бернська конвенція. Додаток 2", TRUE),
+                           checkboxInput("bern3", "Бернська конвенція. Додаток 3", TRUE),
+                           checkboxInput("bern6", "Бернська конвенція. Резолюцію 6", TRUE),
+                           checkboxInput("bonn", "Конвенція про збереження мігруючих видів диких тварин (Боннська конвенція)", TRUE), # Bonn
+                           checkboxInput("aewa", "Угода про збереження афро-євразійських мігруючих водно-болотних птахів (AEWA)", TRUE), # AEWA
+                           checkboxInput("cites", "Конвенція про міжнародну торгівлю видами дикої фауни і флори, що перебувають під загрозою зникнення (CITES)", TRUE), # CITES
+                           checkboxInput("eurobats", "Угода про збереження популяцій європейських кажанів (EUROBATS)", TRUE), # EUROBATS
+                           checkboxInput("accobams", "Угода про збереження китоподібних Чорного моря, Середземного моря та прилеглої акваторії Атлантичного океану (ACCOBAMS)", TRUE), # ACCOBAMS
+                           checkboxInput("birdsdirective", "Пташина директива ЄС", TRUE), # Birds Directive
+                           checkboxInput("habitatsdirective", "Оселищн директива ЄС", TRUE), # Habitats Directive
                            hr(),
-                           checkboxInput("invasive", "Інвазивні/інвазійні/чужорідні види", FALSE),
+                           checkboxInput("invasive", "Інвазивні / інвазійні / чужорідні види", FALSE),
                            actionButton("refresh_filters", "Застосувати фільтри", icon("refresh"), class = "btn-success"),
                            
                          ),
@@ -268,7 +273,11 @@ ui = fluidPage(
               ## Tab - Генерування звітів ####              
               tabPanel("Генерування звітів",
                        tags$br(),
-                       downloadButton("downloadData_DOCX", "Download DOCX"),
+                       # downloadButton("downloadData_DOCX", "Download DOCX"),
+                       # # downloadButton("downloadData_PDF", "Download PDF"), # it don't work
+                       # radioButtons('format', 'Document format', c('PDF', 'HTML', 'Word'), inline = TRUE),
+                       radioButtons('format', 'Document format', c('HTML', 'Word'), inline = TRUE),
+                       downloadButton('downloadReport'),
                        tags$hr(),
                        plotOutput("plot_map"),
                        tags$hr(),
@@ -502,6 +511,15 @@ server = function(input, output, session) {
   })
   
   
+  # recieved_data <- eventReactive(
+  sf_clipped_data <- eventReactive(
+    
+    eventExpr = input$act_get_gbif_data,
+    valueExpr = {
+      # st_intersection(gbif_sf_dataset, reaktive_dissolved_polygon() ) # use dissolved polygon for occurrence search
+      st_intersection(gbif_sf_dataset, reaktive_bufered_polygon() ) # use dissolved polygon for occurrence search
+    }
+  )
   
   observeEvent(input$act_get_gbif_data, {
     # resulted_polygon <- reaktive_bufered_polygon() # %>%
@@ -514,6 +532,7 @@ server = function(input, output, session) {
     
     clearShapes(map) # delet all shapes from map
     # clearShapes(map2) # delet all shapes from map2
+    clearMarkers(map2)
     
     
     map %>%
@@ -525,40 +544,7 @@ server = function(input, output, session) {
         # data = reaktive_dissolved_polygon(), #layerId = id,   # add buffered polygon to map
         data = reaktive_bufered_polygon(), #layerId = id,   # add buffered polygon to map
         options = buffered_polygon_options
-      )
-    
-    # map2 %>%
-    #   clearShapes() %>%
-    #   clearMarkers() %>%
-    #   fitBounds(
-    #     # lng1 = data_bounds[1], lat1 = data_bounds[2], # set view by extent: p1 - top lext, p2 - bottom right
-    #     # lng2 = data_bounds[3], lat2 = data_bounds[4]) %>% # extent is set after selection of oblast
-    #     lng1 = filteredData_bounds[1], lat1 = filteredData_bounds[2], # set view by extent: p1 - top lext, p2 - bottom right
-    #     lng2 = filteredData_bounds[3], lat2 = filteredData_bounds[4]) %>% # extent is set after selection of oblast
-    #   addPolygons(
-    #     data = reaktive_bufered_polygon(), #layerId = id,   # add buffered polygon to map
-    #     options = buffered_polygon_options
-    #   )
-    
-    
-    
-  })
-  
-  
-  # recieved_data <- eventReactive(
-  sf_clipped_data <- eventReactive(
-
-    eventExpr = input$act_get_gbif_data,
-    valueExpr = {
-      # st_intersection(gbif_sf_dataset, reaktive_dissolved_polygon() ) # use dissolved polygon for occurrence search
-      st_intersection(gbif_sf_dataset, reaktive_bufered_polygon() ) # use dissolved polygon for occurrence search
-    }
-  )
-
-  # add request result to webmap
-  observeEvent(input$act_get_gbif_data, {
-  # observe({
-    map %>%
+      ) %>%
       addCircleMarkers(
         data = sf_clipped_data(), # lng = ~Longitude, lat = ~Latitude, # add circle markers from dataframe
         # radius = 10,  # static radius
@@ -569,8 +555,46 @@ server = function(input, output, session) {
         #                 "Население: ", population, " чел." )
       )
     
+    map2 %>%
+      # fitBounds(
+      #   # lng1 = data_bounds[1], lat1 = data_bounds[2], # set view by extent: p1 - top lext, p2 - bottom right
+      #   # lng2 = data_bounds[3], lat2 = data_bounds[4]) %>% # extent is set after selection of oblast
+      #   lng1 = filteredData_bounds[1], lat1 = filteredData_bounds[2], # set view by extent: p1 - top lext, p2 - bottom right
+      #   lng2 = filteredData_bounds[3], lat2 = filteredData_bounds[4]) %>% # extent is set after selection of oblast
+      # addPolygons(
+      #   data = reaktive_bufered_polygon(), #layerId = id,   # add buffered polygon to map
+      #   options = buffered_polygon_options
+      # ) %>%
+      addCircleMarkers(
+        data = sf_clipped_data(), # lng = ~Longitude, lat = ~Latitude, # add circle markers from dataframe
+        # radius = 10,  # static radius
+        radius = 2,  # calculation radius
+        color = "red",
+        popup = ~paste0("<center>" ,"<b>", nameUk, "</b>", "</center>", # "<br>",   # popup with HTML 
+                        "<center>", scientificName, "</center>" )
+      )
+    
     
   })
+  
+  
+
+
+  # # add request result to webmap
+  # observeEvent(input$act_get_gbif_data, {
+  # # observe({
+  #   map %>%
+  #     addCircleMarkers(
+  #       data = sf_clipped_data(), # lng = ~Longitude, lat = ~Latitude, # add circle markers from dataframe
+  #       # radius = 10,  # static radius
+  #       radius = 2,  # calculation radius
+  #       color = "red",
+  #       popup = ~species # simple popup from field "scientificName"
+  #       # popup = ~paste0("<center>" ,"<b>", scientificName, "</b>", "</center>", "<br>",   # popup with HTML
+  #       #                 "Население: ", population, " чел." )
+  #     )
+  #   }
+  # )
   
 
   
@@ -735,21 +759,76 @@ server = function(input, output, session) {
 
 
   ## Generate document
-  
-    output$downloadData_DOCX <- downloadHandler(
+  #   output$downloadData_DOCX <- downloadHandler(
+  #   filename = function() {
+  #     paste("GBIF_data-", Sys.Date(), ".docx", sep="")
+  #   },
+  #   content = function(file) {
+  #     # Code to generate the DOCX file 
+  #     rmarkdown::render(
+  #       input = "templates/report.Rmd",
+  #       output_format = "word_document",
+  #       output_file = file,
+  #     )
+  #   }
+  # )
+  output$downloadReport <- downloadHandler(
     filename = function() {
-      paste("GBIF_data-", Sys.Date(), ".docx", sep="")
+      # paste('my-report', sep = '.', switch(
+      paste("GBIF_data-", Sys.Date(), ".", sep="", switch(
+          # input$format, PDF = 'pdf', HTML = 'html', Word = 'docx'
+        input$format, HTML = 'html', Word = 'docx'
+      ))
     },
     content = function(file) {
-      # Code to generate the DOCX file 
-      rmarkdown::render(
-        input = "templates/report.Rmd",
-        output_format = "word_document",
-        output_file = file,
-        # params = list(df = df_report_table())
-      )
+      src_template <- normalizePath('templates/report.Rmd')
+      src_logo_nlbif <- normalizePath('templates/logo-nlbif.png')
+      src_logo_hf <- normalizePath('templates/the_habitat_foundation_logo.png')
+      src_logo_uncg <- normalizePath('templates/uncg_logo.png')
+      # src_folder <- normalizePath('templates')
+
+      # temporarily switch to the temp dir, in case you do not have write
+      # permission to the current working directory
+      owd <- setwd(tempdir())
+      on.exit(setwd(owd))
+      file.copy(src_template, 'report.Rmd', overwrite = TRUE)
+      file.copy(src_logo_nlbif, 'logo-nlbif.png', overwrite = TRUE)
+      file.copy(src_logo_hf, 'the_habitat_foundation_logo.png', overwrite = TRUE)
+      file.copy(src_logo_uncg, 'uncg_logo.png', overwrite = TRUE)
+      # file.copy(normalizePath(
+      #   c(
+      #     "templates/report.Rmd", 
+      #     "templates/logo-nlbif.png", 
+      #     "templates/the_habitat_foundation_logo.png", 
+      #     "templates/uncg_logo.png"
+      #     )
+      #   ), 
+      # owd, overwrite = TRUE)
+
+      # library(rmarkdown)
+      out <- render('report.Rmd', switch(
+        input$format,
+        # PDF = pdf_document(), HTML = html_document(), Word = word_document()
+        HTML = html_document(), Word = word_document()
+      ))
+      file.rename(out, file)
     }
   )
+  
+  # It don't work
+  # # output$downloadData_PDF <- downloadHandler(
+  # #   filename = function() {
+  # #     paste("GBIF_data-", Sys.Date(), ".pdf", sep="")
+  # #   },
+  # #   content = function(file) {
+  # #     # Code to generate the PDF file 
+  # #     rmarkdown::render(
+  # #       input = "templates/report.Rmd",
+  # #       output_format = pdf_document(),
+  # #       output_file = file,
+  # #     )
+  # #   }
+  # # )
 
   # to create larger table for excel output
   # output$gbif_table_set1 <- DT::renderDataTable(df_filteredData()[, colnames_set1])
