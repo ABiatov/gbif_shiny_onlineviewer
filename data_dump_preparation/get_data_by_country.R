@@ -1,4 +1,6 @@
 # Get GBIF data by specieses list from table in Country
+gc()
+rm(list = ls())
 
 # library(readxl)
 
@@ -25,47 +27,45 @@ path_gbif_sf_dataset <- "data/gbif_sf_dataset.Rdata"
 
 ## variables
 country_code <- "UA"
-taxon_id_field <- "key"
+# taxon_id_field <- "key"
+taxon_id_field <- "taxonKey"
 taxon_id_gbif <- "speciesKey"
 
 colnames_set0 <- c(
-  "gbifID",
-  # "bibliographicCitation", "identifier", "license", 
-  "publisher", 
+  
+  # "bibliographicCitation", "identifier", "license", "publisher", 
   # "references",  "rightsHolder", "type", "institutionID", "collectionID", "datasetID", 
   # "institutionCode", "collectionCode", "datasetName", "ownerInstitutionCode", 
-  "basisOfRecord", 
-  # "informationWithheld",
+  # "basisOfRecord",  "informationWithheld",
   # "occurrenceID", "catalogNumber", "recordNumber", "recordedBy", "recordedByID", "individualCount",
   # "organismQuantity", "organismQuantityType", "sex", "lifeStage", "reproductiveCondition", "behavior",
   # "establishmentMeans", "degreeOfEstablishment", "georeferenceVerificationStatus", "occurrenceStatus",
   # "preparations", "disposition", "associatedReferences", "associatedSequences", "otherCatalogNumbers",
   # "occurrenceRemarks", "organismID", "organismScope", "materialSampleID", "eventID", "parentEventID",
-  # "eventDate", "eventTime", 
+  "eventDate",
+  # "eventTime", 
   "year", 
-  # "month", "day", 
-  "verbatimEventDate", 
-  # "habitat", "samplingProtocol",
-  # "sampleSizeValue", "sampleSizeUnit", "samplingEffort", "fieldNotes", "eventRemarks", "locationID",
-  # "waterBody", "locality", 
+  # "month", "day", "verbatimEventDate", 
+  # "habitat", "samplingProtocol", "sampleSizeValue", "sampleSizeUnit", "samplingEffort", "fieldNotes", "eventRemarks", 
+  # "locationID", "waterBody", "locality", 
   "verbatimLocality", 
-  "Latitude", "Longitude", "coordinateUncertaintyInMeters", "issue",
-  # "footprintWKT", "identifiedBy", "dateIdentified", 
-  "taxonID", "acceptedNameUsageID",
-  # "parentNameUsageID", 
-  "scientificName", "kingdom", "phylum", "class", "order", "family", "genus",
-  "genericName", "infragenericEpithet", "specificEpithet", "infraspecificEpithet", "taxonRank",
-  "vernacularName", "taxonomicStatus", "datasetKey", "publishingCountry",
-  "lastInterpreted", # "issue",
-  # "mediaType",
-  "taxonKey", "acceptedTaxonKey", "kingdomKey", "phylumKey", "classKey", "orderKey",
-  "familyKey", "genusKey", "speciesKey", "species", "acceptedScientificName", "verbatimScientificName",
-  "typifiedName", 
+  "Latitude", "Longitude", "coordinateUncertaintyInMeters", 
+  # "issue", "footprintWKT", "identifiedBy", "dateIdentified",
+  # "taxonID", "acceptedNameUsageID", "parentNameUsageID",
+  "nameUk", "scientificName", "kingdom", "phylum", "class", "order", "family", "genus",
+  #   "genericName", "infragenericEpithet", "specificEpithet", "infraspecificEpithet", "taxonRank",
+  # "vernacularName", "taxonomicStatus", 
+  # "publishingCountry", "lastInterpreted", "issue", "mediaType",
+  # "taxonKey", "acceptedTaxonKey", "kingdomKey", "phylumKey", "classKey", "orderKey",
+  # "familyKey", "genusKey", "speciesKey", "species", "acceptedScientificName", "verbatimScientificName",
+  # "typifiedName", 
   "iucnRedListCategory",
-  "nameUk", "BernAppendix2", "BernAppendix3", "Bonn", "AEWA", 
+  "BernAppendix2", "BernAppendix3", "Bonn", "AEWA", 
   # "IUCN", 
   "BernResolution6", "ЧКУ", 
-  "BernAppendix1", "CITES", "EUROBATS",      
+  "BernAppendix1", 
+  # "CITES", 
+  "EUROBATS",      
   "ACCOBAMS", "BirdsDirective", "HabitatsDirective",
   "Invasive", "ЧС_Полтавська", "ЧС_Чернівецька", 
   "ЧС_Житомирська", "ЧС_Вінницька", "ЧС_Харківська", 
@@ -76,7 +76,9 @@ colnames_set0 <- c(
   "ЧС_Тернопільська", "ЧС_Київ", "ЧС_Волинська",  
   "ЧС_Хмельницька", "ЧС_Запорізька", "ЧС_Кіровоградська",
   "ЧС_Луганська", "ЧС_Київська", "ЧС_Дніпропетровська",
-  "matchType", "confidence", "status", "rank"
+  # "gbifID", "datasetKey"
+  "URL_record", "URL_dataset"
+  # "matchType", "confidence", "status", "rank"
 )
 
 # Import needed support datasets ####
@@ -172,9 +174,17 @@ if (attempts == 10) {
 # Import downloaded dataset ####
 
 df_dataset <-   occ_download_import(damp_dataset) %>%
-  rename(Latitude = decimalLatitude, Longitude = decimalLongitude)
+  rename(Latitude = decimalLatitude, Longitude = decimalLongitude) %>%
+  mutate(URL_record = paste0("https://www.gbif.org/occurrence/", gbifID)) %>%
+  mutate(URL_dataset = paste0("https://www.gbif.org/dataset/", datasetKey))
 
 class(df_dataset)
+
+
+## Delete EBCC Atlas of European Breeding Birds data end select collumns by list
+df_dataset <- subset(df_dataset, df_dataset$datasetName != "EBCC Atlas of European Breeding Birds" )
+
+
 
 # Join downloaded dataset and dataframe species statuses ####
 
@@ -185,8 +195,8 @@ colnames(df_combined_specieses_status)[colnames(df_combined_specieses_status) ==
 colnames(df_dataset)[colnames(df_dataset) == "scientificName"] <- "scientificName_gbif"
 colnames(df_dataset)[colnames(df_dataset) == "verbatimScientificName"] <- "verbatimScientificName_gbif"
 colnames(df_dataset)[colnames(df_dataset) == "kingdom"] <- "kingdom_gbif"
-colnames(df_dataset)[colnames(df_dataset) == "phylum"] <- "phylum_gbif"
-colnames(df_dataset)[colnames(df_dataset) == "class"] <- "class_gbif"
+# colnames(df_dataset)[colnames(df_dataset) == "phylum"] <- "phylum_gbif"
+# colnames(df_dataset)[colnames(df_dataset) == "class"] <- "class_gbif"
 
 
 # rm(df_joined_dataset)
@@ -216,12 +226,13 @@ class(sf_points)
 # preview geometry column
 head(sf_points[tail(colnames(sf_points))])
 
-# clip by extent
-sf_points_croped_extent <- st_crop(sf_points, st_bbox(country_polygon)) # предварительная образка до экстента, похоже ускоряет обрезку до конечного полигона.
+# # clip by extent
+# sf_points_croped_extent <- st_crop(sf_points, st_bbox(country_polygon)) # предварительная образка до экстента, похоже ускоряет обрезку до конечного полигона.
 
 # clip by polygon
 
-gbif_sf_dataset <- st_intersection(sf_points_croped_extent, country_polygon)
+# gbif_sf_dataset <- st_intersection(sf_points_croped_extent, country_polygon)
+gbif_sf_dataset <- st_intersection(sf_points, country_polygon)
 
 
 # Save GBIF points as Robject
@@ -250,4 +261,5 @@ ggplot()+
   labs(caption = "Basemap attribution: © OpenStreetMap contributors")
 
 
-
+rm(list = ls())
+gc()
