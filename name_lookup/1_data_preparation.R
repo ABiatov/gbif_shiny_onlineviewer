@@ -8,7 +8,7 @@
 # various red lists ("checklist-protected-species-....csv").
 # 
 # Outputs:
-# 1) matches.Rdata - list of two with the result of name matching. 
+# 1) matches.Rdata - list of two with the result of name matching.
 #   [[1]] - "goodmatch" - Names whose matching is satisfactory - we will then look 
 #   for occurrences for these names using taxon keys.
 #   [[2]] - "badmatch" - Names whose matching is supposed to be wrong/unsatisfactory. 
@@ -26,7 +26,8 @@ library(dplyr)
 library(rgbif)
 
 # Load input data from csv files
-df.fullredlist <- read.csv("checklist-protected-species-UA-template-v24-cleaned_20230710.csv")
+# df.fullredlist <- read.csv("checklist-protected-species-UA-template-v24-cleaned_20230710.csv")
+df.fullredlist <- read.csv("Species-protected-list-v26_cleaned_20230801.csv")
 
 # Match taxonomic names against the GBIF Backbone Taxonomy
 name_data <- df.fullredlist %>% 
@@ -40,7 +41,7 @@ lookup_results_selected <- lookup_results %>% rename(verbatimScientificName = ve
   # Following steps are technical:
   relocate(ID) %>% # relocate ID variable to the 1st place
   relocate(usageKey, .after = ID) %>% # relocate key variable next to IDs
-  relocate(verbatimScientificName, .after = usageKey) %>% # relocate verbatin name variable next to taxon key
+  relocate(verbatimScientificName, .after = usageKey) %>% # relocate verbatim name variable next to taxon key
   relocate(scientificName, .after = verbatimScientificName) %>% # relocate names
   relocate(verbatim_kingdom, .after = kingdom) %>% 
   select(1:11) %>% # Select only essential taxonomic information
@@ -64,6 +65,7 @@ df.merged <- df.fullredlist %>% # get raw list
          -confidence,
          -verbatim_kingdom) %>% # get rid of the variables don't needed anymore
   rename(kingdom = kingdom.x) # rename kingdom
+
 
 
 # Splitting full normalized data by matchType
