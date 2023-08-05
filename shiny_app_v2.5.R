@@ -1,3 +1,5 @@
+options(encoding = "UTF-8" )
+
 # setwd("C:/Mamba/Work/Presentations/2023-03_GBIF_Viewer/all_23-07-03/gbif_shiny_onlineviewer-main")
 
 # Biodiversity Viewer v.0.1
@@ -5,8 +7,9 @@
 # use https://mastering-shiny.org/action-layout.html
 # https://shiny.rstudio.com/gallery/viscover.html
 # https://github.com/XiaodanLyu/viscover/blob/master/inst/shiny-examples/overlay/app.r
-gc()
 rm(list = ls())
+gc()
+
 
 # Import libs ####
 # library(tidyverse)
@@ -150,13 +153,13 @@ vect_region_redlist <- c(
 
 # import data ####
 ## import spatial data ####
-Ukr_Obl <- st_read("adm_shp/Ukr_Obl_NEW.shp")
-Ukr_Rai <- st_read("adm_shp/Ukr_Raion_NEW.shp")
-Ukr_OTG <- st_read("adm_shp/Ukr_OTG_NEW.shp")
-Ukr_OTG <- Ukr_OTG[order(Ukr_OTG$OTG_name), ]         # to sort OTG names similarly
+adm_1 <- st_read("adm_shp/adm_1.shp")
+adm_2 <- st_read("adm_shp/adm_2.shp")
+adm_3 <- st_read("adm_shp/adm_3.shp")
+adm_3 <- adm_3[order(adm_3$adm_3_name), ]         # to sort OTG names similarly
 # Create vector with OTG
-choices_OTG <- Ukr_OTG$shapeID
-names(choices_OTG) <- Ukr_OTG$OTG_name
+choices_OTG <- adm_3$shapeID
+names(choices_OTG) <- adm_3$adm_3_name
 choices_OTG <- choices_OTG[order(names(choices_OTG))] # to sort OTG names similarly
 
 # Dataset DOI
@@ -192,12 +195,12 @@ ui = fluidPage(
                          #### Sidebar panel for inputs ####
                          sidebarPanel(
                            ## Oblast selection ####
-                           pickerInput('regions', 'Оберіть область', sort(unique(Ukr_Obl$obl_name)),
-                                       selected = c(unique(Ukr_Obl$obl_name)),
+                           pickerInput('regions', 'Оберіть область', sort(unique(adm_1$adm_1_name)),
+                                       selected = c(unique(adm_1$adm_1_name)),
                                        options = list(`actions-box` = TRUE), multiple = T),
                            ## Raion selection ####
                            pickerInput('raions', 'Оберіть район',
-                                       unique(Ukr_Rai$raion_name),
+                                       unique(adm_2$adm_2_name),
                                        selected = NULL,
                                        options = list(`actions-box` = TRUE), multiple = T),
                            ## OTG selection ####
@@ -428,7 +431,7 @@ server = function(input, output, session) {
   map2 <- leafletProxy("map2", session)
   
   ## create object with selected oblasts ####
-  obl <- reactive(subset(Ukr_Obl, Ukr_Obl$obl_name %in% input$regions))
+  obl <- reactive(subset(adm_1, adm_1$adm_1_name %in% input$regions))
   obl_bounds <- reactive(obl() %>% st_bbox() %>% as.character()) # to set extent around selected oblasts
   ## conditional selection of raions based on selected oblast ####
   observeEvent(input$regions, {
@@ -436,7 +439,7 @@ server = function(input, output, session) {
     clearMarkers(map) # clean previously loaded markers
     
     updatePickerInput(session = session, inputId = "raions",
-                      choices = sort(subset(unique(Ukr_Rai$raion_name), Ukr_Rai$obl_name %in% input$regions)),
+                      choices = sort(subset(unique(adm_2$adm_2_name), adm_2$adm_1_name %in% input$regions)),
                       selected = NULL) # raions are shown but nothing is selected initially
     
     obl_geom <- st_geometry(obl()) # to extract geometry
@@ -455,7 +458,7 @@ server = function(input, output, session) {
   })
   
   ## create object with selected raion ##
-  raion <- reactive(subset(Ukr_Rai, Ukr_Rai$raion_name %in% input$raions))
+  raion <- reactive(subset(adm_2, adm_2$adm_2_name %in% input$raions))
   raion_bounds <- reactive(raion() %>% st_bbox() %>% as.character()) # to set extent around selected raions
   ## change map based on selected raions ####
   observeEvent(input$raions, {
@@ -463,7 +466,7 @@ server = function(input, output, session) {
     clearMarkers(map) # clean previously loaded markers
     
     updatePickerInput(session = session, inputId = "OTG",
-                      choices = subset(choices_OTG, Ukr_OTG$raion_name %in% input$raions),
+                      choices = subset(choices_OTG, adm_3$adm_2_name %in% input$raions),
                       selected = NULL)
     
     raion_geom <- st_geometry(raion()) # to extract geometry
@@ -483,7 +486,7 @@ server = function(input, output, session) {
   })
   
   ## create object with selected OTG ##
-  OTG <- reactive(subset(Ukr_OTG, Ukr_OTG$shapeID %in% input$OTG))
+  OTG <- reactive(subset(adm_3, adm_3$shapeID %in% input$OTG))
   OTG_bounds <- reactive(OTG() %>% st_bbox() %>% as.character()) # to set extent around selected raions
   ## change map based on selected raions ####
   observeEvent(input$OTG, {
@@ -687,7 +690,7 @@ server = function(input, output, session) {
     
     isolate(sf_clipped_data() %>%
               filter(iucnRedListCategory %in% input$iucn | 
-                       ЧКУ %in% input$redbook | 
+                       (ЧКУ %in% input$redbook) | 
                        (intern_filt_present()[1] & BernAppendix1 == "yes" ) |
                        (intern_filt_present()[2] & BernAppendix2 == "yes" ) |
                        (intern_filt_present()[3] & BernAppendix3 == "yes" ) |
