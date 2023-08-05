@@ -63,7 +63,7 @@ name_backbone("Leucoagaricus nympharum (Kalchbr.) Bon", verbose = TRUE)
 
 
 # All names from the dataset
-name_usage(datasetKey="bca0cf23-b459-4164-a552-9b90825ee255")
+name_usage(datasetKey = "bca0cf23-b459-4164-a552-9b90825ee255")
 
 # Leucoagaricus nympharum (Kalchbr.) Bon
 # Look up all synonyms according to GBIF Backbone Taxonomy
