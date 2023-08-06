@@ -73,8 +73,7 @@ ui = fluidPage(
                              label = "Буфер довкола області інтересу",
                              choices = buffer_choices,
                               selected = NULL
-                             ),
-                           textOutput("txt_draw_polygon")
+                             )
                          ),
                          mainPanel(
                            leafletOutput("map",  width = "100%", height="85vh"),

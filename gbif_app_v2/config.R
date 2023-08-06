@@ -108,6 +108,15 @@ vect_region_redlist <- c(
 )
 
 
+buffer_choices = c(
+  "немає" = 0,
+  "1 км" = 1000,
+  "5 км" = 5000,
+  "10 км" = 10000,
+  "20 км" = 20000
+)
+
+
 # draw_new_shape_options
 draw_new_shape_options <- drawShapeOptions(
   # clickable = TRUE,
