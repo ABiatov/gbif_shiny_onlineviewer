@@ -1,5 +1,7 @@
 options(encoding = "UTF-8" )
 
+# >>> Buffer building moved to a separate event. <<< 
+
 # setwd("C:/Mamba/Work/Presentations/2023-03_GBIF_Viewer/all_23-07-03/gbif_shiny_onlineviewer-main")
 
 # Biodiversity Viewer v.0.1
@@ -119,7 +121,7 @@ ui = fluidPage(
                                "10 км" = 10000,
                                "20 км" = 20000
                              ),
-                             selected = 5000
+                             selected = 10000
                            ),
                            
                            ## Button for generate buffer ####
@@ -368,8 +370,8 @@ server = function(input, output, session) {
     raion_geom <- st_geometry(raion()) # to extract geometry
     reaktive_aoi_polygon(raion_geom)
     
-    raion_buffered <- polygon_bufferisation(raion(), input$buffer_radius) %>% 
-	st_union() # dissolve all created polygons to avoid overlaps
+    raion_buffered <- polygon_bufferisation(raion(), input$buffer_radius) # %>% 
+	# st_union() # dissolve all created polygons to avoid overlaps
     raion_buffered_geom <- st_geometry(raion_buffered) # to extract geometry
     reaktive_bufered_polygon(raion_buffered_geom)    # write raion_buffered in my custom global reactive value
 	
@@ -392,8 +394,8 @@ server = function(input, output, session) {
     OTG_geom <- st_geometry(OTG()) # to extract geometry
     reaktive_aoi_polygon(OTG_geom)
     
-    OTG_buffered <- polygon_bufferisation(OTG(), input$buffer_radius) %>% 
-	st_union() # dissolve all created polygons to avoid overlaps
+    OTG_buffered <- polygon_bufferisation(OTG(), input$buffer_radius) # %>% 
+	# st_union() # dissolve all created polygons to avoid overlaps
     OTG_buffered_geom <- st_geometry(OTG_buffered) # to extract geometry
     reaktive_bufered_polygon(OTG_buffered_geom)    # write raion_buffered in my custom global reactive value
     
@@ -416,8 +418,8 @@ server = function(input, output, session) {
     uploaded_cont_geom <- st_geometry(uploaded_cont) # to extract geometry
     reaktive_aoi_polygon(uploaded_cont_geom)
     
-    uploaded_cont_buffered <- polygon_bufferisation(uploaded_cont, input$buffer_radius) %>% 
-	st_union() # dissolve all created polygons to avoid overlaps
+    uploaded_cont_buffered <- polygon_bufferisation(uploaded_cont, input$buffer_radius) # %>% 
+	# st_union() # dissolve all created polygons to avoid overlaps
     uploaded_cont_buffered_geom <- st_geometry(uploaded_cont_buffered) # to extract geometry
     reaktive_bufered_polygon(uploaded_cont_buffered_geom)    # write raion_buffered in my custom global reactive value
     

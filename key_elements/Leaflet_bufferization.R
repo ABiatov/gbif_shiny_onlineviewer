@@ -8,6 +8,14 @@ library(sf)
 
 CRS_used_in_calculations <- 3537 # WGS 84 / North Pole LAEA Europe
 
+buffer_choices = c(
+  "немає" = 0,
+  "1 км" = 1000,
+  "5 км" = 5000,
+  "10 км" = 10000,
+  "20 км" = 20000
+)
+
 # draw_new_shape_options
 draw_new_shape_options <- drawShapeOptions(
   # clickable = TRUE,
@@ -37,6 +45,13 @@ polygon_bufferisation <- function(sf_input_polygon, radius){
   return(sf_polygon_buffered)
 }
 
+leaf_draw_sf_polyg <- function(geometry_coordinates){
+  coords <- geometry_coordinates %>% unlist %>% matrix(nc = 2, byrow = T)
+  curent_polygon <- sp::Polygon(coords) %>% list %>% sp::Polygons(ID=1) %>% list %>% sp::SpatialPolygons()
+  sf_curent_polygon <- st_as_sfc(curent_polygon) %>% st_set_crs(4326) # it work
+
+  return(sf_curent_polygon)
+}
 
 # custom functions end
 
@@ -56,14 +71,8 @@ ui = fluidPage(
                            radioButtons(
                              inputId = "buffer_radius",
                              label = "Буфер довкола області інтересу",
-                             choices = c(
-                               "немає" = 0,
-                               "1 км" = 1000,
-                               "5 км" = 5000,
-                               "10 км" = 10000,
-                               "20 км" = 20000
-                               ),
-                             # selected = 5000
+                             choices = buffer_choices,
+                              selected = NULL
                              ),
                            textOutput("txt_draw_polygon")
                          ),
@@ -120,17 +129,23 @@ server = function(input, output, session) {
     clearShapes(map) # clean map
     clearMarkers(map) # clean previously loaded markers
     # Leaflet ID to edit
-    id = input$map_draw_new_feature$properties$"_leaflet_id"
-    print("leaflet_id")
-    print(id)
-    coords <- input$map_draw_new_feature$geometry$coordinates %>% unlist %>% matrix(nc = 2, byrow = T)
-    curent_polygon <- sp::Polygon(coords) %>% list %>% sp::Polygons(ID=1) %>% list %>% sp::SpatialPolygons()
-    sf_curent_polygon <- st_as_sfc(curent_polygon) %>% st_set_crs(4326) # it work
+    # id = input$map_draw_new_feature$properties$"_leaflet_id"
+    # print("leaflet_id")
+    # print(id)
+    # coords <- input$map_draw_new_feature$geometry$coordinates %>% unlist %>% matrix(nc = 2, byrow = T)
+    # curent_polygon <- sp::Polygon(coords) %>% list %>% sp::Polygons(ID=1) %>% list %>% sp::SpatialPolygons()
+    # sf_curent_polygon <- st_as_sfc(curent_polygon) %>% st_set_crs(4326) # it work
+   
+    sf_curent_polygon <- leaf_draw_sf_polyg(input$map_draw_new_feature$geometry$coordinates)
+ 
     reaktive_aoi_polygon(sf_curent_polygon)
     
-    map %>% addPolygons(data = sf_curent_polygon, layerId = id,   # add buffered polygon to map
-                        options = polygon_aoi_options 
-                       )
+    map %>% addPolygons(data = sf_curent_polygon, #  layerId = id,   # add buffered polygon to map
+                        options = polygon_aoi_options )
+   
+     updateRadioButtons(session = session, inputId = "buffer_radius",
+                       choices = buffer_choices,
+                       selected = NULL)
   })
   
   observeEvent(input$map_draw_edited_features, {
@@ -138,15 +153,25 @@ server = function(input, output, session) {
     clearMarkers(map) # clean previously loaded markers
     
     # generate new buffer
-    coords <- input$map_draw_edited_features$features[[1]]$geometry$coordinates %>% unlist %>% matrix(nc = 2, byrow = T)
-    curent_polygon <- sp::Polygon(coords) %>% list %>% sp::Polygons(ID=1) %>% list %>% sp::SpatialPolygons()
-    sf_curent_polygon <- st_as_sfc(curent_polygon) %>% st_set_crs(4326)
+    # coords <- input$map_draw_edited_features$features[[1]]$geometry$coordinates %>% unlist %>% matrix(nc = 2, byrow = T)
+    # curent_polygon <- sp::Polygon(coords) %>% list %>% sp::Polygons(ID=1) %>% list %>% sp::SpatialPolygons()
+    # sf_curent_polygon <- st_as_sfc(curent_polygon) %>% st_set_crs(4326)
+    
+    sf_curent_polygon <- leaf_draw_sf_polyg(input$map_draw_edited_features$features[[1]]$geometry$coordinates)
+    
     reaktive_aoi_polygon(sf_curent_polygon)
     
-    map %>% addPolygons(data = sf_curent_polygon, layerId = id,   # add buffered polygon to map
-                        options = polygon_aoi_options
-    )
+    map %>% addPolygons(data = sf_curent_polygon, # layerId = id,   # add buffered polygon to map
+                        options = polygon_aoi_options )
+    
+    updateRadioButtons(session = session, inputId = "buffer_radius",
+                      choices = buffer_choices,
+                      selected = NULL)
+    
   })
+  
+
+  
   
   # Delete buffered polygon with source polygon
   observeEvent(input$map_draw_deleted_features, {
@@ -155,7 +180,12 @@ server = function(input, output, session) {
     reaktive_aoi_polygon("")
     reaktive_bufered_polygon("")    
     # removeShape(map, id_to_del) # TODO it
+    updateRadioButtons(session = session, inputId = "buffer_radius",
+                       choices = buffer_choices,
+                       selected = NULL)
   })
+  
+  
   
   observeEvent(input$buffer_radius, {
 
@@ -163,10 +193,16 @@ server = function(input, output, session) {
     if (!(is.na(class(reaktive_aoi_polygon())[2] ) ) ) {
 
       reaktive_bufered_polygon(polygon_bufferisation(reaktive_aoi_polygon(), input$buffer_radius))
+      
+      clearShapes(map) # delet all shapes from map
+      clearMarkers(map) # clean previously loaded markers
+      
+      map %>% addPolygons(data = reaktive_aoi_polygon(), # layerId = id,   # add  polygon to map
+                          options = polygon_aoi_options )
 
-      map %>% addPolygons(data = reaktive_bufered_polygon(), layerId = id,   # add buffered polygon to map
-                        options = buffered_polygon_options
-                        )
+      map %>% addPolygons(data = reaktive_bufered_polygon(), # layerId = id,   # add buffered polygon to map
+                        options = buffered_polygon_options )
+
     } # else { print(" reaktive_aoi_polygon isn't SFC object")  }
 
     }
