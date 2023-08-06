@@ -649,7 +649,6 @@ server = function(input, output, session) {
         options = polygon_aoi_options
       ) %>%
       addPolygons(
-        # data = reaktive_dissolved_polygon(), #layerId = id,   # add buffered polygon to map
         data = reaktive_bufered_polygon(), #layerId = id,   # add buffered polygon to map
         options = buffered_polygon_options
       ) %>%
