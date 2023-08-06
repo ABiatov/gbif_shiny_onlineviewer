@@ -1,5 +1,7 @@
 options(encoding = "UTF-8" )
 
+# >>> Buffer building moved to a separate event. <<< 
+
 # setwd("C:/Mamba/Work/Presentations/2023-03_GBIF_Viewer/all_23-07-03/gbif_shiny_onlineviewer-main")
 
 # Biodiversity Viewer v.0.1
@@ -112,14 +114,8 @@ ui = fluidPage(
                            radioButtons(
                              inputId = "buffer_radius",
                              label = "Буфер довкола області інтересу",
-                             choices = c(
-                               "немає" = 0,
-                               "1 км" = 1000,
-                               "5 км" = 5000,
-                               "10 км" = 10000,
-                               "20 км" = 20000
-                             ),
-                             selected = 5000
+                             choices = buffer_choices,
+                             selected = 0 # NULL
                            ),
                            
                            ## Button for generate buffer ####
@@ -338,19 +334,18 @@ server = function(input, output, session) {
                       choices = sort(subset(unique(adm_2$adm_2_name), adm_2$adm_1_name %in% input$regions)),
                       selected = NULL) # raions are shown but nothing is selected initially
     
-    obl_geom <- st_geometry(obl()) # to extract geometry
-    reaktive_aoi_polygon(obl_geom)
+    updateRadioButtons(session = session, inputId = "buffer_radius",
+                       choices = buffer_choices,
+                       selected = 0 )
     
-    obl_buffered <- polygon_bufferisation(obl(), input$buffer_radius)
-    obl_buffered_geom <- st_geometry(obl_buffered) # to extract geometry
-    reaktive_bufered_polygon(obl_buffered_geom)
+    obl_geom <- st_geometry(obl()) # to extract geometry
+    # reaktive_aoi_polygon(obl_geom) # We do not use this to protect against the download of data throughout the country.
+
     
 	map %>%
       addPolygons(data = obl(), weight = 2, fill = F) %>%
       fitBounds(lng1 = obl_bounds()[1], lat1 = obl_bounds()[2], # set view by extent: p1 - top lext, p2 - bottom right
                 lng2 = obl_bounds()[3], lat2 = obl_bounds()[4]) # extent is set after selection of oblast
-	    #addPolygons(data = obl_buffered, #layerId = id,   # add buffered polygon to map
-	     #         options = buffered_polygon_options)
   })
   
   ## create object with selected raion ##
@@ -365,20 +360,17 @@ server = function(input, output, session) {
                       choices = subset(choices_OTG, adm_3$adm_2_name %in% input$raions),
                       selected = NULL)
     
+    updateRadioButtons(session = session, inputId = "buffer_radius",
+                       choices = buffer_choices,
+                       selected = 0 )
+    
     raion_geom <- st_geometry(raion()) # to extract geometry
     reaktive_aoi_polygon(raion_geom)
     
-    raion_buffered <- polygon_bufferisation(raion(), input$buffer_radius) %>% 
-	st_union() # dissolve all created polygons to avoid overlaps
-    raion_buffered_geom <- st_geometry(raion_buffered) # to extract geometry
-    reaktive_bufered_polygon(raion_buffered_geom)    # write raion_buffered in my custom global reactive value
-	
     map %>% 
       addPolygons(data = raion(), options = polygon_aoi_options) %>%
       fitBounds(lng1 = raion_bounds()[1], lat1 = raion_bounds()[2],  # set view by extent: p1 - top lext, p2 - bottom right
-                lng2 = raion_bounds()[3], lat2 = raion_bounds()[4]) %>%  # to allow map zoom to selected area
-      addPolygons(data = raion_buffered, #layerId = id,   # add buffered polygon to map
-                  options = buffered_polygon_options)
+                lng2 = raion_bounds()[3], lat2 = raion_bounds()[4]) #  to allow map zoom to selected area
   })
   
   ## create object with selected OTG ##
@@ -389,20 +381,18 @@ server = function(input, output, session) {
     clearShapes(map) # clean map
     clearMarkers(map) # clean previously loaded markers
     
+    updateRadioButtons(session = session, inputId = "buffer_radius",
+                       choices = buffer_choices,
+                       selected = 0 )
+    
     OTG_geom <- st_geometry(OTG()) # to extract geometry
     reaktive_aoi_polygon(OTG_geom)
-    
-    OTG_buffered <- polygon_bufferisation(OTG(), input$buffer_radius) %>% 
-	st_union() # dissolve all created polygons to avoid overlaps
-    OTG_buffered_geom <- st_geometry(OTG_buffered) # to extract geometry
-    reaktive_bufered_polygon(OTG_buffered_geom)    # write raion_buffered in my custom global reactive value
     
     map %>% 
       addPolygons(data = OTG(), options = polygon_aoi_options) %>%
       fitBounds(lng1 = OTG_bounds()[1], lat1 = OTG_bounds()[2],  # set view by extent: p1 - top lext, p2 - bottom right
-                lng2 = OTG_bounds()[3], lat2 = OTG_bounds()[4]) %>%  # to allow map zoom to selected area
-      addPolygons(data = OTG_buffered, #layerId = id,   # add buffered polygon to map
-                  options = buffered_polygon_options)
+                lng2 = OTG_bounds()[3], lat2 = OTG_bounds()[4]) # to allow map zoom to selected area
+
   })
   
   ## Adding custom contours ## 
@@ -410,54 +400,43 @@ server = function(input, output, session) {
     clearShapes(map) # clean map
     clearMarkers(map) # clean previously loaded markers
     
+    updateRadioButtons(session = session, inputId = "buffer_radius",
+                       choices = buffer_choices,
+                       selected = 0 )
+    
     # read spatial object
     uploaded_cont <-  st_read(input$userContours$datapath)
     
     uploaded_cont_geom <- st_geometry(uploaded_cont) # to extract geometry
     reaktive_aoi_polygon(uploaded_cont_geom)
-    
-    uploaded_cont_buffered <- polygon_bufferisation(uploaded_cont, input$buffer_radius) %>% 
-	st_union() # dissolve all created polygons to avoid overlaps
-    uploaded_cont_buffered_geom <- st_geometry(uploaded_cont_buffered) # to extract geometry
-    reaktive_bufered_polygon(uploaded_cont_buffered_geom)    # write raion_buffered in my custom global reactive value
-    
+
     # calculate bounds
-    uploaded_cont_bounds <- uploaded_cont_buffered %>% st_bbox() %>% as.character()
+    uploaded_cont_bounds <- uploaded_cont_geom %>% st_bbox() %>% as.character()
     
     # add to map
     map %>%
       fitBounds(lng1 = uploaded_cont_bounds[1], lat1 = uploaded_cont_bounds[2],
                 lng2 = uploaded_cont_bounds[3], lat2 = uploaded_cont_bounds[4]) %>%
-      addPolygons(data = reaktive_aoi_polygon(), options = polygon_aoi_options) %>%
-      addPolygons(data = uploaded_cont_buffered, #layerId = id,   # add buffered polygon to map
-                  options = buffered_polygon_options)
+      addPolygons(data = reaktive_aoi_polygon(), options = polygon_aoi_options) 
   })
   
   ## Draw polygon ####
-  # aoi_poly <- eventReactive(input$map_draw_new_feature,{
-  #   coords <- input$map_draw_new_feature$geometry$coordinates %>% unlist %>% matrix(nc = 2, byrow = T)
-  #   sp_aoi_polygon <- sp::Polygon(coords) %>% list %>% sp::Polygons(ID=1) %>% list %>% sp::SpatialPolygons()
-  #   sf_aoi_polygon <- st_as_sfc(sp_curent_polygon) %>% st_set_crs(4326)
-  # })
   
   observeEvent(input$map_draw_new_feature, {
     clearShapes(map) # clean map
 	  clearMarkers(map) # clean previously loaded markers
-	
-    # Leaflet ID to edit
-    id = input$map_draw_new_feature$properties$"_leaflet_id"
-    print("leaflet_id")
-    print(id)
-    coords <- input$map_draw_new_feature$geometry$coordinates %>% unlist %>% matrix(nc = 2, byrow = T)
-    curent_polygon <- sp::Polygon(coords) %>% list %>% sp::Polygons(ID=1) %>% list %>% sp::SpatialPolygons()
-    sf_curent_polygon <- st_as_sfc(curent_polygon) %>% st_set_crs(4326) # it work
-    sf_curent_buffered <- polygon_bufferisation(sf_curent_polygon, input$buffer_radius)
     
-    map %>% addPolygons(data = sf_curent_buffered, layerId = id,   # add buffered polygon to map
-                        options = buffered_polygon_options 
+	  sf_curent_polygon <- leaf_draw_sf_polyg(input$map_draw_new_feature$geometry$coordinates)
+	  
+	  reaktive_aoi_polygon(sf_curent_polygon)
+	  
+    map %>% addPolygons(data = sf_curent_polygon, # layerId = id,   # add buffered polygon to map
+                        options = polygon_aoi_options 
     )
     
-    reaktive_bufered_polygon(sf_curent_buffered)    # write curent_buffered_WKT in my custom global reactive value
+    updateRadioButtons(session = session, inputId = "buffer_radius",
+                       choices = buffer_choices,
+                       selected = 0)
     
   })
   
@@ -465,18 +444,16 @@ server = function(input, output, session) {
     clearShapes(map) # clean map
     clearMarkers(map) # clean previously loaded markers
 	
-	# generate new buffer
-    coords <- input$map_draw_edited_features$features[[1]]$geometry$coordinates %>% unlist %>% matrix(nc = 2, byrow = T)
-    curent_polygon <- sp::Polygon(coords) %>% list %>% sp::Polygons(ID=1) %>% list %>% sp::SpatialPolygons()
-    sf_curent_polygon <- st_as_sfc(curent_polygon) %>% st_set_crs(4326)
-    sf_curent_buffered <- polygon_bufferisation(sf_curent_polygon, input$buffer_radius)
+    sf_curent_polygon <- leaf_draw_sf_polyg(input$map_draw_edited_features$features[[1]]$geometry$coordinates)
     
-    map %>% addPolygons(data = sf_curent_buffered, layerId = id,   # add buffered polygon to map
-                        options = buffered_polygon_options
-    )
+    reaktive_aoi_polygon(sf_curent_polygon)
     
-    reaktive_bufered_polygon(sf_curent_buffered)    # write curent_buffered_WKT in my custom global reactive value
+    map %>% addPolygons(data = sf_curent_polygon, # layerId = id,   # add buffered polygon to map
+                        options = polygon_aoi_options )
     
+    updateRadioButtons(session = session, inputId = "buffer_radius",
+                       choices = buffer_choices,
+                       selected = 0)
   })
   
   # Delete buffered polygon with source polygon
@@ -485,28 +462,50 @@ server = function(input, output, session) {
     clearMarkers(map) # clean previously loaded markers
     reaktive_aoi_polygon("")
 	  reaktive_bufered_polygon("")    
-    # removeShape(map, id_to_del) # TODO it
+	  updateRadioButtons(session = session, inputId = "buffer_radius",
+	                     choices = buffer_choices,
+	                     selected = 0)
   })
   
+# Build buffer   ####
+
+  observeEvent(input$buffer_radius, {
+    
+    # if ( (class(reaktive_aoi_polygon())[2] == "sfc") )  { # TODO Add an explicit object type check. If the object type is not SFC then print this error to the console.
+    if (!(is.na(class(reaktive_aoi_polygon())[2] ) ) ) {
+      
+      reaktive_bufered_polygon(polygon_bufferisation(reaktive_aoi_polygon(), input$buffer_radius))
+      
+      clearShapes(map) # delet all shapes from map
+      clearMarkers(map) # clean previously loaded markers
+      
+      map %>% addPolygons(data = reaktive_aoi_polygon(), # layerId = id,   # add  polygon to map
+                          options = polygon_aoi_options )
+      
+      map %>% addPolygons(data = reaktive_bufered_polygon(), # layerId = id,   # add buffered polygon to map
+                          options = buffered_polygon_options )
+      
+    } # else { print(" reaktive_aoi_polygon isn't SFC object")  }
+    
+  }
+  )
+  
+  
+# clip global GBIF data by reaktive_bufered_polygon() ####
   
   # recieved_data <- eventReactive(
   sf_clipped_data <- eventReactive(
     
     eventExpr = input$act_get_gbif_data,
     valueExpr = {
-      # st_intersection(gbif_sf_dataset, reaktive_dissolved_polygon() ) # use dissolved polygon for occurrence search
       st_intersection(gbif_sf_dataset, reaktive_bufered_polygon() ) # use dissolved polygon for occurrence search
     }
   )
+
+# add clipped data and polygons on map1 ####
+  
   
   observeEvent(input$act_get_gbif_data, {
-    # resulted_polygon <- reaktive_bufered_polygon() # %>%
-       # st_union() # dissolve all created polygons to avoid overlaps
-    
-    # reaktive_dissolved_polygon(resulted_polygon)
-    
-    # filteredData_bounds <- reaktive_dissolved_polygon %>% st_bbox() %>% as.character() 
-    
     
     clearShapes(map) # delet all shapes from map
     # clearShapes(map2) # delet all shapes from map2
@@ -519,7 +518,6 @@ server = function(input, output, session) {
         options = polygon_aoi_options
       ) %>%
       addPolygons(
-        # data = reaktive_dissolved_polygon(), #layerId = id,   # add buffered polygon to map
         data = reaktive_bufered_polygon(), #layerId = id,   # add buffered polygon to map
         options = buffered_polygon_options
       ) %>%
@@ -651,7 +649,6 @@ server = function(input, output, session) {
         options = polygon_aoi_options
       ) %>%
       addPolygons(
-        # data = reaktive_dissolved_polygon(), #layerId = id,   # add buffered polygon to map
         data = reaktive_bufered_polygon(), #layerId = id,   # add buffered polygon to map
         options = buffered_polygon_options
       ) %>%
@@ -748,39 +745,7 @@ server = function(input, output, session) {
       labs(caption = "Basemap attribution: © OpenStreetMap contributors")
   })
   
-  # ggplot()+
-  #   base_map(bbox = st_bbox(aoi_buffered), 
-  #            basemap = 'mapnik', 
-  #            increase_zoom = 2) +
-  #   geom_sf(data=sf_points, aes(color=kingdom),size=2)+
-  #   scale_colour_manual(values = kingdom_colors, name=NULL ) +
-  #   geom_sf(data = aoi_buffered, colour = "blue", fill=NA, lwd = 1)+
-  #   geom_sf(data = aoi_geometry, colour = "red", fill = NA, lwd = 1)+
-  #   theme_minimal()+
-  #   theme(axis.text = element_blank())+
-  #   theme(legend.position = "bottom",
-  #         legend.margin=margin())+
-  #   labs(caption = "Basemap attribution: © OpenStreetMap contributors")
-  # 
-  # dev.off()
-  
-  ## Generate DOCX for download ####
 
-
-  ## Generate document
-  #   output$downloadData_DOCX <- downloadHandler(
-  #   filename = function() {
-  #     paste("GBIF_data-", Sys.Date(), ".docx", sep="")
-  #   },
-  #   content = function(file) {
-  #     # Code to generate the DOCX file 
-  #     rmarkdown::render(
-  #       input = "templates/report.Rmd",
-  #       output_format = "word_document",
-  #       output_file = file,
-  #     )
-  #   }
-  # )
   output$downloadReport <- downloadHandler(
     filename = function() {
       # paste('my-report', sep = '.', switch(
@@ -854,15 +819,16 @@ server = function(input, output, session) {
     print(reaktive_bufered_polygon())
     # print(paste("class: ", class(reaktive_dissolved_polygon()), sep=""))
     print(paste("class: ", class(reaktive_bufered_polygon()), sep=""))
+    # print("reaktive_aoi_polygon(): ")
+    # print(reaktive_aoi_polygon())
+    # print("class reaktive_aoi_polygon(): ")
+    # print(class(reaktive_aoi_polygon()) )
+    # print("class class reaktive_aoi_polygon(): ")
+    # print(class(class(reaktive_aoi_polygon()) ))
+    # print("class 1 reaktive_aoi_polygon(): ")
+    # print(class(reaktive_aoi_polygon())[2] )
     # print("recieved_data sample: ")
     # print(head(select(recieved_data(), recordedBy, eventDate, scientificName)))
-    # print("redbook_finder: ")
-    # print(input$redbook_finder)
-    # print("species_list: ")
-    # print(str(species_list()))
-    # print(length(species_list()))
-    # print("recieved_data: ")
-    # print(str(recieved_data()))
     # print(paste("number of observations: ", nrow(recieved_data()), sep=""))
     # print(str(df_recieved_data()))
     # print(head(df_recieved_data()))

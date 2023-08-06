@@ -1,5 +1,5 @@
 CRS_used_in_calculations <- 3537 # WGS 84 / North Pole LAEA Europe
-query_limit = 50
+# query_limit = 50
 
 # Lists of columns
 ## for full table (excel)
@@ -108,6 +108,15 @@ vect_region_redlist <- c(
 )
 
 
+buffer_choices = c(
+  "немає" = 0,
+  "1 км" = 1000,
+  "5 км" = 5000,
+  "10 км" = 10000,
+  "20 км" = 20000
+)
+
+
 # draw_new_shape_options
 draw_new_shape_options <- drawShapeOptions(
   # clickable = TRUE,
@@ -122,58 +131,6 @@ polygon_aoi_options <- pathOptions(color = "#ff0000", weight = 2, opacity = 0.9,
 buffered_polygon_options <- pathOptions(color = "#03F", weight = 2, opacity = 0.9, fill = FALSE, zIndexOffset = 10) 
 
 
-
-# # Don't use in last version
-# fields_dict_red_book_ua <- c("scientificName", "RedBookUA") 
-
-# # Don't use in last version
-# fields_list_to_DF_PREVIEW <- c("key", "scientificName",  
-#                                "decimalLatitude", "decimalLongitude",
-#                                "kingdom", "classKey", "kingdomKey",
-#                                "eventDate", "datasetKey",
-#                                "iucnRedListCategory", "taxonKey",
-#                                "identifier.1", "georeferencedBy", "georeferenceProtocol", "associatedReferences",
-#                                "verbatimLocality", "occurrenceID", "coordinateUncertaintyInMeters"
-#                                )
-
-# # Don't use in last version
-# fields_as_factor <- c("scientificName", "kingdom", "classKey", 
-#                       "iucnRedListCategory", "taxonKey", "kingdomKey"
-#                       )
-
-# # Don't use in last version
-# refactor_fields_list_to_DF_PREVIEW <- c("scientificName", "NameUA",
-#                                         "Latitude", "Longitude",
-#                                         "kingdom", "classKey",
-#                                         "eventDate", "datasetKey",
-#                                         "URL_record", "URL_species",
-#                                         "URL_kingdom", "URL_class",
-#                                         "URL_dataset",
-#                                         "iucnRedListCategory",
-#                                         "to_report"
-#                                         )
-
-# # Don't use in last version
-# refactor_fields_list_to_DF_REPORT <- c("scientificName", "NameUA",
-#                                         "Latitude", "Longitude",
-#                                         "kingdom", "classKey", "eventDate",
-#                                         "RedBookUA",
-#                                         "IUCN_Red_List",
-#                                         "datasetKey",
-#                                         "URL_record", "URL_species",
-#                                         "URL_kingdom", "URL_class",
-#                                         "URL_dataset"
-#                                        )
-
-# # Don't use in last version
-# fields_list_to_DF_PREPRINT <- c("scientificName", 
-#                                 "kingdom" #,
-#                           #      "NameUA",
-#                          #     "PotectedStatus",
-#                          #     "RedBookUA",
-#                          #     "IUCN_Red_List",
-#                          #     "URL_species"
-#                               )
 
 # DOCX text blocks ####
 
