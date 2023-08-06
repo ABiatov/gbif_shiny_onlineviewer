@@ -1,0 +1,55 @@
+---
+title: "Дані GBIF"
+output: word_document
+
+---
+# Зведені відомості про реєстрації рідкісних та таких, що перебувають під охороною, видів
+`r text_with_date`
+
+**DOI**: [`r gbif_doi`](`r gbif_doi_url`)
+
+*Будь ласка викорстовуйте таку цитату в публікаціях:*
+
+GBIF.org (`r formatted_gbif_dataset_date`) GBIF Occurrence Download [`r gbif_doi_url`](`r gbif_doi_url`)
+
+
+```{r, echo = FALSE}
+    ggplot()+
+      base_map(bbox = st_bbox(reaktive_bufered_polygon()),
+               basemap = 'mapnik',
+               increase_zoom = 2) +
+      geom_sf(data=sf_filteredData(), aes(color=kingdom),size=2)+
+      scale_colour_manual(values = kingdom_colors, name=NULL ) +
+      geom_sf(data = reaktive_bufered_polygon(), colour = "blue", fill=NA, lwd = 1)+
+      geom_sf(data = reaktive_aoi_polygon(), colour = "red", fill = NA, lwd = 1)+ # TODO create global var for AOI
+      theme_minimal()+
+      theme(axis.text = element_blank())+
+      theme(legend.position = "bottom",
+            legend.margin=margin())+
+      labs(caption = "Basemap attribution: © OpenStreetMap contributors")
+```
+
+`r string_nrow_filtred_data()`
+
+## Перелік видів
+
+```{r, echo = FALSE}
+knitr::kable(df_report_table())
+```
+
+
+**GBIF Viewer**: an open web-based biodiversity conservation decision-making tool for policy and governance. Спільний проєкт The [Habitat Foundation](https://thehabitatfoundation.org/) та [Української Природоохоронної Групи](https://uncg.org.ua/), за підтримки [NLBIF: The Netherlands Biodiversity Information Facility](https://www.nlbif.nl/), nlbif2022.014
+
+```{r echo=FALSE, out.width='20%'}
+# TODO fix problem with pictures size
+knitr::include_graphics(c("uncg_logo.png", "the_habitat_foundation_logo.png", "logo-nlbif.png"))
+```
+
+
+
+![](uncg_logo.png) 
+![](the_habitat_foundation_logo.png)
+![](logo-nlbif.png)
+
+
+
