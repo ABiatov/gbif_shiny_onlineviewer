@@ -1,6 +1,10 @@
 CRS_used_in_calculations <- 3537 # WGS 84 / North Pole LAEA Europe
 # query_limit = 50
 
+url_metadata_datadump <- "https://github.com/ABiatov/gbif_shiny_onlineviewer/raw/main/data/gbif_dataset_metadata.Rdata"
+url_datadump <- "https://github.com/ABiatov/gbif_shiny_onlineviewer/raw/main/data/gbif_sf_dataset.Rdata"
+
+
 # Lists of columns
 ## for full table (excel)
 colnames_set1 <- c(
