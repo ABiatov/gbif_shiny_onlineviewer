@@ -44,8 +44,11 @@ source("config.R")
 source("custom_functions.R")
 
 ## load prepared GBIF data ####
-load(file = "data/gbif_dataset_metadata.Rdata")
-load(file = "data/gbif_sf_dataset.Rdata")
+# load(file = "data/gbif_dataset_metadata.Rdata")
+# load(file = "data/gbif_sf_dataset.Rdata")
+
+load(url(url_metadata_datadump))
+load(url(url_datadump))
 
 
 
