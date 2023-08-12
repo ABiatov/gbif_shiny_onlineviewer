@@ -27,7 +27,7 @@ library(rgbif)
 
 # Load input data from csv files
 # df.fullredlist <- read.csv("checklist-protected-species-UA-template-v24-cleaned_20230710.csv")
-df.fullredlist <- read.csv("Species-protected-list-v26_cleaned_20230801.csv")
+df.fullredlist <- read.csv("./data/Species-protected-list-v26_cleaned_20230801.csv")
 
 # Match taxonomic names against the GBIF Backbone Taxonomy
 name_data <- df.fullredlist %>% 
@@ -84,13 +84,13 @@ badmatch <- df.merged %>%
 matches <- list(goodmatch, badmatch)
 names(matches) <- c("goodmatch", "badmatch")
 # Write data to the drive
-save(matches, file = "matches.Rdata")
+save(matches, file = "./temp/matches.Rdata")
 
 # Write the names with 'bad' matching to csv file (need manual reviewing before 
 # the next step).
 badmatch %>% 
   select(ID, verbatimScientificName) %>% 
-  write.csv("higherrank.csv")
+  write.csv("./temp/higherrank.csv")
 
 # "higherrank.csv" contains names (with their internal IDs) that can not be searched
 # for occurrences by taxon key efficiently. The only option left is to search by 
