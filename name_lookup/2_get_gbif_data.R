@@ -7,8 +7,14 @@ library(dplyr)
 library(stringr)
 library(rgbif)
 
+# Country code to download GBIF data
+country <- "UA"
+
+## Import GBIF credentials
+source("gbif_ini.R")
+
 # Load data saved at step #1
-load(file = "matches.Rdata")
+load(file = "./temp/matches.Rdata")
 list2env(matches, .GlobalEnv)
 rm(matches)
 
@@ -16,8 +22,8 @@ rm(matches)
 # Should be searched by verbatinScientificName term
 
 # Load names that should be searched by verbatim scientific names
-speciesnames <- read.csv("higherrank_nameVariants.csv") %>% 
-  select(-X, -nameStringConcatenated)
+speciesnames <- read.csv("./data/higherrank_nameVariants.csv") %>% 
+  select(-X)
 # Resulting dataframe internal ID, which helps us later to merge their occurrence 
 # data with occ. data for "goodmatch", and possible spellings for verbatim 
 # scientific names for each taxon.
@@ -26,15 +32,15 @@ speciesnames <- read.csv("higherrank_nameVariants.csv") %>%
 # Create an empty list
 search_results <- list()
 
-# Get existing occurrences for each name ID from the 'badmatch' 
+# Get existing gbifID for the occurrences for each name ID from the 'badmatch' 
 for (i in 1:nrow(speciesnames)) {
   # Look up for occurrences
   # Returns tibble with occurrences if any, NULL if no occs found for the particular name
   df <- occ_search(verbatimScientificName = str_c(speciesnames[i, 2:ncol(speciesnames)], 
                                                   collapse = ";"),
                    hasCoordinate = TRUE,
-                   country = "UA",
-                   fields = "all",
+                   country = country,
+                   fields = "gbifID",
                    limit = 100000)$data
   
   # If the tibble in not empty, create ID column according to
@@ -44,7 +50,7 @@ for (i in 1:nrow(speciesnames)) {
     df %>% 
       mutate(ID = speciesnames[i, 1]) %>%
       relocate(ID) -> search_results[[i]]
-    print(paste0(paste0("Success for  the scientificName ", speciesnames[i, 2], 
+    print(paste0(paste0("Success for the scientificName ", speciesnames[i, 2], 
                         ", ID ", speciesnames[i, 1])))
     
   } else {
@@ -58,22 +64,9 @@ for (i in 1:nrow(speciesnames)) {
 # occurrence IDs for the particular taxon.
 
 
-# Merge results to get occurrence IDs associated with name IDs 
-occ.badmatch <- bind_rows(search_results) %>% 
-         select(ID,
-                gbifID,
-                datasetKey,
-                scientificName,
-                taxonKey,
-                year,
-                eventDate,
-                decimalLatitude,
-                decimalLongitude,
-                coordinateUncertaintyInMeters)
-# Results - occurrences for each name ID in the 'badmatch' dataframe
-
-# Check data visually
-occ.badmatch %>% glimpse()
+# Merge results to get occurrence IDs (gbifID) associated with name IDs 
+bad.id <- bind_rows(search_results)
+# Results - gbifID for each name ID in the 'badmatch' dataframe
 
 gc() # Clean up unused memory
 
@@ -93,8 +86,8 @@ for (i in 1:nrow(goodmatch)) {
   # for the particular name
   df <- occ_search(scientificName = goodmatch[i, 3],
                    hasCoordinate = TRUE,
-                   country = "UA",
-                   fields = "all",
+                   country = country,
+                   fields = "gbifID",
                    limit = 100000)$data
   
   # If the tibble in not empty, create ID column according to
@@ -104,7 +97,7 @@ for (i in 1:nrow(goodmatch)) {
     df %>% 
       mutate(ID = goodmatch[i, 1]) %>%
       relocate(ID) -> search_results[[i]]
-print(paste0("Success for the scientificName ", goodmatch[i, 3], 
+      print(paste0("Success for the scientificName ", goodmatch[i, 3], 
                  ", ID ", goodmatch[i, 1]))
     
   } else {
@@ -116,50 +109,28 @@ print(paste0("Success for the scientificName ", goodmatch[i, 3],
 # Output of the previous step is a list of many, where each sub-list contains 
 # occurrences for the particular taxon.
 
-# Merge results to get occurrence IDs associated with name IDs 
-occ.goodmatch <- bind_rows(search_results) %>% 
-select(ID,
-         gbifID,
-         datasetKey,
-         scientificName,
-         taxonKey,
-         year,
-         eventDate,
-         decimalLatitude,
-         decimalLongitude,
-         coordinateUncertaintyInMeters)
-# Results - occurrences for each name ID in the 'goodmatch' dataframe
+# Merge results to get occurrence IDs associated with name IDs
+good.id <- bind_rows(search_results)
+# Results - gbifIDs for each name ID in the 'goodmatch' dataframe
 
 
-# Merge occurrenceIDs for the 'good' and 'bad' matches
-occurrences.all <- occ.goodmatch %>% bind_rows(occ.badmatch)
+# Merge gbifIDs for the 'good' and 'bad' matches
+all.id <- good.id %>% bind_rows(bad.id) %>% 
+  mutate_at("gbifID", bit64::as.integer64) # convert to integer64 format
 
-save(occurrences.all, file = "occurrences_all.Rdata")
+save(all.id, file = "./temp/gbifIDs.Rdata")
 gc()
 # rm(list = ls()) # Reset R`s brain
-rm(occ.goodmatch, occ.badmatch, search_results)
+rm(good.id, bad.id, search_results)
 
 
-
-# Match data with attributes ####
-full.data <- goodmatch %>% 
-  bind_rows(badmatch) %>% 
-  arrange(ID) %>% 
-  right_join(occurrences.all) %>% 
-  select(-c(scientificName,
-           status,
-           matchType))
-
-# Export data to the local drive
-save(full.data, file = "dump.Rdata")
-
-# Get metadata for all Ukrainian GBIF occurrences to date ####
+# Get occurrence data for all Ukrainian GBIF occurrences to date ####
 # preforms the query
 response <- occ_download(
   pred("hasCoordinate", TRUE),
   pred("occurrenceStatus","PRESENT"), 
-  pred_not(pred_in("basisOfRecord",c("FOSSIL_SPECIMEN","LIVING_SPECIMEN"))),
-  pred("country", "UA"),  # TODO: Move "UA" to Config.R
+  pred_not(pred("basisOfRecord", "FOSSIL_SPECIMEN")),
+  pred("country", country), 
   format = "DWCA"
   # user = gbif_user,
   # pwd = gbif_pwd,
@@ -169,26 +140,84 @@ response <- occ_download(
 # Retrieve download's metadata
 gbif_dataset_metadata <- occ_download_meta(response)
 
-save(gbif_dataset_metadata,
-     file = "metadata.Rdata")
-
-
-# desiccate metadata
+# desiccate metadata, if needed
 print(paste0("DOI: ", gbif_dataset_metadata$doi))
 print(paste0("https://doi.org/", gbif_dataset_metadata$doi)) # Example: https://doi.org/10.15468/dl.qpx7ya
 print(paste0("Dataset key: ", gbif_dataset_metadata$key))
 print(paste0("Download link: ", gbif_dataset_metadata$downloadLink))
 
 
-# Write output as text file
-sink(file = "MoransI_residuals.txt")
-morans_spdep_kern_df
-sink(file = NULL)
+save(gbif_dataset_metadata,
+     file = "./outputs/metadata.Rdata")
+
+# Check download status with
+occ_download_wait(gbif_dataset_metadata$key)
+
+# Create local archive with data on disk (project folder root directory)
+dump_dataset <- occ_download_get(gbif_dataset_metadata$key, overwrite = TRUE)
+
+# Import occurrence data to the Environment
+all.occurrences <- occ_download_import(dump_dataset) %>%
+  select(gbifID,
+         occurrenceID,
+         taxonKey,
+         datasetKey,
+         scientificName,
+         verbatimScientificName,
+         individualCount,
+         organismQuantity,
+         organismQuantityType,
+         eventDate,
+         year,
+         decimalLatitude,
+         decimalLongitude,
+         coordinateUncertaintyInMeters,
+         coordinatePrecision,
+         verbatimLocality,
+         iucnRedListCategory,
+         license) %>%
+  mutate_at("gbifID", bit64::as.integer64) %>% 
+  mutate_at(c("datasetKey",
+              "scientificName",
+              "verbatimScientificName",
+              "eventDate",
+              "verbatimLocality",
+              "iucnRedListCategory",
+              "license"), as.character) %>% 
+  mutate_at(c("decimalLatitude",
+              "decimalLongitude",
+              "coordinateUncertaintyInMeters",
+              "coordinatePrecision"), as.double)
 
 
+# Filter all downloaded occurrences by gbifIDs, generated before, and joint it
+# with internal IDs.
+# `gbifID` var should be in the same type (integer64) for both data frames
+gbif.dump <- all.occurrences %>% 
+  inner_join(all.id) %>% 
+  relocate(ID) %>% 
+  arrange(ID)
+
+
+# Save occurrence data to local drive
+save(gbif.dump, file = "./temp/gbif_data.Rdata")
 
 # Clean-up the session ####
+
+# Delete zip archives with occurrence downloads
+# List all files matched pattern "zip" in the project directory
+downloaded_files <- list.files(path = ".", pattern = "zip")
+# Delete all listed files
+for (i in 1:length(downloaded_files)) {
+  if (file.exists(downloaded_files[i])) {
+    file.remove(downloaded_files[i])
+    cat("File deleted")
+  } else {
+    cat("No file found")
+  }
+}
+
 rm(list = ls()) # Reset R`s brain
-gc()
+gc()            # Free unused R's memory
 
 # End of script ####
