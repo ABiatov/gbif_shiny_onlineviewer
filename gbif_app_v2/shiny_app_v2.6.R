@@ -177,11 +177,13 @@ ui = fluidPage(
                                          "Бернська конвенція. Резолюцію 6" = "Bern Resolution 6",
                                          "Конвенція про збереження мігруючих видів диких тварин (Боннська конвенція)" = "Bonn",
                                          "Угода про збереження афро-євразійських мігруючих водно-болотних птахів (AEWA)" = "AEWA",
-                                         # "Конвенція про міжнародну торгівлю видами дикої фауни і флори, що перебувають під загрозою зникнення (CITES)" = "CITES",
                                          "Угода про збереження популяцій європейських кажанів (EUROBATS)" = "EUROBATS",
                                          "Угода про збереження китоподібних Чорного моря, Середземного моря та прилеглої акваторії Атлантичного океану (ACCOBAMS)" = "ACCOBAMS",
-                                         "Пташина директива ЄС" = "Birds Directive",
-                                         "Оселищна директива ЄС" = "Habitats Directive"
+                                         "Пташина директива ЄС. Додаток I" = "Birds Directive Annex I",
+                                         "Пташина директива ЄС. Додаток IІ" = "Birds Directive Annex IІ",
+                                         "Оселищна директива ЄС. Додаток IІ" = "Habitats Directive Annex II",
+                                         "Оселищна директива ЄС. Додаток IV" = "Habitats Directive Annex IV",
+                                         "Оселищна директива ЄС. Додаток V" = "Habitats Directive Annex V"
                                        ),
                                        selected = vector_conventions,
                                        options = list(`actions-box` = TRUE), multiple = TRUE
@@ -369,6 +371,7 @@ server = function(input, output, session) {
     
     raion_geom <- st_geometry(raion()) # to extract geometry
     reaktive_aoi_polygon(raion_geom)
+    reaktive_bufered_polygon(raion_geom)
     
     map %>% 
       addPolygons(data = raion(), options = polygon_aoi_options) %>%
@@ -390,6 +393,7 @@ server = function(input, output, session) {
     
     OTG_geom <- st_geometry(OTG()) # to extract geometry
     reaktive_aoi_polygon(OTG_geom)
+    reaktive_bufered_polygon(OTG_geom)
     
     map %>% 
       addPolygons(data = OTG(), options = polygon_aoi_options) %>%
@@ -412,6 +416,7 @@ server = function(input, output, session) {
     
     uploaded_cont_geom <- st_geometry(uploaded_cont) # to extract geometry
     reaktive_aoi_polygon(uploaded_cont_geom)
+    reaktive_bufered_polygon(uploaded_cont_geom)
 
     # calculate bounds
     uploaded_cont_bounds <- uploaded_cont_geom %>% st_bbox() %>% as.character()
@@ -432,6 +437,7 @@ server = function(input, output, session) {
 	  sf_curent_polygon <- leaf_draw_sf_polyg(input$map_draw_new_feature$geometry$coordinates)
 	  
 	  reaktive_aoi_polygon(sf_curent_polygon)
+	  reaktive_bufered_polygon(sf_curent_polygon)
 	  
     map %>% addPolygons(data = sf_curent_polygon, # layerId = id,   # add buffered polygon to map
                         options = polygon_aoi_options 
@@ -450,6 +456,7 @@ server = function(input, output, session) {
     sf_curent_polygon <- leaf_draw_sf_polyg(input$map_draw_edited_features$features[[1]]$geometry$coordinates)
     
     reaktive_aoi_polygon(sf_curent_polygon)
+    reaktive_bufered_polygon(sf_curent_polygon)
     
     map %>% addPolygons(data = sf_curent_polygon, # layerId = id,   # add buffered polygon to map
                         options = polygon_aoi_options )
@@ -550,7 +557,13 @@ server = function(input, output, session) {
         radius = 2,  # calculation radius
         color = "red",
         popup = ~paste0("<center>" ,"<b>", nameUk, "</b>", "</center>", # "<br>",   # popup with HTML 
-                        "<center>", scientificName, "</center>" )
+                        "<center>", scientificName, "</center>",  
+                        "<center>",
+                        "<a href=\'",URL_record,"\' target=\'_blank\'>",
+                        URL_record,
+                        "</a>",
+                        "</center>"
+                          )  # "URL_record"
       )
     
     
@@ -594,11 +607,13 @@ server = function(input, output, session) {
                        (intern_filt_present()[4] & BernResolution6 == "yes" ) |
                        (intern_filt_present()[5] & Bonn == "yes") |
                        (intern_filt_present()[6] & AEWA == "yes") |
-                       # (intern_filt_present()[7] & CITES == "yes") |
-                       (intern_filt_present()[8] & EUROBATS == "yes") |
-                       (intern_filt_present()[9] & ACCOBAMS == "yes") |
-                       (intern_filt_present()[10] & BirdsDirective == "yes") |
-                       (intern_filt_present()[11] & HabitatsDirective == "yes") |
+                       (intern_filt_present()[7] & EUROBATS == "yes") |
+                       (intern_filt_present()[8] & ACCOBAMS == "yes") |
+                       (intern_filt_present()[9] & BirdsDirectiveAnnex_I == "yes") |
+                       (intern_filt_present()[10] & BirdsDirectiveAnnex_IІ == "yes") |
+                       (intern_filt_present()[11] & HabitatsDirectiveAnnex_II == "yes") |
+                       (intern_filt_present()[12] & HabitatsDirectiveAnnex_IV == "yes") |
+                       (intern_filt_present()[13] & HabitatsDirectiveAnnex_V == "yes") |
                        (region_filt_present()[1] & ЧС_Вінницька == "yes") |
                        (region_filt_present()[2] & ЧС_Волинська == "yes") |
                        (region_filt_present()[3] & ЧС_Дніпропетровська == "yes") |
@@ -659,7 +674,13 @@ server = function(input, output, session) {
                        radius = 2,
                        color = "red",
                        popup = ~paste0("<center>" ,"<b>", nameUk, "</b>", "</center>", # "<br>",   # popup with HTML 
-                                       "<center>", scientificName, "</center>" )
+                                       "<center>", scientificName, "</center>",  
+                                       "<center>",
+                                       "<a href=\'",URL_record,"\' target=\'_blank\'>",
+                                       URL_record,
+                                       "</a>",
+                                       "</center>"
+                                       )
       )
   })
   

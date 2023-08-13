@@ -1,8 +1,11 @@
 CRS_used_in_calculations <- 3537 # WGS 84 / North Pole LAEA Europe
 # query_limit = 50
 
-url_metadata_datadump <- "https://github.com/ABiatov/gbif_shiny_onlineviewer/raw/main/name_lookup/outputs/metadata.Rdata"
-url_datadump <- "https://github.com/ABiatov/gbif_shiny_onlineviewer/raw/main/name_lookup/outputs/gbif_sf_dataset.Rdata"
+# url_metadata_datadump <- "https://github.com/ABiatov/gbif_shiny_onlineviewer/raw/main/name_lookup/outputs/metadata.Rdata"
+# url_datadump <- "https://github.com/ABiatov/gbif_shiny_onlineviewer/raw/main/name_lookup/outputs/gbif_sf_dataset.Rdata"
+
+url_metadata_datadump <- "https://fra1.digitaloceanspaces.com/abspatial/WD/gbif_shiny_onlineviewer/metadata.Rdata"
+url_datadump <- "https://fra1.digitaloceanspaces.com/abspatial/WD/gbif_shiny_onlineviewer/gbif_sf_dataset.Rdata"
 
 
 
@@ -10,60 +13,61 @@ url_datadump <- "https://github.com/ABiatov/gbif_shiny_onlineviewer/raw/main/nam
 # Lists of columns
 ## for full table (excel)
 colnames_set1 <- c(
-  
-  # "bibliographicCitation", "identifier", "license", "publisher", 
-  # "references",  "rightsHolder", "type", "institutionID", "collectionID", "datasetID", 
-  # "institutionCode", "collectionCode", "datasetName", "ownerInstitutionCode", 
-  # "basisOfRecord",  "informationWithheld",
-  # "occurrenceID", "catalogNumber", "recordNumber", "recordedBy", "recordedByID", "individualCount",
-  # "organismQuantity", "organismQuantityType", "sex", "lifeStage", "reproductiveCondition", "behavior",
-  # "establishmentMeans", "degreeOfEstablishment", "georeferenceVerificationStatus", "occurrenceStatus",
-  # "preparations", "disposition", "associatedReferences", "associatedSequences", "otherCatalogNumbers",
-  # "occurrenceRemarks", "organismID", "organismScope", "materialSampleID", "eventID", "parentEventID",
-  "eventDate",
-  # "eventTime", 
-  "year", 
-  # "month", "day", "verbatimEventDate", 
-  # "habitat", "samplingProtocol", "sampleSizeValue", "sampleSizeUnit", "samplingEffort", "fieldNotes", "eventRemarks", 
-  # "locationID", "waterBody", "locality", 
-  # "verbatimLocality", # commented for test
-  "Latitude", "Longitude", "coordinateUncertaintyInMeters", 
-  # "issue", "footprintWKT", "identifiedBy", "dateIdentified",
-  # "taxonID", "acceptedNameUsageID", "parentNameUsageID",
-  "nameUk", "scientificName", "kingdom", "phylum", "class", "order", "family", "genus",
-  #   "genericName", "infragenericEpithet", "specificEpithet", "infraspecificEpithet", "taxonRank",
-  # "vernacularName", "taxonomicStatus", 
-  # "publishingCountry", "lastInterpreted", "issue", "mediaType",
-  # "taxonKey", "acceptedTaxonKey", "kingdomKey", "phylumKey", "classKey", "orderKey",
-  # "familyKey", "genusKey", "speciesKey", "species", "acceptedScientificName", "verbatimScientificName",
-  # "typifiedName", 
+  "individualCount", "organismQuantity", "organismQuantityType",
+  "eventDate", "year", "Latitude", "Longitude", "coordinateUncertaintyInMeters", "coordinatePrecision", "verbatimLocality",
+  "nameUk", "scientificName", "kingdom",
+  # "phylum", "class", "order", "family", "genus",
+  "ЧКУ",
   "iucnRedListCategory",
-  "BernAppendix2", "BernAppendix3", "Bonn", "AEWA", 
-  # "IUCN", 
-  "BernResolution6", "ЧКУ", 
   "BernAppendix1", 
-  # "CITES", 
-  "EUROBATS",      
-  "ACCOBAMS", "BirdsDirective", "HabitatsDirective",
-  "Invasive", "ЧС_Полтавська", "ЧС_Чернівецька", 
-  "ЧС_Житомирська", "ЧС_Вінницька", "ЧС_Харківська", 
-  "ЧС_Чернігівська", "ЧС_Черкаська", "ЧС_Івано_Франківська",
-  "ЧС_Рівненська", "ЧС_Одеська", "ЧС_Сумська",    
-  "ЧС_Закарпатська", "ЧС_Львівська", "ЧС_Миколаївська", 
-  "ЧС_Донецька", "ЧС_Херсонська", "ЧС_Севастополь", 
-  "ЧС_Тернопільська", "ЧС_Київ", "ЧС_Волинська",  
-  "ЧС_Хмельницька", "ЧС_Запорізька", "ЧС_Кіровоградська",
-  "ЧС_Луганська", "ЧС_Київська", "ЧС_Дніпропетровська",
-  # "gbifID", "datasetKey"
-  "URL_record", "URL_dataset"
-  # "matchType", "confidence", "status", "rank"
+  "BernAppendix2", 
+  "BernAppendix3", 
+  "BernResolution6",
+  "Bonn",
+  "AEWA",
+  "EUROBATS",
+  "ACCOBAMS",
+  "BirdsDirectiveAnnex_I", 
+  "BirdsDirectiveAnnex_IІ",
+  "HabitatsDirectiveAnnex_II", 
+  "HabitatsDirectiveAnnex_IV", 
+  "HabitatsDirectiveAnnex_V",
+  "Invasive",
+  "ЧС_Вінницька",
+  "ЧС_Волинська",
+  "ЧС_Дніпропетровська",
+  "ЧС_Донецька",
+  "ЧС_Житомирська",
+  "ЧС_Закарпатська",
+  "ЧС_Запорізька",
+  "ЧС_Івано_Франківська",
+  "ЧС_Київська",
+  "ЧС_Кіровоградська",
+  "ЧС_Луганська",
+  "ЧС_Львівська",
+  "ЧС_Миколаївська",
+  "ЧС_Одеська",
+  "ЧС_Полтавська",
+  "ЧС_Рівненська",
+  "ЧС_Сумська",
+  "ЧС_Тернопільська",
+  "ЧС_Черкаська",
+  "ЧС_Чернівецька",
+  "ЧС_Чернігівська",
+  "ЧС_Харківська",
+  "ЧС_Херсонська",
+  "ЧС_Хмельницька", 
+  "ЧС_Київ",
+  "ЧС_Севастополь",
+  "URL_record", "URL_dataset",
+  "license"
 )
 
 ## for reduced table (to show the output in the application)
 colnames_set2 <- c(
   "nameUk", "scientificName",
-  "year", "Latitude", "Longitude", "kingdom",
-  "phylum", "class", "order", "family" 
+  "year", "Latitude", "Longitude", "kingdom" , "URL_record"
+  # "phylum", "class", "order", "family" 
 )
 
 ## for reduced table (to instal to DOCX report)
@@ -77,11 +81,13 @@ vector_conventions <- c(
   "Bern Resolution 6",
   "Bonn",
   "AEWA",
-  # "CITES",
   "EUROBATS",
   "ACCOBAMS",
-  "Birds Directive",
-  "Habitats Directive"
+  "Birds Directive Annex I", 
+  "Birds Directive Annex IІ",
+  "Habitats Directive Annex II", 
+  "Habitats Directive Annex IV", 
+  "Habitats Directive Annex V"
 )
 
 vect_region_redlist <- c(
