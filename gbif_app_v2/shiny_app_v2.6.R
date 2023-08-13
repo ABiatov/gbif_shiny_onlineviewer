@@ -260,6 +260,8 @@ ui = fluidPage(
                        tags$hr(),
                        plotOutput("plot_map"),
                        tags$hr(),
+                       textOutput("nrow_chku_doc"),
+                       DT::dataTableOutput("report_chku_table"),
                        textOutput("nrow_filtred_data_doc"),
                        # tags$br(),
                        DT::dataTableOutput("report_table"),
@@ -687,7 +689,9 @@ server = function(input, output, session) {
   
   # render result of request in tab "Попередній перегляд таблиці даних" ####
   df_filteredData <- reactive(st_drop_geometry(sf_filteredData())  %>%
-                                dplyr::select(all_of(colnames_set1)) )
+                                dplyr::select(all_of(colnames_set1)) %>%
+                                arrange(kingdom, scientificName)
+                              )
   
   output$gbif_table_set2 <- DT::renderDataTable(df_filteredData()[, colnames_set2])
   ## Generate CSV 
@@ -729,13 +733,14 @@ server = function(input, output, session) {
   
   ## Create DF_PREPRINT dataframe for Tab - Генерування звітів ####
   
+  # general report table
   df_report_table <- reactive(df_filteredData() %>%
     dplyr::select(all_of(colnames_set3)) %>%
     group_by(scientificName,  # настроить корректно групбай чтоб не удаляло лишние поля 
              nameUk,
              kingdom #,
-             # RedBookUA,
-             # IUCN_Red_List
+             # ЧКУ,
+             # iucnRedListCategory
              ) %>%
     summarise(Amount = n()) %>%
     arrange(kingdom, scientificName) %>%
@@ -744,7 +749,39 @@ server = function(input, output, session) {
     na.omit()
   )
   
-  # df_sorted_report_table <- reactive(df_report_table()[order(df_report_table$kingdom, df_report_table$scientificName), ]) # TODO it not work. Need to include sorting to previous step
+  # Generate ЧКУ report table
+  tab_filtred_chku <- reactiveVal()
+  nrow_chku <- reactiveVal()
+  
+  observeEvent(input$refresh_filters, {
+
+  # if ( !is.null( input$redbook ) & !is.na( input$redbook ) ) {
+    if ( !is.null( input$redbook ) ) {
+
+      chku_tab <- subset(df_filteredData(), df_filteredData()$ЧКУ %in% input$redbook, 
+                         select = c("kingdom", "nameUk", "scientificName", "ЧКУ") 
+                         ) %>%
+        group_by(kingdom, nameUk, scientificName,  ЧКУ) %>%
+        summarise(Amount = n()) %>%
+        arrange(kingdom, scientificName) %>%
+        select( -c("Amount") ) %>%
+        # dplyr::select(all_of(c("kingdom", "nameUk", "scientificName", "ЧКУ"))) %>%
+        na.omit()
+      
+      tab_filtred_chku(chku_tab)
+      
+      nrow_chku(paste0("Кількість видів занесених до червоної книги України: ", toString(nrow(chku_tab)) ))
+
+      output$nrow_chku_doc <- renderText({
+        nrow_chku()
+      })
+
+      output$report_chku_table <- DT::renderDataTable(tab_filtred_chku())
+    } else { 
+      tab_filtred_chku(NULL)
+      nrow_chku(NULL)
+      }
+  } )
   
   # Draw preview report table Генерування звітів
   output$report_table <- DT::renderDataTable(df_report_table())
@@ -858,6 +895,13 @@ server = function(input, output, session) {
     # print(head(df_recieved_data()))
     # print("Map info: ")
     # print(getMapData(map))
+    print("input$redbook: ")
+    print(class(input$redbook))
+    print(str(input$redbook))
+    print(input$redbook)
+    # print(kilkist_chku())
+    print("tab_filtred_chku :")
+    print(str(tab_filtred_chku()))
     print("done")
     print(Sys.time())
   })
