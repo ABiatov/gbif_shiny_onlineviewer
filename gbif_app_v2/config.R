@@ -128,6 +128,8 @@ buffer_choices = c(
   "20 км" = 20000
 )
 
+chku_category <- c("вразливий", "рідкісний", "зникаючий", "неоцінений", "недостатньо відомий", "зниклий у природі")
+
 
 # draw_new_shape_options
 draw_new_shape_options <- drawShapeOptions(

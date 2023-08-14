@@ -150,8 +150,8 @@ ui = fluidPage(
                            #                start = min(na.omit(gbif_sf_dataset$eventDate)),
                            #                end = Sys.Date() ),
                            pickerInput("redbook", "Червона Книга України",
-                                       choices = c("вразливий", "рідкісний", "зникаючий", "неоцінений", "недостатньо відомий", "зниклий у природі"),
-                                       selected = c("вразливий", "рідкісний", "зникаючий", "неоцінений", "недостатньо відомий", "зниклий у природі"),
+                                       choices = chku_category,
+                                       selected = chku_category,
                                        options = list(`actions-box` = TRUE), multiple = TRUE
                            ),
                            pickerInput("iucn", "Червоний список IUCN",
@@ -754,39 +754,37 @@ server = function(input, output, session) {
   nrow_chku <- reactiveVal()
   
   observeEvent(input$refresh_filters, {
-
-  # if ( !is.null( input$redbook ) & !is.na( input$redbook ) ) {
-    if ( !is.null( input$redbook ) ) {
-
-      chku_tab <- subset(df_filteredData(), df_filteredData()$ЧКУ %in% input$redbook, 
-                         select = c("kingdom", "nameUk", "scientificName", "ЧКУ") 
-                         ) %>%
-        group_by(kingdom, nameUk, scientificName,  ЧКУ) %>%
-        summarise(Amount = n()) %>%
-        arrange(kingdom, scientificName) %>%
-        select( -c("Amount") ) %>%
-        # dplyr::select(all_of(c("kingdom", "nameUk", "scientificName", "ЧКУ"))) %>%
-        na.omit()
+    chku_tab <- subset(df_filteredData(), df_filteredData()$ЧКУ %in% chku_category , 
+                       select = c("kingdom", "nameUk", "scientificName", "ЧКУ") 
+    ) %>%
+      group_by(kingdom, nameUk, scientificName,  ЧКУ) %>%
+      summarise(Amount = n()) %>%
+      arrange(kingdom, scientificName) %>%
+      select( -c("Amount") ) %>%
+      na.omit()
+    
+    tab_filtred_chku(chku_tab)
+    
+    nrow_chku(nrow(chku_tab))
+    
+    if ( nrow_chku() > 0 ) {
       
-      tab_filtred_chku(chku_tab)
-      
-      nrow_chku(paste0("Кількість видів занесених до червоної книги України: ", toString(nrow(chku_tab)) ))
-
       output$nrow_chku_doc <- renderText({
-        nrow_chku()
+        paste0("Кількість видів занесених до червоної книги України: ", toString(nrow_chku()) ) 
       })
-
+      
       output$report_chku_table <- DT::renderDataTable(tab_filtred_chku())
-    } else { 
+    } else {
       tab_filtred_chku(NULL)
       nrow_chku(NULL)
-      }
+      output$nrow_chku_doc <- renderText({NULL})
+      output$report_chku_table <- DT::renderDataTable(NULL)
+    }
+    
   } )
   
   # Draw preview report table Генерування звітів
   output$report_table <- DT::renderDataTable(df_report_table())
-  # output$report_table <- DT::renderDataTable(df_sorted_report_table())
-  
     
   ## Create picture plot_map #### 
   
@@ -895,13 +893,13 @@ server = function(input, output, session) {
     # print(head(df_recieved_data()))
     # print("Map info: ")
     # print(getMapData(map))
-    print("input$redbook: ")
-    print(class(input$redbook))
-    print(str(input$redbook))
-    print(input$redbook)
+    # print("input$redbook: ")
+    # print(class(input$redbook))
+    # print(str(input$redbook))
+    # print(input$redbook)
     # print(kilkist_chku())
-    print("tab_filtred_chku :")
-    print(str(tab_filtred_chku()))
+    # print("tab_filtred_chku :")
+    # print(str(tab_filtred_chku()))
     print("done")
     print(Sys.time())
   })
