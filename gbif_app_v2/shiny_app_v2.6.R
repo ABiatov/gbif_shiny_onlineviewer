@@ -41,6 +41,7 @@ library(lubridate) # for paring date to GBIF cite
 
 # Calling custom settings and functions
 source("config.R")
+source("global_reactive_value.R")
 source("custom_functions.R")
 
 ## load prepared GBIF data ####
@@ -258,11 +259,14 @@ ui = fluidPage(
                        radioButtons('format', 'Document format', c('HTML', 'Word'), inline = TRUE),
                        downloadButton('downloadReport'),
                        tags$hr(),
+                       textOutput("nrow_filtred_data_doc"),
                        plotOutput("plot_map"),
                        tags$hr(),
                        textOutput("nrow_chku_doc"),
                        DT::dataTableOutput("report_chku_table"),
-                       textOutput("nrow_filtred_data_doc"),
+                       tags$br(),
+                       tags$br(),
+                       textOutput("nrow_species_doc"),
                        # tags$br(),
                        DT::dataTableOutput("report_table"),
                        p("GBIF Viewer: an open web-based biodiversity conservation decision-making tool for policy and governance. Спільний проєкт The Habitat Foundation та Української Природоохоронної Групи, за підтримки NLBIF: The Netherlands Biodiversity Information Facility, nlbif2022.014",
@@ -276,15 +280,7 @@ ui = fluidPage(
 # Back end ####
 server = function(input, output, session) {
   
-  # Create a global reactive value
-  ## Create a global reactive value for AOI polygon
-  reaktive_aoi_polygon <- reactiveVal()
-  
-  ## Create a global reactive value for guffered polygon
-  reaktive_bufered_polygon <- reactiveVal() # Create a global reactive value for buffered polygon - now SF, not WKT!
-  
-  # reaktive_dissolved_polygon <- reactiveVal()  # Create second reactive value for dissolved polygon - also SF
-  
+
   ## create the leaflet map ####
   main_map <-  leaflet() %>% addTiles() %>%
     # addSearchOSM() %>% 
@@ -714,7 +710,7 @@ server = function(input, output, session) {
   )
   
   string_nrow_filtred_data <- reactive(
-    paste0("Кількість знахідок: ", toString(nrow(df_filteredData())) )
+    paste0("Загальна кількість спостережень: ", toString(nrow(df_filteredData())) ) # TODO text to config
     )
   
   output$nrow_filtred_data_map <- renderText({
@@ -729,7 +725,11 @@ server = function(input, output, session) {
     string_nrow_filtred_data() 
   })
   
-    
+  
+  
+
+  
+  
   
   ## Create DF_PREPRINT dataframe for Tab - Генерування звітів ####
   
@@ -749,9 +749,13 @@ server = function(input, output, session) {
     na.omit()
   )
   
+  
+  output$nrow_species_doc <- renderText({
+    paste0("Загальна кількість видів: ", toString(nrow(df_report_table())) ) # TODO text to config
+  })
+  
   # Generate ЧКУ report table
-  tab_filtred_chku <- reactiveVal()
-  nrow_chku <- reactiveVal()
+
   
   observeEvent(input$refresh_filters, {
     chku_tab <- subset(df_filteredData(), df_filteredData()$ЧКУ %in% chku_category , 
@@ -767,10 +771,10 @@ server = function(input, output, session) {
     
     nrow_chku(nrow(chku_tab))
     
-    if ( nrow_chku() > 0 ) {
+    if (  !is.null(nrow_chku()) && !is.na(nrow_chku()) && !is.nan(nrow_chku()) && nrow_chku() > 0   ) {
       
       output$nrow_chku_doc <- renderText({
-        paste0("Кількість видів занесених до червоної книги України: ", toString(nrow_chku()) ) 
+        paste0("Кількість видів занесених до Червоної книги України: ", toString(nrow_chku()) ) # TODO text to config
       })
       
       output$report_chku_table <- DT::renderDataTable(tab_filtred_chku())
