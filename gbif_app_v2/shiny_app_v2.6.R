@@ -140,7 +140,7 @@ ui = fluidPage(
                          )
               ),
               ## Tab - Попередній перегляд ####
-              tabPanel("Попередній перегляд на карті",
+              tabPanel("Фильтрувати дані", # "Попередній перегляд на карті"
                        # TODO gbif_table_set2 >> gbif_table_set3
                        sidebarLayout(
                          sidebarPanel(
@@ -167,7 +167,7 @@ ui = fluidPage(
                                          "Відомостей недостатньо (Data Deficient, DD)" = "DD",
                                          "Неоцінений (Not Evaluated, NE)" = "NE"
                                        ),
-                                       selected = c("EX", "EW", "CR", "EN", "VU", "NT", "LC", "DD", "NE"),
+                                       selected = iucn_category,
                                        options = list(`actions-box` = TRUE), multiple = TRUE
                            ),
                            pickerInput("international_filters", "Міжнародні конвенції та угоди",
@@ -259,14 +259,19 @@ ui = fluidPage(
                        radioButtons('format', 'Document format', c('HTML', 'Word'), inline = TRUE),
                        downloadButton('downloadReport'),
                        tags$hr(),
-                       textOutput("nrow_filtred_data_doc"),
                        plotOutput("plot_map"),
                        tags$hr(),
-                       textOutput("nrow_chku_doc"),
+                       h2("Зведена статистика"),
+                       textOutput("nrow_filtred_data_doc"),
+                       DT::dataTableOutput("report_rare_lists_table"),
+                       tags$hr(),
+                       tags$h3(textOutput("nrow_chku_doc")),
                        DT::dataTableOutput("report_chku_table"),
                        tags$br(),
+                       tags$h3(textOutput("nrow_iucn_doc")),
+                       DT::dataTableOutput("report_iucn_table"),
                        tags$br(),
-                       textOutput("nrow_species_doc"),
+                       tags$h3(textOutput("nrow_species_doc")),
                        # tags$br(),
                        DT::dataTableOutput("report_table"),
                        p("GBIF Viewer: an open web-based biodiversity conservation decision-making tool for policy and governance. Спільний проєкт The Habitat Foundation та Української Природоохоронної Групи, за підтримки NLBIF: The Netherlands Biodiversity Information Facility, nlbif2022.014",
@@ -731,33 +736,54 @@ server = function(input, output, session) {
   
   
   
-  ## Create DF_PREPRINT dataframe for Tab - Генерування звітів ####
-  
-  # general report table
-  df_report_table <- reactive(df_filteredData() %>%
-    dplyr::select(all_of(colnames_set3)) %>%
-    group_by(scientificName,  # настроить корректно групбай чтоб не удаляло лишние поля 
-             nameUk,
-             kingdom #,
-             # ЧКУ,
-             # iucnRedListCategory
-             ) %>%
-    summarise(Amount = n()) %>%
-    arrange(kingdom, scientificName) %>%
-    dplyr::select(all_of(c("kingdom", "Amount", "nameUk", "scientificName"))) %>%
-    # colnames(c("Царство", "Кількість", "Українська назва", "Латинська назва")) %>%
-    na.omit()
-  )
-  
-  
-  output$nrow_species_doc <- renderText({
-    paste0("Загальна кількість видів: ", toString(nrow(df_report_table())) ) # TODO text to config
-  })
-  
-  # Generate ЧКУ report table
-
+  ## Generate report table for Tab - Генерування звітів ####
   
   observeEvent(input$refresh_filters, {
+    ### Create Summary table ####
+    pre_df_rare_lists <- data.frame(
+      "Характеристика" = character(),
+      "Кількість_видів" = numeric()
+    )
+    
+    ### General species table ####
+    df_report_table <- df_filteredData() %>%
+                                  dplyr::select(all_of(colnames_set3)) %>%
+                                  group_by(scientificName,  # настроить корректно групбай чтоб не удаляло лишние поля 
+                                           nameUk,
+                                           kingdom #,
+                                           # ЧКУ,
+                                           # iucnRedListCategory
+                                  ) %>%
+                                  summarise(Amount = n()) %>%
+                                  arrange(kingdom, scientificName) %>%
+                                  dplyr::select(all_of(c("kingdom", "Amount", "nameUk", "scientificName"))) %>%
+                                  # colnames(c("Царство", "Кількість", "Українська назва", "Латинська назва")) %>%
+                                  na.omit()
+    
+    
+    tab_filtred_report(df_report_table)
+    nrow_report(nrow(df_report_table))
+    
+    
+    if (  !is.null(nrow_report()) && !is.na(nrow_report()) && !is.nan(nrow_report()) && nrow_report() > 0   ) {
+      pre_df_rare_lists[nrow(pre_df_rare_lists) + 1,] = c("Загалом, згідно критеріїв пошуку", nrow_report() )
+   
+      output$nrow_species_doc <- renderText({
+        "Загальний перелік видів" # TODO text to config
+      })
+      
+      ## Draw preview report table Генерування звітів - загальний список видів
+      output$report_table <- DT::renderDataTable(tab_filtred_report()) 
+      
+    } else {
+      tab_filtred_report(NULL)
+      nrow_report(NULL)
+      output$nrow_species_doc <- renderText({NULL})
+      output$report_table <- DT::renderDataTable(NULL)
+    }     
+    
+    ### ChKU species table ####
+    
     chku_tab <- subset(df_filteredData(), df_filteredData()$ЧКУ %in% chku_category , 
                        select = c("kingdom", "nameUk", "scientificName", "ЧКУ") 
     ) %>%
@@ -768,16 +794,19 @@ server = function(input, output, session) {
       na.omit()
     
     tab_filtred_chku(chku_tab)
-    
     nrow_chku(nrow(chku_tab))
+    
     
     if (  !is.null(nrow_chku()) && !is.na(nrow_chku()) && !is.nan(nrow_chku()) && nrow_chku() > 0   ) {
       
       output$nrow_chku_doc <- renderText({
-        paste0("Кількість видів занесених до Червоної книги України: ", toString(nrow_chku()) ) # TODO text to config
+       "Види занесені Червоної книги України"  # TODO text to config
       })
       
       output$report_chku_table <- DT::renderDataTable(tab_filtred_chku())
+      
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Червона книга України", nrow_chku())
+      
     } else {
       tab_filtred_chku(NULL)
       nrow_chku(NULL)
@@ -785,10 +814,50 @@ server = function(input, output, session) {
       output$report_chku_table <- DT::renderDataTable(NULL)
     }
     
+    ### IUCN species table ####
+    
+    iucn_tab <- subset(df_filteredData(), df_filteredData()$iucnRedListCategory %in% iucn_category , 
+                       select = c("kingdom", "nameUk", "scientificName", "iucnRedListCategory") 
+    ) %>%
+      group_by(kingdom, nameUk, scientificName,  iucnRedListCategory) %>%
+      summarise(Amount = n()) %>%
+      arrange(kingdom, scientificName) %>%
+      select( -c("Amount") ) %>%
+      na.omit()
+    
+    tab_filtred_iucn(iucn_tab)
+    nrow_iucn(nrow(iucn_tab))
+    
+    
+    if (  !is.null(nrow_iucn()) && !is.na(nrow_iucn()) && !is.nan(nrow_iucn()) && nrow_iucn() > 0   ) {
+      
+      output$nrow_iucn_doc <- renderText({
+        "Види занесені Червоної книги IUCN"  # TODO text to config
+      })
+      
+      output$report_iucn_table <- DT::renderDataTable(tab_filtred_iucn())
+      
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Червона книга IUCN", nrow_iucn())
+      
+    } else {
+      tab_filtred_iucn(NULL)
+      nrow_iucn(NULL)
+      output$nrow_iucn_doc <- renderText({NULL})
+      output$report_iucn_table <- DT::renderDataTable(NULL)
+    }
+    
+    
+    
+    ### Summary table to reactive value ####
+    df_rare_lists(pre_df_rare_lists)
+    
+    
   } )
   
-  # Draw preview report table Генерування звітів
-  output$report_table <- DT::renderDataTable(df_report_table())
+  ## Draw preview report table Зведена статистика по природоохорним перелікам
+  output$report_rare_lists_table <- DT::renderDataTable(df_rare_lists()) 
+  
+  
     
   ## Create picture plot_map #### 
   

@@ -130,6 +130,7 @@ buffer_choices = c(
 
 chku_category <- c("вразливий", "рідкісний", "зникаючий", "неоцінений", "недостатньо відомий", "зниклий у природі")
 
+iucn_category <- c("EX", "EW", "CR", "EN", "VU", "NT", "LC", "DD", "NE")
 
 # draw_new_shape_options
 draw_new_shape_options <- drawShapeOptions(
