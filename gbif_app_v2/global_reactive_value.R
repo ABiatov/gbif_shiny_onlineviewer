@@ -23,7 +23,8 @@ df_rare_lists <- reactiveVal()
 var_names <- c("report" ,"chku", "iucn", "BernApp_1", "BernApp_2", "BernApp_3", "BernRes_6",
                "Bonn", "AEWA", "EUROBATS", "ACCOBAMS",
                "BirdDirAnn_I", "BirdDirAnn_II",
-               "HabitatsDirAnn_II", "HabitatsDirAnn_IV", "HabitatsDirAnn_V"
+               "HabitatsDirAnn_II", "HabitatsDirAnn_IV", "HabitatsDirAnn_V",
+               "Invasive"
                )
 
 # Loop over the list of variable names
@@ -36,7 +37,14 @@ for (name in var_names) {
 }
 
 
-
+# # Loop over the list of variable names
+# for (name in var_names) {
+#   # Create the reactive variable for `tab_filtred`
+#   print(paste0("tab_filtred_", name))
+#   
+#   # Create the reactive variable for `nrow`
+#   print(paste0("nrow_", name))
+# }
 
 
 

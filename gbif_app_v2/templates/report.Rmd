@@ -41,11 +41,132 @@ if (  !is.null(nrow_report()) && !is.na(nrow_report()) && !is.nan(nrow_report())
 ```
 
 
-`r if (  !is.null(nrow_chku()) && !is.na(nrow_chku()) && !is.nan(nrow_chku()) && nrow_chku() > 0  ) {  paste0("## ", "Види занесені Червоної книги України" ) }  `
+`r if (  !is.null(nrow_chku()) && !is.na(nrow_chku()) && !is.nan(nrow_chku()) && nrow_chku() > 0  ) {  paste0("## ", "Види, занесені до Червоної книги України" ) }  `
 
 ```{r, echo = FALSE}
 if (  !is.null(nrow_chku()) && !is.na(nrow_chku()) && !is.nan(nrow_chku()) && nrow_chku() > 0  ) {
       knitr::kable(tab_filtred_chku())
+    }
+```
+
+`r if (  !is.null(nrow_iucn()) && !is.na(nrow_iucn()) && !is.nan(nrow_iucn()) && nrow_iucn() > 0  ) {  paste0("## ", "Види, занесені до Червоного списку IUCN" ) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_iucn()) && !is.na(nrow_iucn()) && !is.nan(nrow_iucn()) && nrow_iucn() > 0  ) {
+      knitr::kable(tab_filtred_iucn())
+    }
+```
+
+
+`r if (  !is.null(nrow_BernApp_1()) && !is.na(nrow_BernApp_1()) && !is.nan(nrow_BernApp_1()) && nrow_BernApp_1() > 0  ) {  paste0("## ", "Види, занесені до Додатку 1 Бернської конвенції" ) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_BernApp_1()) && !is.na(nrow_BernApp_1()) && !is.nan(nrow_BernApp_1()) && nrow_BernApp_1() > 0  ) {
+      knitr::kable(tab_filtred_BernApp_1())
+    }
+```
+
+`r if (  !is.null(nrow_BernApp_2()) && !is.na(nrow_BernApp_2()) && !is.nan(nrow_BernApp_2()) && nrow_BernApp_2() > 0  ) {  paste0("## ", "Види, занесені до Додатку 2 Бернської конвенції" ) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_BernApp_2()) && !is.na(nrow_BernApp_2()) && !is.nan(nrow_BernApp_2()) && nrow_BernApp_2() > 0  ) {
+      knitr::kable(tab_filtred_BernApp_2())
+    }
+```
+
+`r if (  !is.null(nrow_BernApp_3()) && !is.na(nrow_BernApp_3()) && !is.nan(nrow_BernApp_3()) && nrow_BernApp_3() > 0  ) {  paste0("## ", "Види, занесені до Додатку 3 Бернської конвенції" ) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_BernApp_3()) && !is.na(nrow_BernApp_3()) && !is.nan(nrow_BernApp_3()) && nrow_BernApp_3() > 0  ) {
+      knitr::kable(tab_filtred_BernApp_3())
+    }
+```
+
+`r if (  !is.null(nrow_BernRes_6()) && !is.na(nrow_BernRes_6()) && !is.nan(nrow_BernRes_6()) && nrow_BernRes_6() > 0  ) {  paste0("## ", "Резолюції 6 Бернської конвенції" ) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_BernRes_6()) && !is.na(nrow_BernRes_6()) && !is.nan(nrow_BernRes_6()) && nrow_BernRes_6() > 0  ) {
+      knitr::kable(tab_filtred_BernRes_6())
+    }
+```
+
+`r if (  !is.null(nrow_Bonn()) && !is.na(nrow_Bonn()) && !is.nan(nrow_Bonn()) && nrow_Bonn() > 0  ) {  paste0("## ", "Види, занесені до Конвенції про збереження мігруючих видів диких тварин (Боннська конвенція)" ) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_Bonn()) && !is.na(nrow_Bonn()) && !is.nan(nrow_Bonn()) && nrow_Bonn() > 0  ) {
+      knitr::kable(tab_filtred_Bonn())
+    }
+```
+
+`r if (  !is.null(nrow_AEWA()) && !is.na(nrow_AEWA()) && !is.nan(nrow_AEWA()) && nrow_AEWA() > 0  ) {  paste0("## ", "Види, що охороняються в рамках Угоди про збереження афро-євразійських мігруючих водно-болотних птахів (AEWA)" ) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_AEWA()) && !is.na(nrow_AEWA()) && !is.nan(nrow_AEWA()) && nrow_AEWA() > 0  ) {
+      knitr::kable(tab_filtred_AEWA())
+    }
+```
+
+`r if (  !is.null(nrow_EUROBATS()) && !is.na(nrow_EUROBATS()) && !is.nan(nrow_EUROBATS()) && nrow_EUROBATS() > 0  ) {  paste0("## ", "Види, що охороняються в рамках Угоди про збереження популяцій європейських кажанів (EUROBATS)" ) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_EUROBATS()) && !is.na(nrow_EUROBATS()) && !is.nan(nrow_EUROBATS()) && nrow_EUROBATS() > 0  ) {
+      knitr::kable(tab_filtred_EUROBATS())
+    }
+```
+
+`r if (  !is.null(nrow_ACCOBAMS()) && !is.na(nrow_ACCOBAMS()) && !is.nan(nrow_ACCOBAMS()) && nrow_ACCOBAMS() > 0  ) {  paste0("## ", "Види, що охороняються в рамках Угоди про збереження китоподібних Чорного моря, Середземного моря та прилеглої акваторії Атлантичного океану (ACCOBAMS)" ) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_ACCOBAMS()) && !is.na(nrow_ACCOBAMS()) && !is.nan(nrow_ACCOBAMS()) && nrow_ACCOBAMS() > 0  ) {
+      knitr::kable(tab_filtred_ACCOBAMS())
+    }
+```
+
+`r if (  !is.null(nrow_BirdDirAnn_I()) && !is.na(nrow_BirdDirAnn_I()) && !is.nan(nrow_BirdDirAnn_I()) && nrow_BirdDirAnn_I() > 0  ) {  paste0("## ", "Види, занесені до Додатку I Пташиної директиви ЄС" ) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_BirdDirAnn_I()) && !is.na(nrow_BirdDirAnn_I()) && !is.nan(nrow_BirdDirAnn_I()) && nrow_BirdDirAnn_I() > 0  ) {
+      knitr::kable(tab_filtred_BirdDirAnn_I())
+    }
+```
+
+`r if (  !is.null(nrow_BirdDirAnn_II()) && !is.na(nrow_BirdDirAnn_II()) && !is.nan(nrow_BirdDirAnn_II()) && nrow_BirdDirAnn_II() > 0  ) {  paste0("## ", "Види, занесені до Додатку II Пташиної директиви ЄС" ) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_BirdDirAnn_II()) && !is.na(nrow_BirdDirAnn_II()) && !is.nan(nrow_BirdDirAnn_II()) && nrow_BirdDirAnn_II() > 0  ) {
+      knitr::kable(tab_filtred_BirdDirAnn_II())
+    }
+```
+
+`r if (  !is.null(nrow_HabitatsDirAnn_II()) && !is.na(nrow_HabitatsDirAnn_II()) && !is.nan(nrow_HabitatsDirAnn_II()) && nrow_HabitatsDirAnn_II() > 0  ) {  paste0("## ", "Види, занесені до Додатку II Оселищної директиви ЄС" ) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_HabitatsDirAnn_II()) && !is.na(nrow_HabitatsDirAnn_II()) && !is.nan(nrow_HabitatsDirAnn_II()) && nrow_HabitatsDirAnn_II() > 0  ) {
+      knitr::kable(tab_filtred_HabitatsDirAnn_II())
+    }
+```
+
+`r if (  !is.null(nrow_HabitatsDirAnn_IV()) && !is.na(nrow_HabitatsDirAnn_IV()) && !is.nan(nrow_HabitatsDirAnn_IV()) && nrow_HabitatsDirAnn_IV() > 0  ) {  paste0("## ", "Види, занесені до Додатку IV Оселищної директиви ЄС" ) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_HabitatsDirAnn_IV()) && !is.na(nrow_HabitatsDirAnn_IV()) && !is.nan(nrow_HabitatsDirAnn_IV()) && nrow_HabitatsDirAnn_IV() > 0  ) {
+      knitr::kable(tab_filtred_HabitatsDirAnn_IV())
+    }
+```
+
+`r if (  !is.null(nrow_HabitatsDirAnn_V()) && !is.na(nrow_HabitatsDirAnn_V()) && !is.nan(nrow_HabitatsDirAnn_V()) && nrow_HabitatsDirAnn_V() > 0  ) {  paste0("## ", "Види, занесені до Додатку V Оселищної директиви ЄС" ) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_HabitatsDirAnn_V()) && !is.na(nrow_HabitatsDirAnn_V()) && !is.nan(nrow_HabitatsDirAnn_V()) && nrow_HabitatsDirAnn_V() > 0  ) {
+      knitr::kable(tab_filtred_HabitatsDirAnn_V())
+    }
+```
+
+`r if (  !is.null(nrow_Invasive()) && !is.na(nrow_Invasive()) && !is.nan(nrow_Invasive()) && nrow_Invasive() > 0  ) {  paste0("## ", "Інвазійні та чужорідні види" ) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_Invasive()) && !is.na(nrow_Invasive()) && !is.nan(nrow_Invasive()) && nrow_Invasive() > 0  ) {
+      knitr::kable(tab_filtred_Invasive())
     }
 ```
 

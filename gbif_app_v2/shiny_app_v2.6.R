@@ -140,7 +140,7 @@ ui = fluidPage(
                          )
               ),
               ## Tab - Попередній перегляд ####
-              tabPanel("Фильтрувати дані", # "Попередній перегляд на карті"
+              tabPanel("Фільтрувати дані", # "Попередній перегляд на карті"
                        # TODO gbif_table_set2 >> gbif_table_set3
                        sidebarLayout(
                          sidebarPanel(
@@ -163,11 +163,11 @@ ui = fluidPage(
                                          "Зникаючий (Endangered, EN)" = "EN",
                                          "Уразливий (Vulnerable, VU)" = "VU",
                                          "Майже під загрозою (Near Threatened, NT)" = "NT",
-                                         "Найменша осторога (Least Concern, LC)" = "LC",
-                                         "Відомостей недостатньо (Data Deficient, DD)" = "DD",
-                                         "Неоцінений (Not Evaluated, NE)" = "NE"
+                                         # "Найменша осторога (Least Concern, LC)" = "LC",
+                                         "Відомостей недостатньо (Data Deficient, DD)" = "DD"  # ,
+                                         # "Неоцінений (Not Evaluated, NE)" = "NE"
                                        ),
-                                       selected = iucn_category,
+                                       selected = iucn_category_selected,
                                        options = list(`actions-box` = TRUE), multiple = TRUE
                            ),
                            pickerInput("international_filters", "Міжнародні конвенції та угоди",
@@ -175,11 +175,12 @@ ui = fluidPage(
                                          "Бернська конвенція. Додаток 1" = "Bern Appendix 1",
                                          "Бернська конвенція. Додаток 2" = "Bern Appendix 2",
                                          "Бернська конвенція. Додаток 3" = "Bern Appendix 3",
-                                         "Бернська конвенція. Резолюцію 6" = "Bern Resolution 6",
+                                         "Бернська конвенція. Резолюція 6" = "Bern Resolution 6",
                                          "Конвенція про збереження мігруючих видів диких тварин (Боннська конвенція)" = "Bonn",
                                          "Угода про збереження афро-євразійських мігруючих водно-болотних птахів (AEWA)" = "AEWA",
                                          "Угода про збереження популяцій європейських кажанів (EUROBATS)" = "EUROBATS",
-                                         "Угода про збереження китоподібних Чорного моря, Середземного моря та прилеглої акваторії Атлантичного океану (ACCOBAMS)" = "ACCOBAMS",
+                                         # "Угода про збереження китоподібних Чорного моря, Середземного моря та прилеглої акваторії Атлантичного океану (ACCOBAMS)" = "ACCOBAMS",
+                                         "Угода про збереження китоподібних (ACCOBAMS)" = "ACCOBAMS",
                                          "Пташина директива ЄС. Додаток I" = "Birds Directive Annex I",
                                          "Пташина директива ЄС. Додаток IІ" = "Birds Directive Annex IІ",
                                          "Оселищна директива ЄС. Додаток IІ" = "Habitats Directive Annex II",
@@ -222,7 +223,7 @@ ui = fluidPage(
                                        options = list(`actions-box` = TRUE), multiple = TRUE
                            ),
                            hr(),
-                           checkboxInput("invasive", "Інвазивні / інвазійні / чужорідні види", FALSE),
+                           checkboxInput("invasive", "Інвазійні та чужорідні види", FALSE),
                            actionButton("refresh_filters", "Застосувати фільтри", icon("refresh"), class = "btn-success"),
                            
                          ),
@@ -270,6 +271,48 @@ ui = fluidPage(
                        tags$br(),
                        tags$h3(textOutput("nrow_iucn_doc")),
                        DT::dataTableOutput("report_iucn_table"),
+                       tags$br(),
+                       tags$h3(textOutput("nrow_BernApp_1_doc")),
+                       DT::dataTableOutput("report_BernApp_1_table"),
+                       tags$br(),
+                       tags$h3(textOutput("nrow_BernApp_2_doc")),
+                       DT::dataTableOutput("report_BernApp_2_table"),
+                       tags$br(),
+                       tags$h3(textOutput("nrow_BernApp_3_doc")),
+                       DT::dataTableOutput("report_BernApp_3_table"),
+                       tags$br(),
+                       tags$h3(textOutput("nrow_BernRes_6_doc")),
+                       DT::dataTableOutput("report_BernRes_6_table"),
+                       tags$br(),
+                       tags$h3(textOutput("nrow_Bonn_doc")),
+                       DT::dataTableOutput("report_Bonn_table"),
+                       tags$br(),
+                       tags$h3(textOutput("nrow_AEWA_doc")),
+                       DT::dataTableOutput("report_AEWA_table"),
+                       tags$br(),
+                       tags$h3(textOutput("nrow_EUROBATS_doc")),
+                       DT::dataTableOutput("report_EUROBATS_table"),
+                       tags$br(),
+                       tags$h3(textOutput("nrow_ACCOBAMS_doc")),
+                       DT::dataTableOutput("report_ACCOBAMS_table"),
+                       tags$br(),
+                       tags$h3(textOutput("nrow_BirdDirAnn_I_doc")),
+                       DT::dataTableOutput("report_BirdDirAnn_I_table"),
+                       tags$br(),
+                       tags$h3(textOutput("nrow_BirdDirAnn_II_doc")),
+                       DT::dataTableOutput("report_BirdDirAnn_II_table"),
+                       tags$br(),
+                       tags$h3(textOutput("nrow_HabitatsDirAnn_II_doc")),
+                       DT::dataTableOutput("report_HabitatsDirAnn_II_table"),
+                       tags$br(),
+                       tags$h3(textOutput("nrow_HabitatsDirAnn_IV_doc")),
+                       DT::dataTableOutput("report_HabitatsDirAnn_IV_table"),
+                       tags$br(),
+                       tags$h3(textOutput("nrow_HabitatsDirAnn_V_doc")),
+                       DT::dataTableOutput("report_HabitatsDirAnn_V_table"),
+                       tags$br(),
+                       tags$h3(textOutput("nrow_Invasive_doc")),
+                       DT::dataTableOutput("report_Invasive_table"),
                        tags$br(),
                        tags$h3(textOutput("nrow_species_doc")),
                        # tags$br(),
@@ -756,7 +799,8 @@ server = function(input, output, session) {
                                   ) %>%
                                   summarise(Amount = n()) %>%
                                   arrange(kingdom, scientificName) %>%
-                                  dplyr::select(all_of(c("kingdom", "Amount", "nameUk", "scientificName"))) %>%
+                                  dplyr::select(all_of(c("kingdom", "Amount", "nameUk", "scientificName"))) %>% 
+                                  dplyr::rename(all_of( rename_species_field ) ) %>%
                                   # colnames(c("Царство", "Кількість", "Українська назва", "Латинська назва")) %>%
                                   na.omit()
     
@@ -791,6 +835,7 @@ server = function(input, output, session) {
       summarise(Amount = n()) %>%
       arrange(kingdom, scientificName) %>%
       select( -c("Amount") ) %>%
+      dplyr::rename(all_of( rename_chku_fields ) ) %>%
       na.omit()
     
     tab_filtred_chku(chku_tab)
@@ -800,7 +845,7 @@ server = function(input, output, session) {
     if (  !is.null(nrow_chku()) && !is.na(nrow_chku()) && !is.nan(nrow_chku()) && nrow_chku() > 0   ) {
       
       output$nrow_chku_doc <- renderText({
-       "Види занесені Червоної книги України"  # TODO text to config
+       "Види, занесені до Червоної книги України"  # TODO text to config
       })
       
       output$report_chku_table <- DT::renderDataTable(tab_filtred_chku())
@@ -816,13 +861,14 @@ server = function(input, output, session) {
     
     ### IUCN species table ####
     
-    iucn_tab <- subset(df_filteredData(), df_filteredData()$iucnRedListCategory %in% iucn_category , 
+    iucn_tab <- subset(df_filteredData(), df_filteredData()$iucnRedListCategory %in% iucn_category_selected , 
                        select = c("kingdom", "nameUk", "scientificName", "iucnRedListCategory") 
     ) %>%
       group_by(kingdom, nameUk, scientificName,  iucnRedListCategory) %>%
       summarise(Amount = n()) %>%
       arrange(kingdom, scientificName) %>%
       select( -c("Amount") ) %>%
+      dplyr::rename(all_of( rename_iucn_fields ) ) %>%
       na.omit()
     
     tab_filtred_iucn(iucn_tab)
@@ -832,12 +878,12 @@ server = function(input, output, session) {
     if (  !is.null(nrow_iucn()) && !is.na(nrow_iucn()) && !is.nan(nrow_iucn()) && nrow_iucn() > 0   ) {
       
       output$nrow_iucn_doc <- renderText({
-        "Види занесені Червоної книги IUCN"  # TODO text to config
+        "Види, занесені до Червоного списку IUCN"  # TODO text to config
       })
       
       output$report_iucn_table <- DT::renderDataTable(tab_filtred_iucn())
       
-      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Червона книга IUCN", nrow_iucn())
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Червоний список IUCN", nrow_iucn())
       
     } else {
       tab_filtred_iucn(NULL)
@@ -846,16 +892,479 @@ server = function(input, output, session) {
       output$report_iucn_table <- DT::renderDataTable(NULL)
     }
     
+    ### BernApp_1 species table ####
+    
+    BernApp_1_tab <- subset(df_filteredData(), df_filteredData()$BernAppendix1 == "yes" , 
+                            select = c("kingdom", "nameUk", "scientificName") 
+    ) %>%
+      group_by(kingdom, nameUk, scientificName) %>%
+      summarise(Amount = n()) %>%
+      arrange(kingdom, scientificName) %>%
+      select( -c("Amount") ) %>%
+      dplyr::rename(all_of( rename_convention_fields ) ) %>%
+      na.omit()
+    
+    tab_filtred_BernApp_1(BernApp_1_tab)
+    nrow_BernApp_1(nrow(BernApp_1_tab))
+    
+    
+    if (  !is.null(nrow_BernApp_1()) && !is.na(nrow_BernApp_1()) && !is.nan(nrow_BernApp_1()) && nrow_BernApp_1() > 0   ) {
+      
+      output$nrow_BernApp_1_doc <- renderText({
+        "Види, занесені до Додатку 1 Бернської конвенції"  # TODO text to config
+      })
+      
+      output$report_BernApp_1_table <- DT::renderDataTable(tab_filtred_BernApp_1())
+      
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Бернська конвенція. Додаток 1", nrow_BernApp_1())
+      
+    } else {
+      tab_filtred_BernApp_1(NULL)
+      nrow_BernApp_1(NULL)
+      output$nrow_BernApp_1_doc <- renderText({NULL})
+      output$report_BernApp_1_table <- DT::renderDataTable(NULL)
+    }
+    
+    ### BernApp_2 species table ####
+    
+    BernApp_2_tab <- subset(df_filteredData(), df_filteredData()$BernAppendix2 == "yes" , 
+                            select = c("kingdom", "nameUk", "scientificName") 
+    ) %>%
+      group_by(kingdom, nameUk, scientificName) %>%
+      summarise(Amount = n()) %>%
+      arrange(kingdom, scientificName) %>%
+      select( -c("Amount") ) %>%
+      dplyr::rename(all_of( rename_convention_fields ) ) %>%
+      na.omit()
+    
+    tab_filtred_BernApp_2(BernApp_2_tab)
+    nrow_BernApp_2(nrow(BernApp_2_tab))
+    
+    
+    if (  !is.null(nrow_BernApp_2()) && !is.na(nrow_BernApp_2()) && !is.nan(nrow_BernApp_2()) && nrow_BernApp_2() > 0   ) {
+      
+      output$nrow_BernApp_2_doc <- renderText({
+        "Види, занесені до Додатку 2 Бернської конвенції"  # TODO text to config
+      })
+      
+      output$report_BernApp_2_table <- DT::renderDataTable(tab_filtred_BernApp_2())
+      
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Бернська конвенція. Додаток 2", nrow_BernApp_2())
+      
+    } else {
+      tab_filtred_BernApp_2(NULL)
+      nrow_BernApp_2(NULL)
+      output$nrow_BernApp_2_doc <- renderText({NULL})
+      output$report_BernApp_2_table <- DT::renderDataTable(NULL)
+    }
+    
+    
+    ### BernApp_3 species table ####
+    
+    BernApp_3_tab <- subset(df_filteredData(), df_filteredData()$BernAppendix3 == "yes" , 
+                            select = c("kingdom", "nameUk", "scientificName") 
+    ) %>%
+      group_by(kingdom, nameUk, scientificName) %>%
+      summarise(Amount = n()) %>%
+      arrange(kingdom, scientificName) %>%
+      select( -c("Amount") ) %>%
+      dplyr::rename(all_of( rename_convention_fields ) ) %>%
+      na.omit()
+    
+    tab_filtred_BernApp_3(BernApp_3_tab)
+    nrow_BernApp_3(nrow(BernApp_3_tab))
+    
+    
+    if (  !is.null(nrow_BernApp_3()) && !is.na(nrow_BernApp_3()) && !is.nan(nrow_BernApp_3()) && nrow_BernApp_3() > 0   ) {
+      
+      output$nrow_BernApp_3_doc <- renderText({
+        "Види, занесені до Додатку 3 Бернської конвенції"  # TODO text to config
+      })
+      
+      output$report_BernApp_3_table <- DT::renderDataTable(tab_filtred_BernApp_3())
+      
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Бернська конвенція. Додаток 3", nrow_BernApp_3())
+      
+    } else {
+      tab_filtred_BernApp_3(NULL)
+      nrow_BernApp_3(NULL)
+      output$nrow_BernApp_3_doc <- renderText({NULL})
+      output$report_BernApp_3_table <- DT::renderDataTable(NULL)
+    }
+    
+    ### BernRes_6 species table ####
+    
+    BernRes_6_tab <- subset(df_filteredData(), df_filteredData()$BernResolution6  == "yes" , 
+                            select = c("kingdom", "nameUk", "scientificName") 
+    ) %>%
+      group_by(kingdom, nameUk, scientificName) %>%
+      summarise(Amount = n()) %>%
+      arrange(kingdom, scientificName) %>%
+      select( -c("Amount") ) %>%
+      dplyr::rename(all_of( rename_convention_fields ) ) %>%
+      na.omit()
+    
+    tab_filtred_BernRes_6(BernRes_6_tab)
+    nrow_BernRes_6(nrow(BernRes_6_tab))
+    
+    
+    if (  !is.null(nrow_BernRes_6()) && !is.na(nrow_BernRes_6()) && !is.nan(nrow_BernRes_6()) && nrow_BernRes_6() > 0   ) {
+      
+      output$nrow_BernRes_6_doc <- renderText({
+        "Види, занесені до Резолюції 6 Бернської конвенції"  # TODO text to config
+      })
+      
+      output$report_BernRes_6_table <- DT::renderDataTable(tab_filtred_BernRes_6())
+      
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Бернська конвенція. Резолюція 6", nrow_BernRes_6())
+      
+    } else {
+      tab_filtred_BernRes_6(NULL)
+      nrow_BernRes_6(NULL)
+      output$nrow_BernRes_6_doc <- renderText({NULL})
+      output$report_BernRes_6_table <- DT::renderDataTable(NULL)
+    }
+    
+    ### Bonn species table ####
+    
+    Bonn_tab <- subset(df_filteredData(), df_filteredData()$Bonn  == "yes" , 
+                       select = c("kingdom", "nameUk", "scientificName") 
+    ) %>%
+      group_by(kingdom, nameUk, scientificName) %>%
+      summarise(Amount = n()) %>%
+      arrange(kingdom, scientificName) %>%
+      select( -c("Amount") ) %>%
+      dplyr::rename(all_of( rename_convention_fields ) ) %>%
+      na.omit()
+    
+    tab_filtred_Bonn(Bonn_tab)
+    nrow_Bonn(nrow(Bonn_tab))
+    
+    
+    if (  !is.null(nrow_Bonn()) && !is.na(nrow_Bonn()) && !is.nan(nrow_Bonn()) && nrow_Bonn() > 0   ) {
+      
+      output$nrow_Bonn_doc <- renderText({
+        "Види, занесені до Конвенції про збереження мігруючих видів диких тварин (Боннська конвенція)"  # TODO text to config
+      })
+      
+      output$report_Bonn_table <- DT::renderDataTable(tab_filtred_Bonn())
+      
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Конвенція про збереження мігруючих видів диких тварин (Боннська конвенція)", nrow_Bonn())
+      
+    } else {
+      tab_filtred_Bonn(NULL)
+      nrow_Bonn(NULL)
+      output$nrow_Bonn_doc <- renderText({NULL})
+      output$report_Bonn_table <- DT::renderDataTable(NULL)
+    }
+    
+    ### AEWA species table ####
+    
+    AEWA_tab <- subset(df_filteredData(), df_filteredData()$AEWA  == "yes" , 
+                       select = c("kingdom", "nameUk", "scientificName") 
+    ) %>%
+      group_by(kingdom, nameUk, scientificName) %>%
+      summarise(Amount = n()) %>%
+      arrange(kingdom, scientificName) %>%
+      select( -c("Amount") ) %>%
+      dplyr::rename(all_of( rename_convention_fields ) ) %>%
+      na.omit()
+    
+    tab_filtred_AEWA(AEWA_tab)
+    nrow_AEWA(nrow(AEWA_tab))
+    
+    
+    if (  !is.null(nrow_AEWA()) && !is.na(nrow_AEWA()) && !is.nan(nrow_AEWA()) && nrow_AEWA() > 0   ) {
+      
+      output$nrow_AEWA_doc <- renderText({
+        "Види, що охороняються в рамках Угоди про збереження афро-євразійських мігруючих водно-болотних птахів (AEWA)"  # TODO text to config
+      })
+      
+      output$report_AEWA_table <- DT::renderDataTable(tab_filtred_AEWA())
+      
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Угода про збереження афро-євразійських мігруючих водно-болотних птахів (AEWA)", nrow_AEWA())
+      
+    } else {
+      tab_filtred_AEWA(NULL)
+      nrow_AEWA(NULL)
+      output$nrow_AEWA_doc <- renderText({NULL})
+      output$report_AEWA_table <- DT::renderDataTable(NULL)
+    }
+    
+    ### EUROBATS species table ####
+    
+    EUROBATS_tab <- subset(df_filteredData(), df_filteredData()$EUROBATS == "yes" , 
+                           select = c("kingdom", "nameUk", "scientificName") 
+    ) %>%
+      group_by(kingdom, nameUk, scientificName) %>%
+      summarise(Amount = n()) %>%
+      arrange(kingdom, scientificName) %>%
+      select( -c("Amount") ) %>%
+      dplyr::rename(all_of( rename_convention_fields ) ) %>%
+      na.omit()
+    
+    tab_filtred_EUROBATS(EUROBATS_tab)
+    nrow_EUROBATS(nrow(EUROBATS_tab))
+    
+    
+    if (  !is.null(nrow_EUROBATS()) && !is.na(nrow_EUROBATS()) && !is.nan(nrow_EUROBATS()) && nrow_EUROBATS() > 0   ) {
+      
+      output$nrow_EUROBATS_doc <- renderText({
+        "Види, що охороняються в рамках Угоди про збереження популяцій європейських кажанів (EUROBATS)"  # TODO text to config
+      })
+      
+      output$report_EUROBATS_table <- DT::renderDataTable(tab_filtred_EUROBATS())
+      
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Угода про збереження популяцій європейських кажанів (EUROBATS)", nrow_EUROBATS())
+      
+    } else {
+      tab_filtred_EUROBATS(NULL)
+      nrow_EUROBATS(NULL)
+      output$nrow_EUROBATS_doc <- renderText({NULL})
+      output$report_EUROBATS_table <- DT::renderDataTable(NULL)
+    }
+    
+    ### ACCOBAMS species table ####
+    
+    ACCOBAMS_tab <- subset(df_filteredData(), df_filteredData()$ACCOBAMS == "yes" , 
+                           select = c("kingdom", "nameUk", "scientificName") 
+    ) %>%
+      group_by(kingdom, nameUk, scientificName) %>%
+      summarise(Amount = n()) %>%
+      arrange(kingdom, scientificName) %>%
+      select( -c("Amount") ) %>%
+      dplyr::rename(all_of( rename_convention_fields ) ) %>%
+      na.omit()
+    
+    tab_filtred_ACCOBAMS(ACCOBAMS_tab)
+    nrow_ACCOBAMS(nrow(ACCOBAMS_tab))
+    
+    
+    if (  !is.null(nrow_ACCOBAMS()) && !is.na(nrow_ACCOBAMS()) && !is.nan(nrow_ACCOBAMS()) && nrow_ACCOBAMS() > 0   ) {
+      
+      output$nrow_ACCOBAMS_doc <- renderText({
+        "Види, що охороняються в рамках Угоди про збереження китоподібних Чорного моря, Середземного моря та прилеглої акваторії Атлантичного океану (ACCOBAMS)"  # TODO text to config
+      })
+      
+      output$report_ACCOBAMS_table <- DT::renderDataTable(tab_filtred_ACCOBAMS())
+      
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Угода про збереження китоподібних Чорного моря, Середземного моря та прилеглої акваторії Атлантичного океану (ACCOBAMS)", nrow_ACCOBAMS())
+      
+    } else {
+      tab_filtred_ACCOBAMS(NULL)
+      nrow_ACCOBAMS(NULL)
+      output$nrow_ACCOBAMS_doc <- renderText({NULL})
+      output$report_ACCOBAMS_table <- DT::renderDataTable(NULL)
+    }
+    
+    ### BirdDirAnn_I species table ####
+    
+    BirdDirAnn_I_tab <- subset(df_filteredData(), df_filteredData()$BirdsDirectiveAnnex_I == "yes" , 
+                               select = c("kingdom", "nameUk", "scientificName") 
+    ) %>%
+      group_by(kingdom, nameUk, scientificName) %>%
+      summarise(Amount = n()) %>%
+      arrange(kingdom, scientificName) %>%
+      select( -c("Amount") ) %>%
+      dplyr::rename(all_of( rename_convention_fields ) ) %>%
+      na.omit()
+    
+    tab_filtred_BirdDirAnn_I(BirdDirAnn_I_tab)
+    nrow_BirdDirAnn_I(nrow(BirdDirAnn_I_tab))
+    
+    
+    if (  !is.null(nrow_BirdDirAnn_I()) && !is.na(nrow_BirdDirAnn_I()) && !is.nan(nrow_BirdDirAnn_I()) && nrow_BirdDirAnn_I() > 0   ) {
+      
+      output$nrow_BirdDirAnn_I_doc <- renderText({
+        "Види, занесені до Додатку I Пташиної директиви ЄС"  # TODO text to config
+      })
+      
+      output$report_BirdDirAnn_I_table <- DT::renderDataTable(tab_filtred_BirdDirAnn_I())
+      
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Пташина директива ЄС. Додаток I", nrow_BirdDirAnn_I())
+      
+    } else {
+      tab_filtred_BirdDirAnn_I(NULL)
+      nrow_BirdDirAnn_I(NULL)
+      output$nrow_BirdDirAnn_I_doc <- renderText({NULL})
+      output$report_BirdDirAnn_I_table <- DT::renderDataTable(NULL)
+    }
+    
+    ### BirdDirAnn_II species table ####
+    
+    BirdDirAnn_II_tab <- subset(df_filteredData(), df_filteredData()$BirdsDirectiveAnnex_IІ == "yes" , 
+                                select = c("kingdom", "nameUk", "scientificName") 
+    ) %>%
+      group_by(kingdom, nameUk, scientificName) %>%
+      summarise(Amount = n()) %>%
+      arrange(kingdom, scientificName) %>%
+      select( -c("Amount") ) %>%
+      dplyr::rename(all_of( rename_convention_fields ) ) %>%
+      na.omit()
+    
+    tab_filtred_BirdDirAnn_II(BirdDirAnn_II_tab)
+    nrow_BirdDirAnn_II(nrow(BirdDirAnn_II_tab))
+    
+    
+    if (  !is.null(nrow_BirdDirAnn_II()) && !is.na(nrow_BirdDirAnn_II()) && !is.nan(nrow_BirdDirAnn_II()) && nrow_BirdDirAnn_II() > 0   ) {
+      
+      output$nrow_BirdDirAnn_II_doc <- renderText({
+        "Види, занесені до Додатку II Пташиної директиви ЄС"  # TODO text to config
+      })
+      
+      output$report_BirdDirAnn_II_table <- DT::renderDataTable(tab_filtred_BirdDirAnn_II())
+      
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Пташина директива ЄС. Додаток II", nrow_BirdDirAnn_II())
+      
+    } else {
+      tab_filtred_BirdDirAnn_II(NULL)
+      nrow_BirdDirAnn_II(NULL)
+      output$nrow_BirdDirAnn_II_doc <- renderText({NULL})
+      output$report_BirdDirAnn_II_table <- DT::renderDataTable(NULL)
+    }
+    
+    ### HabitatsDirAnn_II species table ####
+    
+    HabitatsDirAnn_II_tab <- subset(df_filteredData(), df_filteredData()$HabitatsDirectiveAnnex_II  == "yes" , 
+                                    select = c("kingdom", "nameUk", "scientificName") 
+    ) %>%
+      group_by(kingdom, nameUk, scientificName) %>%
+      summarise(Amount = n()) %>%
+      arrange(kingdom, scientificName) %>%
+      select( -c("Amount") ) %>%
+      dplyr::rename(all_of( rename_convention_fields ) ) %>%
+      na.omit()
+    
+    tab_filtred_HabitatsDirAnn_II(HabitatsDirAnn_II_tab)
+    nrow_HabitatsDirAnn_II(nrow(HabitatsDirAnn_II_tab))
+    
+    
+    if (  !is.null(nrow_HabitatsDirAnn_II()) && !is.na(nrow_HabitatsDirAnn_II()) && !is.nan(nrow_HabitatsDirAnn_II()) && nrow_HabitatsDirAnn_II() > 0   ) {
+      
+      output$nrow_HabitatsDirAnn_II_doc <- renderText({
+        "Види, занесені до Додатку II Оселищної директиви ЄС"  # TODO text to config
+      })
+      
+      output$report_HabitatsDirAnn_II_table <- DT::renderDataTable(tab_filtred_HabitatsDirAnn_II())
+      
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Оселищна директива ЄС. Додаток IІ", nrow_HabitatsDirAnn_II())
+      
+    } else {
+      tab_filtred_HabitatsDirAnn_II(NULL)
+      nrow_HabitatsDirAnn_II(NULL)
+      output$nrow_HabitatsDirAnn_II_doc <- renderText({NULL})
+      output$report_HabitatsDirAnn_II_table <- DT::renderDataTable(NULL)
+    }
+    
+    ### HabitatsDirAnn_IV species table ####
+    
+    HabitatsDirAnn_IV_tab <- subset(df_filteredData(), df_filteredData()$HabitatsDirectiveAnnex_IV  == "yes" , 
+                                    select = c("kingdom", "nameUk", "scientificName") 
+    ) %>%
+      group_by(kingdom, nameUk, scientificName) %>%
+      summarise(Amount = n()) %>%
+      arrange(kingdom, scientificName) %>%
+      select( -c("Amount") ) %>%
+      dplyr::rename(all_of( rename_convention_fields ) ) %>%
+      na.omit()
+    
+    tab_filtred_HabitatsDirAnn_IV(HabitatsDirAnn_IV_tab)
+    nrow_HabitatsDirAnn_IV(nrow(HabitatsDirAnn_IV_tab))
+    
+    
+    if (  !is.null(nrow_HabitatsDirAnn_IV()) && !is.na(nrow_HabitatsDirAnn_IV()) && !is.nan(nrow_HabitatsDirAnn_IV()) && nrow_HabitatsDirAnn_IV() > 0   ) {
+      
+      output$nrow_HabitatsDirAnn_IV_doc <- renderText({
+        "Види, занесені до Додатку IV Оселищної директиви ЄС"  # TODO text to config
+      })
+      
+      output$report_HabitatsDirAnn_IV_table <- DT::renderDataTable(tab_filtred_HabitatsDirAnn_IV())
+      
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Оселищна директива ЄС. Додаток IV", nrow_HabitatsDirAnn_IV())
+      
+    } else {
+      tab_filtred_HabitatsDirAnn_IV(NULL)
+      nrow_HabitatsDirAnn_IV(NULL)
+      output$nrow_HabitatsDirAnn_IV_doc <- renderText({NULL})
+      output$report_HabitatsDirAnn_IV_table <- DT::renderDataTable(NULL)
+    }
+    
+    ### HabitatsDirAnn_V species table ####
+    
+    HabitatsDirAnn_V_tab <- subset(df_filteredData(), df_filteredData()$HabitatsDirectiveAnnex_V  == "yes" , 
+                                   select = c("kingdom", "nameUk", "scientificName") 
+    ) %>%
+      group_by(kingdom, nameUk, scientificName) %>%
+      summarise(Amount = n()) %>%
+      arrange(kingdom, scientificName) %>%
+      select( -c("Amount") ) %>%
+      dplyr::rename(all_of( rename_convention_fields ) ) %>%
+      na.omit()
+    
+    tab_filtred_HabitatsDirAnn_V(HabitatsDirAnn_V_tab)
+    nrow_HabitatsDirAnn_V(nrow(HabitatsDirAnn_V_tab))
+    
+    
+    if (  !is.null(nrow_HabitatsDirAnn_V()) && !is.na(nrow_HabitatsDirAnn_V()) && !is.nan(nrow_HabitatsDirAnn_V()) && nrow_HabitatsDirAnn_V() > 0   ) {
+      
+      output$nrow_HabitatsDirAnn_V_doc <- renderText({
+        "Види, занесені до Додатку V Оселищної директиви ЄС"  # TODO text to config
+      })
+      
+      output$report_HabitatsDirAnn_V_table <- DT::renderDataTable(tab_filtred_HabitatsDirAnn_V())
+      
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Оселищна директива ЄС. Додаток V", nrow_HabitatsDirAnn_V())
+      
+    } else {
+      tab_filtred_HabitatsDirAnn_V(NULL)
+      nrow_HabitatsDirAnn_V(NULL)
+      output$nrow_HabitatsDirAnn_V_doc <- renderText({NULL})
+      output$report_HabitatsDirAnn_V_table <- DT::renderDataTable(NULL)
+    }
+    
+    ### Invasive species table ####
+    
+    Invasive_tab <- subset(df_filteredData(), df_filteredData()$Invasive  == "yes" , 
+                           select = c("kingdom", "nameUk", "scientificName") 
+    ) %>%
+      group_by(kingdom, nameUk, scientificName) %>%
+      summarise(Amount = n()) %>%
+      arrange(kingdom, scientificName) %>%
+      select( -c("Amount") ) %>%
+      dplyr::rename(all_of( rename_convention_fields ) ) %>%
+      na.omit()
+    
+    tab_filtred_Invasive(Invasive_tab)
+    nrow_Invasive(nrow(Invasive_tab))
+    
+    
+    if (  !is.null(nrow_Invasive()) && !is.na(nrow_Invasive()) && !is.nan(nrow_Invasive()) && nrow_Invasive() > 0   ) {
+      
+      output$nrow_Invasive_doc <- renderText({
+        "Інвазійні та чужорідні види"  # TODO text to config
+      })
+      
+      output$report_Invasive_table <- DT::renderDataTable(tab_filtred_Invasive())
+      
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Інвазійні та чужорідні види", nrow_Invasive())
+      
+    } else {
+      tab_filtred_Invasive(NULL)
+      nrow_Invasive(NULL)
+      output$nrow_Invasive_doc <- renderText({NULL})
+      output$report_Invasive_table <- DT::renderDataTable(NULL)
+    }
     
     
     ### Summary table to reactive value ####
     df_rare_lists(pre_df_rare_lists)
     
+    ## Draw preview report table Зведена статистика по природоохорним перелікам
+    output$report_rare_lists_table <- DT::renderDataTable(df_rare_lists()) 
     
   } )
   
-  ## Draw preview report table Зведена статистика по природоохорним перелікам
-  output$report_rare_lists_table <- DT::renderDataTable(df_rare_lists()) 
+  
   
   
     
