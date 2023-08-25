@@ -128,6 +128,12 @@ buffer_choices = c(
   "20 км" = 20000
 )
 
+chku_category <- c("вразливий", "рідкісний", "зникаючий", "неоцінений", "недостатньо відомий", "зниклий у природі")
+
+iucn_category <- c("EX", "EW", "CR", "EN", "VU", "NT", "LC", "DD", "NE")
+
+iucn_category_selected <- c("EX", "EW", "CR", "EN", "VU", "NT", "DD")
+
 
 # draw_new_shape_options
 draw_new_shape_options <- drawShapeOptions(
@@ -145,6 +151,12 @@ buffered_polygon_options <- pathOptions(color = "#03F", weight = 2, opacity = 0.
 
 
 # DOCX text blocks ####
+
+rename_chku_fields <- c("Царство" = "kingdom", "Українська_назва" = "nameUk", "Латинська_назва" = "scientificName", "Категорія_ЧКУ" = "ЧКУ" )
+rename_iucn_fields <- c("Царство" = "kingdom", "Українська_назва" = "nameUk", "Латинська_назва" = "scientificName", "Категорія_IUCN" = "iucnRedListCategory" )
+rename_convention_fields <- c("Царство" = "kingdom", "Українська_назва" = "nameUk", "Латинська_назва" = "scientificName" )
+
+rename_species_field <- c("Царство" = "kingdom", "Кількість_знахідок" = "Amount", "Українська_назва" = "nameUk", "Латинська_назва" = "scientificName" )
 
 date <- format(Sys.Date(), "%Y-%m-%d")
 text_with_date <- paste("Звіт згенеровано", date)  # in report.Rmd
