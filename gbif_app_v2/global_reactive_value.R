@@ -8,6 +8,7 @@ reaktive_bufered_polygon <- reactiveVal() # Create a global reactive value for b
 
 # reaktive_dissolved_polygon <- reactiveVal()  # Create second reactive value for dissolved polygon - also SF
 
+# sf_clipped_data <- reactiveVal() 
 
 df_rare_lists <- reactiveVal() 
 

@@ -20,6 +20,7 @@ require(ggplot2)
 library(basemapR)			 
 library(shiny)
 library(shinyWidgets)
+library(shinyalert)
 # library(shinyjs)
 library(sf)
 library(sp)
@@ -585,9 +586,8 @@ server = function(input, output, session) {
   
 # clip global GBIF data by reaktive_bufered_polygon() ####
   
-  # recieved_data <- eventReactive(
   sf_clipped_data <- eventReactive(
-    
+
     eventExpr = input$act_get_gbif_data,
     valueExpr = {
       st_intersection(gbif_sf_dataset, reaktive_bufered_polygon() ) # use dissolved polygon for occurrence search
@@ -602,6 +602,22 @@ server = function(input, output, session) {
     clearShapes(map) # delet all shapes from map
     # clearShapes(map2) # delet all shapes from map2
     clearMarkers(map2)
+    
+    
+    # if ( (class(reaktive_bufered_polygon())[2] == "sfc") ) {
+    #   sf_clipped_data <- st_intersection(gbif_sf_dataset, reaktive_bufered_polygon() )
+    # } else {
+    #   showModal(modalDialog(
+    #     title = "Увага! Зона тінтересу не визначена",
+    #     "Оберіть територію інтересу (район чи ОТГ), завантажте файл або намалюйте полігон.",
+    #     easyClose = TRUE,
+    #     footer = tagList(
+    #       modalButton("Закрити"),
+    #     )
+    #   ))
+    # }
+    
+    
     
     
     map %>%
