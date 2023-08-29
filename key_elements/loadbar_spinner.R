@@ -22,6 +22,7 @@ if (interactive()) {
         .loader {
           border: 16px solid #f3f3f3; /* Light grey */
           border-top: 16px solid #3498db; /* Blue */
+          border-bottom: 16px solid green;
           border-radius: 50%;
           width: 80px;
           height: 80px;
@@ -60,7 +61,7 @@ if (interactive()) {
                      tags$div(id="loadmessage", 
                        tags$div(class="loader"),
                      )
-    )
+      )
     
   )
   

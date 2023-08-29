@@ -86,6 +86,37 @@ formatted_gbif_dataset_date <- format(parsed_gbif_dataset_date, "%d %B %Y")
 
 # Frontend ####
 ui = fluidPage(
+  tags$head(
+    tags$style(type="text/css",
+               "
+        #loadmessage {
+          position: fixed;
+          top: 0px;
+          left: 0px;
+          width: 100%;
+          height: 100%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          background-color: rgba(0, 0, 0, 0.4);
+          z-index: 105;
+        }
+        .loader {
+          border: 16px solid #f3f3f3; /* Light grey */
+          border-top: 16px solid #3498db; /* Blue */
+          border-bottom: 16px solid green;
+          border-radius: 50%;
+          width: 80px;
+          height: 80px;
+          animation: spin 2s linear infinite;
+        }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+          }
+        "
+    )
+  ),
   # App title 
   titlePanel("Biodiversity Viewer"),
   # Tabs
@@ -322,7 +353,12 @@ ui = fluidPage(
                        )
               ),
 
-  )
+  ),
+  conditionalPanel(condition="$('html').hasClass('shiny-busy')",
+                   tags$div(id="loadmessage", 
+                            tags$div(class="loader"),
+                            )
+                   )
 )
 
 # Back end ####
