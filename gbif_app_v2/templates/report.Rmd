@@ -1,14 +1,15 @@
 ---
-title: "Дані GBIF"
+title: "`r txt_report_title`"
 output: word_document
 
 ---
-# Зведені відомості про реєстрації рідкісних та таких, що перебувають під охороною, видів
+# `r txt_report_header`
 `r text_with_date`
 
 **DOI**: [`r gbif_doi`](`r gbif_doi_url`)
 
-*Будь ласка викорстовуйте таку цитату в публікаціях:*
+*`r txt_report_citation_instruction`*
+
 
 GBIF.org (`r formatted_gbif_dataset_date`) GBIF Occurrence Download [`r gbif_doi_url`](`r gbif_doi_url`)
 
@@ -29,7 +30,7 @@ GBIF.org (`r formatted_gbif_dataset_date`) GBIF Occurrence Download [`r gbif_doi
       labs(caption = "Basemap attribution: © OpenStreetMap contributors")
 ```
 
-# Зведена статистика
+# `r txt_report_statistics`
 
 `r string_nrow_filtred_data()`  
 

@@ -168,9 +168,19 @@ kingdom_colors <- c("Plantae" = "#4daf4a", "Fungi" = "#377eb8", "Animalia" = "#f
 
 
 # # don't use it in last version 2.3
-# txt_report_header <- "Зведені відомості про реєстрації рідкісних та таких, що перебувають під охороною, видів"
-# 
-# 
+
+# Text blocks used in the report file (report.Rmd)
+
+txt_report_title <- "Дані GBIF"
+
+txt_report_header <- "Зведені відомості про реєстрації рідкісних та таких, що перебувають під охороною, видів"
+
+txt_report_citation_instruction <- "Будь ласка використовуйте таку цитату в публікаціях:"
+
+txt_report_statistics <- "Зведена статистика"
+
+
+
 # # don't use it in last version 2.3
 # txt_about_gbif_viewer <- "GBIF Viewer: an open web-based biodiversity conservation decision-making tool for policy and governance. Спільний проєкт The Habitat Foundation та Української Природоохоронної Групи, за підтримки NLBIF: The Netherlands Biodiversity Information Facility, nlbif2022.014"
 
