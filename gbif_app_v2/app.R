@@ -486,6 +486,7 @@ server = function(input, output, session) {
   })
   
   ## Adding custom contours ## 
+ 
   observeEvent(input$userContours, {
     clearShapes(map) # clean map
     clearMarkers(map) # clean previously loaded markers
@@ -494,13 +495,21 @@ server = function(input, output, session) {
                        choices = buffer_choices,
                        selected = 0 )
     
+    temp_dir_1 <- tempdir()
+
     # read spatial object
-    uploaded_cont <-  st_read(input$userContours$datapath)
+    if (grepl("\\.kmz$", input$userContours$datapath)) {
+      unzip(zipfile = input$userContours$datapath , exdir = temp_dir_1 )
+      
+      uploaded_cont <-  st_zm(st_read(file.path(temp_dir_1, "doc.kml"))) # unzipping .kmz, reading the resulted file and removing Z dimension
+    } else {
+      uploaded_cont <-  st_zm(st_read(input$userContours$datapath)) # reading .kml and removing Z dimension
+    }
     
     uploaded_cont_geom <- st_geometry(uploaded_cont) # to extract geometry
     reaktive_aoi_polygon(uploaded_cont_geom)
     reaktive_bufered_polygon(uploaded_cont_geom)
-
+    
     # calculate bounds
     uploaded_cont_bounds <- uploaded_cont_geom %>% st_bbox() %>% as.character()
     
@@ -510,6 +519,9 @@ server = function(input, output, session) {
                 lng2 = uploaded_cont_bounds[3], lat2 = uploaded_cont_bounds[4]) %>%
       addPolygons(data = reaktive_aoi_polygon(), options = polygon_aoi_options) 
   })
+  
+  
+  
   
   ## Draw polygon ####
   
