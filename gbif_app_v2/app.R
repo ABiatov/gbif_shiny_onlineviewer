@@ -2,7 +2,7 @@ options(encoding = "UTF-8" )
 
 # >>> Buffer building moved to a separate event. <<< 
 
-# setwd("C:/Mamba/Work/Presentations/2023-03_GBIF_Viewer/all_23-07-03/gbif_shiny_onlineviewer-main")
+# setwd("C:/Mamba/Work/Presentations/2023-03_GBIF_Viewer/all_23-10-13/gbif_shiny_onlineviewer-main/gbif_app_v2")
 
 # Biodiversity Viewer v.0.1
 
@@ -38,7 +38,7 @@ library(openxlsx2)
 library(rmarkdown)
 library(tinytex)
 library(knitr) # to render table in docx
-library(lubridate) # for paring date to GBIF cite						  
+library(lubridate) # for paring date to GBIF cite
 
 # Calling custom settings and functions
 source("config.R")
@@ -52,6 +52,8 @@ source("custom_functions.R")
 load(url(url_metadata_datadump))
 load(url(url_datadump))
 
+# load dump from folder (temporary solution!!!)
+# load(file = "../name_lookup/outputs/gbif_sf_dataset.Rdata")
 
 
 # import data ####
@@ -798,7 +800,7 @@ server = function(input, output, session) {
   # render result of request in tab "Попередній перегляд таблиці даних" ####
   df_filteredData <- reactive(st_drop_geometry(sf_filteredData())  %>%
                                 dplyr::select(all_of(colnames_set1)) %>%
-                                arrange(kingdom, scientificName)
+                                arrange("kingdom", "class", "family", "scientificName")
                               )
   
   output$gbif_table_set2 <- DT::renderDataTable(df_filteredData()[, colnames_set2])
@@ -857,13 +859,15 @@ server = function(input, output, session) {
                                   dplyr::select(all_of(colnames_set3)) %>%
                                   group_by(scientificName,  # настроить корректно групбай чтоб не удаляло лишние поля 
                                            nameUk,
+                                           family,
+                                           class,
                                            kingdom #,
                                            # ЧКУ,
                                            # iucnRedListCategory
                                   ) %>%
                                   summarise(Amount = n()) %>%
-                                  arrange(kingdom, scientificName) %>%
-                                  dplyr::select(all_of(c("kingdom", "Amount", "nameUk", "scientificName"))) %>% 
+                                  arrange(kingdom, class, family, scientificName) %>%
+                                  dplyr::select(all_of(c("kingdom", "class", "family", "Amount", "nameUk", "scientificName"))) %>% 
                                   dplyr::rename(all_of( rename_species_field ) ) %>%
                                   # colnames(c("Царство", "Кількість", "Українська назва", "Латинська назва")) %>%
                                   na.omit()
@@ -893,11 +897,11 @@ server = function(input, output, session) {
     ### ChKU species table ####
     
     chku_tab <- subset(df_filteredData(), df_filteredData()$ЧКУ %in% chku_category , 
-                       select = c("kingdom", "nameUk", "scientificName", "ЧКУ") 
+                       select = c("kingdom", "class", "family", "nameUk", "scientificName", "ЧКУ") 
     ) %>%
-      group_by(kingdom, nameUk, scientificName,  ЧКУ) %>%
+      group_by(kingdom, class, family, nameUk, scientificName,  ЧКУ) %>%
       summarise(Amount = n()) %>%
-      arrange(kingdom, scientificName) %>%
+      arrange(kingdom, class, family, scientificName) %>%
       select( -c("Amount") ) %>%
       dplyr::rename(all_of( rename_chku_fields ) ) %>%
       na.omit()
@@ -926,11 +930,11 @@ server = function(input, output, session) {
     ### IUCN species table ####
     
     iucn_tab <- subset(df_filteredData(), df_filteredData()$iucnRedListCategory %in% iucn_category_selected , 
-                       select = c("kingdom", "nameUk", "scientificName", "iucnRedListCategory") 
+                       select = c("kingdom", "class", "family", "nameUk", "scientificName", "iucnRedListCategory") 
     ) %>%
-      group_by(kingdom, nameUk, scientificName,  iucnRedListCategory) %>%
+      group_by(kingdom, class, family, nameUk, scientificName,  iucnRedListCategory) %>%
       summarise(Amount = n()) %>%
-      arrange(kingdom, scientificName) %>%
+      arrange(kingdom, class, family, scientificName) %>%
       select( -c("Amount") ) %>%
       dplyr::rename(all_of( rename_iucn_fields ) ) %>%
       na.omit()
@@ -959,11 +963,11 @@ server = function(input, output, session) {
     ### BernApp_1 species table ####
     
     BernApp_1_tab <- subset(df_filteredData(), df_filteredData()$BernAppendix1 == "yes" , 
-                            select = c("kingdom", "nameUk", "scientificName") 
+                            select = c("kingdom", "class", "family", "nameUk", "scientificName") 
     ) %>%
-      group_by(kingdom, nameUk, scientificName) %>%
+      group_by(kingdom, class, family, nameUk, scientificName) %>%
       summarise(Amount = n()) %>%
-      arrange(kingdom, scientificName) %>%
+      arrange(kingdom, class, family, scientificName) %>%
       select( -c("Amount") ) %>%
       dplyr::rename(all_of( rename_convention_fields ) ) %>%
       na.omit()
@@ -992,11 +996,11 @@ server = function(input, output, session) {
     ### BernApp_2 species table ####
     
     BernApp_2_tab <- subset(df_filteredData(), df_filteredData()$BernAppendix2 == "yes" , 
-                            select = c("kingdom", "nameUk", "scientificName") 
+                            select = c("kingdom", "class", "family", "nameUk", "scientificName") 
     ) %>%
-      group_by(kingdom, nameUk, scientificName) %>%
+      group_by(kingdom, class, family, nameUk, scientificName) %>%
       summarise(Amount = n()) %>%
-      arrange(kingdom, scientificName) %>%
+      arrange(kingdom, class, family, scientificName) %>%
       select( -c("Amount") ) %>%
       dplyr::rename(all_of( rename_convention_fields ) ) %>%
       na.omit()
@@ -1026,11 +1030,11 @@ server = function(input, output, session) {
     ### BernApp_3 species table ####
     
     BernApp_3_tab <- subset(df_filteredData(), df_filteredData()$BernAppendix3 == "yes" , 
-                            select = c("kingdom", "nameUk", "scientificName") 
+                            select = c("kingdom", "class", "family", "nameUk", "scientificName") 
     ) %>%
-      group_by(kingdom, nameUk, scientificName) %>%
+      group_by(kingdom, class, family, nameUk, scientificName) %>%
       summarise(Amount = n()) %>%
-      arrange(kingdom, scientificName) %>%
+      arrange(kingdom, class, family, scientificName) %>%
       select( -c("Amount") ) %>%
       dplyr::rename(all_of( rename_convention_fields ) ) %>%
       na.omit()
@@ -1059,11 +1063,11 @@ server = function(input, output, session) {
     ### BernRes_6 species table ####
     
     BernRes_6_tab <- subset(df_filteredData(), df_filteredData()$BernResolution6  == "yes" , 
-                            select = c("kingdom", "nameUk", "scientificName") 
+                            select = c("kingdom", "class", "family", "nameUk", "scientificName") 
     ) %>%
-      group_by(kingdom, nameUk, scientificName) %>%
+      group_by(kingdom, class, family, nameUk, scientificName) %>%
       summarise(Amount = n()) %>%
-      arrange(kingdom, scientificName) %>%
+      arrange(kingdom, class, family, scientificName) %>%
       select( -c("Amount") ) %>%
       dplyr::rename(all_of( rename_convention_fields ) ) %>%
       na.omit()
@@ -1092,11 +1096,11 @@ server = function(input, output, session) {
     ### Bonn species table ####
     
     Bonn_tab <- subset(df_filteredData(), df_filteredData()$Bonn  == "yes" , 
-                       select = c("kingdom", "nameUk", "scientificName") 
+                       select = c("kingdom", "class", "family", "nameUk", "scientificName") 
     ) %>%
-      group_by(kingdom, nameUk, scientificName) %>%
+      group_by(kingdom, class, family, nameUk, scientificName) %>%
       summarise(Amount = n()) %>%
-      arrange(kingdom, scientificName) %>%
+      arrange(kingdom, class, family, scientificName) %>%
       select( -c("Amount") ) %>%
       dplyr::rename(all_of( rename_convention_fields ) ) %>%
       na.omit()
@@ -1125,11 +1129,11 @@ server = function(input, output, session) {
     ### AEWA species table ####
     
     AEWA_tab <- subset(df_filteredData(), df_filteredData()$AEWA  == "yes" , 
-                       select = c("kingdom", "nameUk", "scientificName") 
+                       select = c("kingdom", "class", "family", "nameUk", "scientificName") 
     ) %>%
-      group_by(kingdom, nameUk, scientificName) %>%
+      group_by(kingdom, class, family, nameUk, scientificName) %>%
       summarise(Amount = n()) %>%
-      arrange(kingdom, scientificName) %>%
+      arrange(kingdom, class, family, scientificName) %>%
       select( -c("Amount") ) %>%
       dplyr::rename(all_of( rename_convention_fields ) ) %>%
       na.omit()
@@ -1158,11 +1162,11 @@ server = function(input, output, session) {
     ### EUROBATS species table ####
     
     EUROBATS_tab <- subset(df_filteredData(), df_filteredData()$EUROBATS == "yes" , 
-                           select = c("kingdom", "nameUk", "scientificName") 
+                           select = c("kingdom", "class", "family", "nameUk", "scientificName") 
     ) %>%
-      group_by(kingdom, nameUk, scientificName) %>%
+      group_by(kingdom, class, family, nameUk, scientificName) %>%
       summarise(Amount = n()) %>%
-      arrange(kingdom, scientificName) %>%
+      arrange(kingdom, class, family, scientificName) %>%
       select( -c("Amount") ) %>%
       dplyr::rename(all_of( rename_convention_fields ) ) %>%
       na.omit()
@@ -1191,11 +1195,11 @@ server = function(input, output, session) {
     ### ACCOBAMS species table ####
     
     ACCOBAMS_tab <- subset(df_filteredData(), df_filteredData()$ACCOBAMS == "yes" , 
-                           select = c("kingdom", "nameUk", "scientificName") 
+                           select = c("kingdom", "class", "family", "nameUk", "scientificName") 
     ) %>%
-      group_by(kingdom, nameUk, scientificName) %>%
+      group_by(kingdom, class, family, nameUk, scientificName) %>%
       summarise(Amount = n()) %>%
-      arrange(kingdom, scientificName) %>%
+      arrange(kingdom, class, family, scientificName) %>%
       select( -c("Amount") ) %>%
       dplyr::rename(all_of( rename_convention_fields ) ) %>%
       na.omit()
@@ -1224,11 +1228,11 @@ server = function(input, output, session) {
     ### BirdDirAnn_I species table ####
     
     BirdDirAnn_I_tab <- subset(df_filteredData(), df_filteredData()$BirdsDirectiveAnnex_I == "yes" , 
-                               select = c("kingdom", "nameUk", "scientificName") 
+                               select = c("kingdom", "class", "family", "nameUk", "scientificName") 
     ) %>%
-      group_by(kingdom, nameUk, scientificName) %>%
+      group_by(kingdom, class, family, nameUk, scientificName) %>%
       summarise(Amount = n()) %>%
-      arrange(kingdom, scientificName) %>%
+      arrange(kingdom, class, family, scientificName) %>%
       select( -c("Amount") ) %>%
       dplyr::rename(all_of( rename_convention_fields ) ) %>%
       na.omit()
@@ -1257,11 +1261,11 @@ server = function(input, output, session) {
     ### BirdDirAnn_II species table ####
     
     BirdDirAnn_II_tab <- subset(df_filteredData(), df_filteredData()$BirdsDirectiveAnnex_IІ == "yes" , 
-                                select = c("kingdom", "nameUk", "scientificName") 
+                                select = c("kingdom", "class", "family", "nameUk", "scientificName") 
     ) %>%
-      group_by(kingdom, nameUk, scientificName) %>%
+      group_by(kingdom, class, family, nameUk, scientificName) %>%
       summarise(Amount = n()) %>%
-      arrange(kingdom, scientificName) %>%
+      arrange(kingdom, class, family, scientificName) %>%
       select( -c("Amount") ) %>%
       dplyr::rename(all_of( rename_convention_fields ) ) %>%
       na.omit()
@@ -1290,11 +1294,11 @@ server = function(input, output, session) {
     ### HabitatsDirAnn_II species table ####
     
     HabitatsDirAnn_II_tab <- subset(df_filteredData(), df_filteredData()$HabitatsDirectiveAnnex_II  == "yes" , 
-                                    select = c("kingdom", "nameUk", "scientificName") 
+                                    select = c("kingdom", "class", "family", "nameUk", "scientificName") 
     ) %>%
-      group_by(kingdom, nameUk, scientificName) %>%
+      group_by(kingdom, class, family, nameUk, scientificName) %>%
       summarise(Amount = n()) %>%
-      arrange(kingdom, scientificName) %>%
+      arrange(kingdom, class, family, scientificName) %>%
       select( -c("Amount") ) %>%
       dplyr::rename(all_of( rename_convention_fields ) ) %>%
       na.omit()
@@ -1323,11 +1327,11 @@ server = function(input, output, session) {
     ### HabitatsDirAnn_IV species table ####
     
     HabitatsDirAnn_IV_tab <- subset(df_filteredData(), df_filteredData()$HabitatsDirectiveAnnex_IV  == "yes" , 
-                                    select = c("kingdom", "nameUk", "scientificName") 
+                                    select = c("kingdom", "class", "family", "nameUk", "scientificName") 
     ) %>%
-      group_by(kingdom, nameUk, scientificName) %>%
+      group_by(kingdom, class, family, nameUk, scientificName) %>%
       summarise(Amount = n()) %>%
-      arrange(kingdom, scientificName) %>%
+      arrange(kingdom, class, family, scientificName) %>%
       select( -c("Amount") ) %>%
       dplyr::rename(all_of( rename_convention_fields ) ) %>%
       na.omit()
@@ -1356,11 +1360,11 @@ server = function(input, output, session) {
     ### HabitatsDirAnn_V species table ####
     
     HabitatsDirAnn_V_tab <- subset(df_filteredData(), df_filteredData()$HabitatsDirectiveAnnex_V  == "yes" , 
-                                   select = c("kingdom", "nameUk", "scientificName") 
+                                   select = c("kingdom", "class", "family", "nameUk", "scientificName") 
     ) %>%
-      group_by(kingdom, nameUk, scientificName) %>%
+      group_by(kingdom, class, family, nameUk, scientificName) %>%
       summarise(Amount = n()) %>%
-      arrange(kingdom, scientificName) %>%
+      arrange(kingdom, class, family, scientificName) %>%
       select( -c("Amount") ) %>%
       dplyr::rename(all_of( rename_convention_fields ) ) %>%
       na.omit()
@@ -1389,11 +1393,11 @@ server = function(input, output, session) {
     ### Invasive species table ####
     
     Invasive_tab <- subset(df_filteredData(), df_filteredData()$Invasive  == "yes" , 
-                           select = c("kingdom", "nameUk", "scientificName") 
+                           select = c("kingdom", "class", "family", "nameUk", "scientificName") 
     ) %>%
-      group_by(kingdom, nameUk, scientificName) %>%
+      group_by(kingdom, class, family, nameUk, scientificName) %>%
       summarise(Amount = n()) %>%
-      arrange(kingdom, scientificName) %>%
+      arrange(kingdom, class, family, scientificName) %>%
       select( -c("Amount") ) %>%
       dplyr::rename(all_of( rename_convention_fields ) ) %>%
       na.omit()

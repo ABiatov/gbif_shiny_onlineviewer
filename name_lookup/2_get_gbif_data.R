@@ -165,6 +165,9 @@ all.occurrences <- occ_download_import(dump_dataset) %>%
          scientificName,
          verbatimScientificName,
          kingdom, #check is need it ?
+         class,
+         order,
+         family,
          individualCount,
          organismQuantity,
          organismQuantityType,
@@ -181,6 +184,9 @@ all.occurrences <- occ_download_import(dump_dataset) %>%
               "datasetKey",
               "scientificName",
               "verbatimScientificName",
+              "class",
+              "order",
+              "family",
               "eventDate",
               "verbatimLocality",
               "iucnRedListCategory",
@@ -189,11 +195,14 @@ all.occurrences <- occ_download_import(dump_dataset) %>%
               "decimalLongitude",
               "coordinateUncertaintyInMeters",
               "coordinatePrecision"), as.double)
+# gives warning "Found and resolved improper quoting out-of-sample..."
 
 
 # Filter all downloaded occurrences by gbifIDs, generated before, and joint it
 # with internal IDs.
 # `gbifID` var should be in the same type (integer64) for both data frames
+all.occurrences$gbifID <- bit64::as.integer64(all.occurrences$gbifID)
+
 gbif.dump <- all.occurrences %>% 
   inner_join(all.id) %>% 
   relocate(ID) %>% 

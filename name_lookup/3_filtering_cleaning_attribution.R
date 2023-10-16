@@ -1,3 +1,5 @@
+# setwd("C:/Mamba/Work/Presentations/2023-03_GBIF_Viewer/all_23-10-13/gbif_shiny_onlineviewer-main/name_lookup")
+
 # Environment preparation ####
 rm(list = ls()) # Reset R`s brain
 
@@ -18,7 +20,9 @@ colnames_set0 <- c(
   "individualCount", "organismQuantity", "organismQuantityType",
   "eventDate", "year", "Latitude", "Longitude", "coordinateUncertaintyInMeters", "coordinatePrecision", "verbatimLocality",
   "nameUk", "scientificName", "kingdom",
-  # "phylum", "class", "order", "family", "genus",
+  #"phylum",
+  "class", "order", "family",
+  #"genus",
   "ЧКУ",
   "iucnRedListCategory",
   "BernAppendix1", "BernAppendix2", "BernAppendix3", "BernResolution6",

@@ -16,7 +16,9 @@ colnames_set1 <- c(
   "individualCount", "organismQuantity", "organismQuantityType",
   "eventDate", "year", "Latitude", "Longitude", "coordinateUncertaintyInMeters", "coordinatePrecision", "verbatimLocality",
   "nameUk", "scientificName", "kingdom",
-  # "phylum", "class", "order", "family", "genus",
+  # "phylum",
+  "class", "order", "family",
+  # "genus",
   "ЧКУ",
   "iucnRedListCategory",
   "BernAppendix1", 
@@ -66,12 +68,14 @@ colnames_set1 <- c(
 ## for reduced table (to show the output in the application)
 colnames_set2 <- c(
   "nameUk", "scientificName",
-  "year", "Latitude", "Longitude", "kingdom" , "URL_record"
-  # "phylum", "class", "order", "family" 
+  "year", "Latitude", "Longitude", "kingdom" ,
+  "class", "family",
+  "URL_record"
+  # "phylum", "order", "family" 
 )
 
 ## for reduced table (to instal to DOCX report)
-colnames_set3 <- c("scientificName", "nameUk", "kingdom") 
+colnames_set3 <- c("scientificName", "nameUk", "class", "family", "kingdom") 
 
 # Internetional agriments and conventions to filter
 vector_conventions <- c(
@@ -152,11 +156,11 @@ buffered_polygon_options <- pathOptions(color = "#03F", weight = 2, opacity = 0.
 
 # DOCX text blocks ####
 
-rename_chku_fields <- c("Царство" = "kingdom", "Українська_назва" = "nameUk", "Латинська_назва" = "scientificName", "Категорія_ЧКУ" = "ЧКУ" )
-rename_iucn_fields <- c("Царство" = "kingdom", "Українська_назва" = "nameUk", "Латинська_назва" = "scientificName", "Категорія_IUCN" = "iucnRedListCategory" )
-rename_convention_fields <- c("Царство" = "kingdom", "Українська_назва" = "nameUk", "Латинська_назва" = "scientificName" )
+rename_chku_fields <- c("Царство" = "kingdom", "Клас" = "class", "Родина" = "family", "Українська_назва" = "nameUk", "Латинська_назва" = "scientificName", "Категорія_ЧКУ" = "ЧКУ" )
+rename_iucn_fields <- c("Царство" = "kingdom", "Клас" = "class", "Родина" = "family", "Українська_назва" = "nameUk", "Латинська_назва" = "scientificName", "Категорія_IUCN" = "iucnRedListCategory" )
+rename_convention_fields <- c("Царство" = "kingdom", "Клас" = "class", "Родина" = "family", "Українська_назва" = "nameUk", "Латинська_назва" = "scientificName" )
 
-rename_species_field <- c("Царство" = "kingdom", "Кількість_знахідок" = "Amount", "Українська_назва" = "nameUk", "Латинська_назва" = "scientificName" )
+rename_species_field <- c("Царство" = "kingdom", "Клас" = "class", "Родина" = "family", "Кількість_знахідок" = "Amount", "Українська_назва" = "nameUk", "Латинська_назва" = "scientificName" )
 
 date <- format(Sys.Date(), "%Y-%m-%d")
 text_with_date <- paste("Звіт згенеровано", date)  # in report.Rmd
