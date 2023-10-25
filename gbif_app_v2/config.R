@@ -123,8 +123,8 @@ vect_region_redlist <- c(
   "ЧС_Севастополь"
 )
 
-
-buffer_choices = c(
+# Options for used-defined buffer, in meters
+buffer_choices <- c(
   "немає" = 0,
   "1 км" = 1000,
   "5 км" = 5000,
@@ -162,8 +162,6 @@ rename_convention_fields <- c("Царство" = "kingdom", "Клас" = "class"
 
 rename_species_field <- c("Царство" = "kingdom", "Клас" = "class", "Родина" = "family", "Кількість_знахідок" = "Amount", "Українська_назва" = "nameUk", "Латинська_назва" = "scientificName" )
 
-date <- format(Sys.Date(), "%Y-%m-%d")
-text_with_date <- paste("Звіт згенеровано", date)  # in report.Rmd
 
 # pallet points on map
 kingdom_colors <- c("Plantae" = "#4daf4a", "Fungi" = "#377eb8", "Animalia" = "#ff7f00")
@@ -171,11 +169,16 @@ kingdom_colors <- c("Plantae" = "#4daf4a", "Fungi" = "#377eb8", "Animalia" = "#f
 
 
 
-# # don't use it in last version 2.3
 
-# Text blocks used in the report file (report.Rmd)
+
+# Text blocks used in the report template file (report.Rmd)
+# This file is used for generation Word report
 
 txt_report_title <- "Дані GBIF"
+
+txt_report_date_created <- paste("Звіт згенеровано",
+                                 format(Sys.Date(), "%Y-%m-%d") # current date
+                                 )
 
 txt_report_header <- "Зведені відомості про реєстрації рідкісних та таких, що перебувають під охороною, видів"
 
@@ -183,13 +186,38 @@ txt_report_citation_instruction <- "Будь ласка використовуй
 
 txt_report_statistics <- "Зведена статистика"
 
+txt_chku_species <- "Види, занесені до Червоної книги України"
 
+txt_iucn_species <- "Види, занесені до Червоного списку IUCN"
 
-# # don't use it in last version 2.3
-# txt_about_gbif_viewer <- "GBIF Viewer: an open web-based biodiversity conservation decision-making tool for policy and governance. Спільний проєкт The Habitat Foundation та Української Природоохоронної Групи, за підтримки NLBIF: The Netherlands Biodiversity Information Facility, nlbif2022.014"
+txt_BernApp_1_species <- "Види, занесені до Додатку 1 Бернської конвенції"
 
+txt_BernApp_2_species <- "Види, занесені до Додатку 2 Бернської конвенції"
 
+txt_BernApp_3_species <- "Види, занесені до Додатку 3 Бернської конвенції"
 
+txt_BernRes_6_species <- "Резолюції 6 Бернської конвенції"
 
+txt_Bonn_species <- "Види, занесені до Конвенції про збереження мігруючих видів диких тварин (Боннська конвенція)"
 
+txt_AEWA_species <- "Види, що охороняються в рамках Угоди про збереження афро-євразійських мігруючих водно-болотних птахів (AEWA)"
 
+txt_EUROBATS_species <- "Види, що охороняються в рамках Угоди про збереження популяцій європейських кажанів (EUROBATS)"
+
+txt_ACCOBAMS_species <- "Види, що охороняються в рамках Угоди про збереження китоподібних Чорного моря, Середземного моря та прилеглої акваторії Атлантичного океану (ACCOBAMS)"
+
+txt_BirdDirAnn_I_species <- "Види, занесені до Додатку I Пташиної директиви ЄС"
+
+txt_BirdDirAnn_II_species <- "Види, занесені до Додатку II Пташиної директиви ЄС"
+
+txt_HabitatsDirAnn_II_species <- "Види, занесені до Додатку II Оселищної директиви ЄС"
+
+txt_HabitatsDirAnn_IV_species <- "Види, занесені до Додатку IV Оселищної директиви ЄС"
+
+txt_HabitatsDirAnn_V_species <- "Види, занесені до Додатку V Оселищної директиви ЄС"
+
+txt_Invasive_species <- "Інвазійні та чужорідні види"
+
+txt_all_species <- "Загальний перелік видів"
+
+txt_about_gbif_viewer <- "**GBIF Viewer**: an open web-based biodiversity conservation decision-making tool for policy and governance. Спільний проєкт The [Habitat Foundation](https://thehabitatfoundation.org/) та [Української Природоохоронної Групи](https://uncg.org.ua/), за підтримки [NLBIF: The Netherlands Biodiversity Information Facility](https://www.nlbif.nl/), nlbif2022.014"
