@@ -10,7 +10,7 @@ Test run image
 
 ```bash
 
-docker run -it --rm --name gbif_datadump_creator -v "$(pwd)/01_data:/home/input_data" -v "$(pwd)/03_output:/home/output_data" -v "$(pwd)/scripts:/home/app" antonbiatov/base_gbifwiever_datadamp_creator
+docker run -it --rm --name gbif_datadump_creator -v "$(pwd)/data:/home/data" -v "$(pwd)/outputs:/home/outputs" -v "$(pwd)/scripts:/home/scripts" -v "$(pwd)/temp:/home/temp" antonbiatov/base_gbifwiever_datadamp_creator
 
 ```
 
@@ -22,7 +22,15 @@ ${APP_DIR}/execute.sh
 
 ```
 
+# Note
 
+This script **1_data_preparation.R** for manual runing. Don't use it on server.
+
+```r
+
+scripts/1_data_preparation.R 
+
+```
 
 
 Build product Docker image:
