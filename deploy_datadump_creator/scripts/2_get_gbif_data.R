@@ -7,14 +7,18 @@ library(dplyr)
 library(stringr)
 library(rgbif)
 
-# Country code to download GBIF data
-country <- "UA"
+## Import some variables
+# source( "./scripts/config.R") 
+source( paste0(Sys.getenv("APP_DIR"), "/config.R") )
 
 ## Import GBIF credentials
+# source( "./scripts/gbif_ini.R") 
 source( paste0(Sys.getenv("APP_DIR"), "/gbif_ini.R") )
+
 # Load data saved at step #1
-load(file = "temp/matches.Rdata")
-# load(file = paste0(Sys.getenv("TEMP_DATA_DIR"), "/matches.Rdata") )
+# load(file = "./temp/matches.Rdata")
+load(file = paste0(Sys.getenv("TEMP_DATA_DIR"), "/matches.Rdata") )
+
 list2env(matches, .GlobalEnv)
 rm(matches)
 
@@ -22,7 +26,8 @@ rm(matches)
 # Should be searched by verbatinScientificName term
 
 # Load names that should be searched by verbatim scientific names
-speciesnames <- read.csv( paste0(Sys.getenv("INPUT_DATA_DIR"), "/higherrank_nameVariants.csv") ) %>% 
+# speciesnames <- read.csv( "./data/higherrank_nameVariants.csv")  %>% 
+speciesnames <- read.csv( paste0(Sys.getenv("INPUT_DATA_DIR"), "/higherrank_nameVariants.csv") ) %>%
   select(-X)
 
 
@@ -44,7 +49,7 @@ for (i in 1:nrow(speciesnames)) {
                    hasCoordinate = TRUE,
                    country = country,
                    fields = "gbifID",
-                   limit = 100000)$data
+                   limit = occ_search_limit)$data
   
   # If the tibble in not empty, create ID column according to
   # previously defined name ID, and append it to the list.
@@ -91,7 +96,7 @@ for (i in 1:nrow(goodmatch)) {
                    hasCoordinate = TRUE,
                    country = country,
                    fields = "gbifID",
-                   limit = 100000)$data
+                   limit = occ_search_limit)$data
   
   # If the tibble in not empty, create ID column according to
   # previously defined nameID, and append it to the list
@@ -137,10 +142,10 @@ response <- occ_download(
   pred("occurrenceStatus","PRESENT"), 
   pred_not(pred("basisOfRecord", "FOSSIL_SPECIMEN")),
   pred("country", country), 
-  format = "DWCA"
-  # user = gbif_user,
-  # pwd = gbif_pwd,
-  # email = gbif_email
+  format = "DWCA",
+  user = gbif_user,
+  pwd = gbif_pwd,
+  email = gbif_email
 )
 
 # Retrieve download's metadata
@@ -228,7 +233,7 @@ save(gbif.dump, file = paste0(Sys.getenv("TEMP_DATA_DIR"), "/gbif_data.Rdata") )
 # but present in the country download.
 # LC category is dropped
 iucn_omitted <- all.occurrences %>% 
-  filter(iucnRedListCategory %in% c("EX", "EW", "CR", "EN", "VU", "NT", "DD")) %>% 
+  filter(iucnRedListCategory %in% iucnRL_category) %>% 
   left_join(all.id) %>% 
   filter(is.na(ID))
 

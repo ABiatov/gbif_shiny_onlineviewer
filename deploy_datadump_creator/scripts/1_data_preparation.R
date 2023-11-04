@@ -27,8 +27,8 @@ library(rgbif)
 
 # Load input data from csv files
 # df.fullredlist <- read.csv("checklist-protected-species-UA-template-v24-cleaned_20230710.csv")
-# df.fullredlist <- read.csv("./data/Species-protected-list-v26_cleaned_20230801.csv")
-df.fullredlist <- read.csv( paste0(Sys.getenv("INPUT_DATA_DIR"), "/Species-protected-list-v26_cleaned_20230801.csv") )
+df.fullredlist <- read.csv("./data/Species-protected-list-v26_cleaned_20230801.csv")
+# df.fullredlist <- read.csv( paste0(Sys.getenv("INPUT_DATA_DIR"), "/Species-protected-list-v26_cleaned_20230801.csv") )
 
 
 # Match taxonomic names against the GBIF Backbone Taxonomy
@@ -86,13 +86,15 @@ badmatch <- df.merged %>%
 matches <- list(goodmatch, badmatch)
 names(matches) <- c("goodmatch", "badmatch")
 # Write data to the drive
-save(matches, file = paste0(Sys.getenv("TEMP_DATA_DIR"), "/matches.Rdata") )
+save(matches, file = "./temp/matches.Rdata") 
+# save(matches, file = paste0(Sys.getenv("TEMP_DATA_DIR"), "/matches.Rdata") )
 
 # Write the names with 'bad' matching to csv file (need manual reviewing before 
 # the next step).
 badmatch %>% 
   select(ID, verbatimScientificName) %>% 
-  write.csv( paste0(Sys.getenv("TEMP_DATA_DIR"), "/higherrank.csv") )
+  write.csv( "./temp/higherrank.csv" ) 
+#  write.csv( paste0(Sys.getenv("TEMP_DATA_DIR"), "/higherrank.csv") )
 
 # "higherrank.csv" contains names (with their internal IDs) that can not be searched
 # for occurrences by taxon key efficiently. The only option left is to search by 
@@ -104,5 +106,6 @@ badmatch %>%
 # the next version by yourself! It required a lot of manual work - be respectful.
 
 rm(list = ls()) # Clean-up the Environment
+gc()            # Free unused R's memory
 
 # End of script

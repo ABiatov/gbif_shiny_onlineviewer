@@ -24,16 +24,22 @@ ${APP_DIR}/execute.sh
 
 # Note
 
-This script **1_data_preparation.R** for manual runing. Don't use it on server.
+The script [**1_data_preparation.R**](scripts/1_data_preparation.R) for manual running. Don't use it on server.
 
-```r
-
-scripts/1_data_preparation.R 
-
-```
+> scripts/1_data_preparation.R 
 
 
 Build product Docker image:
+
+
+Before build product Docker image, you need to change file [`gbif_ini.R`](scripts/gbif_ini.R) You need to add your GBIF credentials into this file. 
+
+> gbif_user = "your_GBIF_username"
+> gbif_pwd = "your_GBIF_password"
+> gbif_email = "your_email"
+
+
+Run this command for build docker image:
 
 ```bash
 
@@ -48,7 +54,7 @@ Need to write absolute pathes.
 
 ```bash
 
-docker run -it --rm -v C:/Users/admin/Documents/GitHub/gbif_shiny_onlineviewer/container_datadump/01_data:/home/input_data/ -v C:/Users/admin/Documents/GitHub/gbif_shiny_onlineviewer/container_datadump/03_output:/home/output_data/ antonbiatov/gbifwiever_datadamp_creator
+docker run -it --rm --name gbif_datadump_creator -v "$(pwd)/data:/home/data" -v "$(pwd)/outputs:/home/outputs" -v "$(pwd)/temp:/home/temp" antonbiatov/gbifwiever_datadamp_creator
 
 ```
 

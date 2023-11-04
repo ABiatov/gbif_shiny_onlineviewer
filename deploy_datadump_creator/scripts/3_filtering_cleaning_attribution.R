@@ -1,5 +1,3 @@
-# setwd("C:/Mamba/Work/Presentations/2023-03_GBIF_Viewer/all_23-10-13/gbif_shiny_onlineviewer-main/name_lookup")
-
 # Environment preparation ####
 rm(list = ls()) # Reset R`s brain
 
@@ -8,71 +6,15 @@ library(tidyr)
 library(dplyr)
 library(sf)
 
+## Import some variables
+# source( "./scripts/config.R") 
+source( paste0(Sys.getenv("APP_DIR"), "/config.R") )
+
 # Make a custom operator "not in" for `dplyr` filtering
 `%notin%` <- Negate(`%in%`)
 
-# Vector of datasetKeys for the dataset occurrences from which we 
-# deliberately drop from the data
-dropped_datasets <- c("c779b049-28f3-4daf-bbf4-0a40830819b6") # EBCC Atlas of European Breeding Birds
-
-# Fields list for export
-colnames_set0 <- c(
-  "individualCount", "organismQuantity", "organismQuantityType",
-  "eventDate", "year", "Latitude", "Longitude", "coordinateUncertaintyInMeters", "coordinatePrecision", "verbatimLocality",
-  "nameUk", "scientificName", "kingdom",
-  #"phylum",
-  "class", "order", "family",
-  #"genus",
-  "ЧКУ",
-  "iucnRedListCategory",
-  "BernAppendix1", "BernAppendix2", "BernAppendix3", "BernResolution6",
-  "Bonn",
-  "AEWA",
-  "EUROBATS",
-  "ACCOBAMS",
-  "BirdsDirectiveAnnex_I", "BirdsDirectiveAnnex_IІ",
-  "HabitatsDirectiveAnnex_II", "HabitatsDirectiveAnnex_IV", "HabitatsDirectiveAnnex_V",
-  "Invasive",
-  "ЧС_Вінницька",
-  "ЧС_Волинська",
-  "ЧС_Дніпропетровська",
-  "ЧС_Донецька",
-  "ЧС_Житомирська",
-  "ЧС_Закарпатська",
-  "ЧС_Запорізька",
-  "ЧС_Івано_Франківська",
-  "ЧС_Київська",
-  "ЧС_Кіровоградська",
-  "ЧС_Луганська",
-  "ЧС_Львівська",
-  "ЧС_Миколаївська",
-  "ЧС_Одеська",
-  "ЧС_Полтавська",
-  "ЧС_Рівненська",
-  "ЧС_Сумська",
-  "ЧС_Тернопільська",
-  "ЧС_Черкаська",
-  "ЧС_Чернівецька",
-  "ЧС_Чернігівська",
-  "ЧС_Харківська",
-  "ЧС_Херсонська",
-  "ЧС_Хмельницька", 
-  "ЧС_Київ",
-  "ЧС_Севастополь",
-  "URL_record", "URL_dataset",
-  "license"
-)
-
-# Limit for coordinate uncertainty in meters (occurrences with uncertainty above 
-# the threshold will be dropped)
-coordUncert.threshold <- 500
-
-# Minimum coordinate precision (occurrences with precision above the threshold will be dropped)
-# https://dwc.tdwg.org/terms/#dwc:coordinatePrecision
-coordinatePrec.threshold <- 0.001
-
 # load country polygon
-# country_polygon <- st_read("./shp/country.shp")
+# country_polygon <- st_read("./data/shp/country.shp")
 country_polygon <- st_read( paste0(Sys.getenv("INPUT_DATA_DIR"), "/shp/country.shp") )
 
 # Load data saved at step #1
@@ -142,7 +84,8 @@ gbif_sf_dataset <- gbif.dump %>%
 
 # Load occurrence data for names not included to the input data, but have 
 # IUCN RL category (except LC)
-load(file = paste0(Sys.getenv("TEMP_DATA_DIR"), "/iucn_omitted.Rdata") ) 
+# load(file = "./temp/iucn_omitted.Rdata") 
+load(file = paste0(Sys.getenv("TEMP_DATA_DIR"), "/iucn_omitted.Rdata") )
 
 # Occurrences from IUCN Red List for species not included into the input data
 
@@ -175,16 +118,18 @@ gbif_sf_dataset <- gbif_sf_dataset %>%
   bind_rows(gbif_iucn_sf_extradata) %>%
   select(all_of(colnames_set0) ) 
 
-# Preview result
-library(ggplot2)
-ggplot() +
-  geom_sf(data = country_polygon, fill = "transparent", colour = "gray") +
-  geom_sf(data = gbif_sf_dataset, colour = "red") +
-  theme_bw()
+# # Preview result
+# library(ggplot2)
+# ggplot() +
+#   geom_sf(data = country_polygon, fill = "transparent", colour = "gray") +
+#   geom_sf(data = gbif_sf_dataset, colour = "red") +
+#   theme_bw()
 
 # Save GBIF points to local drive as Robject
 # save(gbif_sf_dataset, file = "./outputs/gbif_sf_dataset.Rdata")
 save(gbif_sf_dataset, file = paste0(Sys.getenv("OUTPUT_DATA_DIR"), "/gbif_sf_dataset.Rdata") )
+
+# write.csv(gbif_sf_dataset, file = "./outputs/gbif_sf_dataset.csv", row.names=TRUE)
 
 # load(file = "./outputs/gbif_sf_dataset.Rdata")
 
