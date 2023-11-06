@@ -1,6 +1,6 @@
 FROM fedora:38
 
-ENV FUNCTION_DIR="/home"
+ENV FUNCTION_DIR="/app"
 ENV APP_DIR="${FUNCTION_DIR}/scripts"
 ENV INPUT_DATA_DIR="${FUNCTION_DIR}/data"
 ENV OUTPUT_DATA_DIR="${FUNCTION_DIR}/outputs"
@@ -8,7 +8,7 @@ ENV TEMP_DATA_DIR="${FUNCTION_DIR}/temp"
 
 LABEL org.opencontainers.image.title="GBIF Viewer. Module: Data Dump Creator" \
       org.opencontainers.image.version="1.0" \
-      org.opencontainers.image.created="2023-11-01" \
+      org.opencontainers.image.created="2023-11-07" \
       org.opencontainers.image.authors="Anton Biatov (GitHub @ABiatov), Oleh Prylutskyi (GitHub @olehprylutskyi), Yehor Yatsiuk " \
       org.opencontainers.image.vendor="Ukrainian Nature Conservation Group (UNCG Ukraine) & Netherlands Biodiversity Information Facility (NLBIF)" \
       org.opencontainers.image.licenses="Creative Commons Attribution 4.0 International (CC-BY-4.0)" \
