@@ -24,7 +24,6 @@ library(shinyalert)
 library(shinyjs)
 library(sf)
 library(sp)
-# library(rgeos)
 # library(dismo)
 # library(rgbif) # do we still need it?
 library(leaflet)

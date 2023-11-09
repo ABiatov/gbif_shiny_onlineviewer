@@ -2,7 +2,7 @@ options(encoding = "UTF-8" )
 
 # >>> Buffer building moved to a separate event. <<< 
 
-# setwd("C:/Mamba/Work/Presentations/2023-03_GBIF_Viewer/all_23-11-06/gbif_shiny_onlineviewer-main/gbif_app_v2")
+# setwd("C:/Mamba/Work/Presentations/2023-03_GBIF_Viewer/all_23-10-13/gbif_shiny_onlineviewer-main/gbif_app_v2")
 
 # Biodiversity Viewer v.0.1
 
@@ -21,7 +21,7 @@ library(basemapR)
 library(shiny)
 library(shinyWidgets)
 library(shinyalert)
-library(shinyjs)
+# library(shinyjs)
 library(sf)
 library(sp)
 # library(dismo)
@@ -49,11 +49,11 @@ source("custom_functions.R")
 # load(file = "data/gbif_sf_dataset.Rdata")
 
 load(url(url_metadata_datadump))
-# options(timeout = 200) # in the case of slow download speed
 load(url(url_datadump))
 
 # load dump from folder (temporary solution!!!)
 # load(file = "../name_lookup/outputs/gbif_sf_dataset.Rdata")
+
 
 # import data ####
 ## import spatial data ####
@@ -87,9 +87,7 @@ formatted_gbif_dataset_date <- format(parsed_gbif_dataset_date, "%d %B %Y")
 ## End Preparation of GBIF data -----
 
 # Frontend ####
-
 ui = fluidPage(
-  shinyjs::useShinyjs(),
   tags$head(
     tags$style(type="text/css",
                "
@@ -163,9 +161,6 @@ ui = fluidPage(
                            
                            ## Button for sending GBIF request ####
                            actionButton("act_get_gbif_data", label = "Отримати GBIF дані"),
-                          
-                          ## Place for messages ####
-                          textOutput("message_Karta_sidebar"),
                            
                          ),
                          #### Main map panel for displaying outputs ####
@@ -262,7 +257,7 @@ ui = fluidPage(
                            ),
                            hr(),
                            checkboxInput("invasive", "Інвазійні та чужорідні види", FALSE),
-                           actionButton("refresh_filters", "Застосувати фільтри", icon("refresh"), class = "btn-success", disabled = ''),
+                           actionButton("refresh_filters", "Застосувати фільтри", icon("refresh"), class = "btn-success"),
                            
                          ),
                          
@@ -440,8 +435,6 @@ server = function(input, output, session) {
       addPolygons(data = obl(), weight = 2, fill = F) %>%
       fitBounds(lng1 = obl_bounds()[1], lat1 = obl_bounds()[2], # set view by extent: p1 - top lext, p2 - bottom right
                 lng2 = obl_bounds()[3], lat2 = obl_bounds()[4]) # extent is set after selection of oblast
-	
-	shinyjs::enable("act_get_gbif_data")
   })
   
   ## create object with selected raion ##
@@ -468,8 +461,6 @@ server = function(input, output, session) {
       addPolygons(data = raion(), options = polygon_aoi_options) %>%
       fitBounds(lng1 = raion_bounds()[1], lat1 = raion_bounds()[2],  # set view by extent: p1 - top lext, p2 - bottom right
                 lng2 = raion_bounds()[3], lat2 = raion_bounds()[4]) #  to allow map zoom to selected area
-    
-    shinyjs::enable("act_get_gbif_data")
   })
   
   ## create object with selected OTG ##
@@ -492,9 +483,8 @@ server = function(input, output, session) {
       addPolygons(data = OTG(), options = polygon_aoi_options) %>%
       fitBounds(lng1 = OTG_bounds()[1], lat1 = OTG_bounds()[2],  # set view by extent: p1 - top lext, p2 - bottom right
                 lng2 = OTG_bounds()[3], lat2 = OTG_bounds()[4]) # to allow map zoom to selected area
-    
-    shinyjs::enable("act_get_gbif_data")
-    })
+
+  })
   
   ## Adding custom contours ## 
  
@@ -528,9 +518,7 @@ server = function(input, output, session) {
     map %>%
       fitBounds(lng1 = uploaded_cont_bounds[1], lat1 = uploaded_cont_bounds[2],
                 lng2 = uploaded_cont_bounds[3], lat2 = uploaded_cont_bounds[4]) %>%
-      addPolygons(data = reaktive_aoi_polygon(), options = polygon_aoi_options)
-    
-    shinyjs::enable("act_get_gbif_data")
+      addPolygons(data = reaktive_aoi_polygon(), options = polygon_aoi_options) 
   })
   
   
@@ -555,7 +543,6 @@ server = function(input, output, session) {
                        choices = buffer_choices,
                        selected = 0)
     
-    shinyjs::enable("act_get_gbif_data")
   })
   
   observeEvent(input$map_draw_edited_features, {
@@ -573,21 +560,17 @@ server = function(input, output, session) {
     updateRadioButtons(session = session, inputId = "buffer_radius",
                        choices = buffer_choices,
                        selected = 0)
-    
-    shinyjs::enable("act_get_gbif_data")
   })
   
   # Delete buffered polygon with source polygon
   observeEvent(input$map_draw_deleted_features, {
-    clearShapes(map) # delete all shapes from map
+    clearShapes(map) # delet all shapes from map
     clearMarkers(map) # clean previously loaded markers
-    reaktive_aoi_polygon(adm_1[0, ])
-	  reaktive_bufered_polygon(adm_1[0, ])
+    reaktive_aoi_polygon("")
+	  reaktive_bufered_polygon("")    
 	  updateRadioButtons(session = session, inputId = "buffer_radius",
 	                     choices = buffer_choices,
 	                     selected = 0)
-	  
-	  shinyjs::disable("act_get_gbif_data")
   })
   
 # Build buffer   ####
@@ -617,14 +600,10 @@ server = function(input, output, session) {
 # clip global GBIF data by reaktive_bufered_polygon() ####
   
   sf_clipped_data <- eventReactive(
-    
+
     eventExpr = input$act_get_gbif_data,
     valueExpr = {
-      if(is.null(reaktive_bufered_polygon)){
-        gbif_sf_dataset[0, ]
-      } else {
-        st_intersection(gbif_sf_dataset, reaktive_bufered_polygon()) # use dissolved polygon for occurrence search
-      }
+      st_intersection(gbif_sf_dataset, reaktive_bufered_polygon() ) # use dissolved polygon for occurrence search
     }
   )
 
@@ -633,93 +612,74 @@ server = function(input, output, session) {
   
   observeEvent(input$act_get_gbif_data, {
     
-    if(is.null(reaktive_bufered_polygon())){
-      clearShapes(map)
-      clearMarkers(map2)
-      
-      string_message_Karta_sidebar <- reactive(
-        paste0("Не обрано жодного контуру") # TODO text to config
+    clearShapes(map) # delet all shapes from map
+    # clearShapes(map2) # delet all shapes from map2
+    clearMarkers(map2)
+    
+    
+    # if ( (class(reaktive_bufered_polygon())[2] == "sfc") ) {
+    #   sf_clipped_data <- st_intersection(gbif_sf_dataset, reaktive_bufered_polygon() )
+    # } else {
+    #   showModal(modalDialog(
+    #     title = "Увага! Зона тінтересу не визначена",
+    #     "Оберіть територію інтересу (район чи ОТГ), завантажте файл або намалюйте полігон.",
+    #     easyClose = TRUE,
+    #     footer = tagList(
+    #       modalButton("Закрити"),
+    #     )
+    #   ))
+    # }
+    
+    
+    
+    
+    map %>%
+      addPolygons(
+        data = reaktive_aoi_polygon(),
+        options = polygon_aoi_options
+      ) %>%
+      addPolygons(
+        data = reaktive_bufered_polygon(), #layerId = id,   # add buffered polygon to map
+        options = buffered_polygon_options
+      ) %>%
+      addCircleMarkers(
+        data = sf_clipped_data(), # lng = ~Longitude, lat = ~Latitude, # add circle markers from dataframe
+        # radius = 10,  # static radius
+        radius = 2,  # calculation radius
+        color = "red",
+        popup = ~scientificName # simple popup from field "scientificName"
+        # popup = ~paste0("<center>" ,"<b>", scientificName, "</b>", "</center>", "<br>",   # popup with HTML
+        #                 "Население: ", population, " чел." )
       )
-      output$message_Karta_sidebar <- renderText({
-        string_message_Karta_sidebar() 
-      })
-    } else {
-      clearShapes(map) # delete all shapes from map
-      # clearShapes(map2) # delete all shapes from map2
-      clearMarkers(map2)
-      
-      
-      # if ( (class(reaktive_bufered_polygon())[2] == "sfc") ) {
-      #   sf_clipped_data <- st_intersection(gbif_sf_dataset, reaktive_bufered_polygon() )
-      # } else {
-      #   showModal(modalDialog(
-      #     title = "Увага! Зона тінтересу не визначена",
-      #     "Оберіть територію інтересу (район чи ОТГ), завантажте файл або намалюйте полігон.",
-      #     easyClose = TRUE,
-      #     footer = tagList(
-      #       modalButton("Закрити"),
-      #     )
-      #   ))
-      # }
-      
-      
-      
-      
-      map %>%
-        addPolygons(
-          data = reaktive_aoi_polygon(),
-          options = polygon_aoi_options
-        ) %>%
-        addPolygons(
-          data = reaktive_bufered_polygon(), #layerId = id,   # add buffered polygon to map
-          options = buffered_polygon_options
-        ) %>%
-        addCircleMarkers(
-          data = sf_clipped_data(), # lng = ~Longitude, lat = ~Latitude, # add circle markers from dataframe
-          # radius = 10,  # static radius
-          radius = 2,  # calculation radius
-          color = "red",
-          popup = ~scientificName # simple popup from field "scientificName"
-          # popup = ~paste0("<center>" ,"<b>", scientificName, "</b>", "</center>", "<br>",   # popup with HTML
-          #                 "Население: ", population, " чел." )
-        )
-      
-      map2 %>%
-        # fitBounds(
-        #   # lng1 = data_bounds[1], lat1 = data_bounds[2], # set view by extent: p1 - top lext, p2 - bottom right
-        #   # lng2 = data_bounds[3], lat2 = data_bounds[4]) %>% # extent is set after selection of oblast
-        #   lng1 = filteredData_bounds[1], lat1 = filteredData_bounds[2], # set view by extent: p1 - top lext, p2 - bottom right
-        #   lng2 = filteredData_bounds[3], lat2 = filteredData_bounds[4]) %>% # extent is set after selection of oblast
-        # addPolygons(
-        #   data = reaktive_bufered_polygon(), #layerId = id,   # add buffered polygon to map
-        #   options = buffered_polygon_options
-        # ) %>%
-        addCircleMarkers(
-          data = sf_clipped_data(), # lng = ~Longitude, lat = ~Latitude, # add circle markers from dataframe
-          # radius = 10,  # static radius
-          radius = 2,  # calculation radius
-          color = "red",
-          popup = ~paste0("<center>" ,"<b>", nameUk, "</b>", "</center>", # "<br>",   # popup with HTML 
-                          "<center>", scientificName, "</center>",  
-                          "<center>",
-                          "<a href=\'",URL_record,"\' target=\'_blank\'>",
-                          URL_record,
-                          "</a>",
-                          "</center>"
-          )  # "URL_record"
-        )
-      
-      string_message_Karta_sidebar <- reactive(
-        paste0("") # TODO text to config
+    
+    map2 %>%
+      # fitBounds(
+      #   # lng1 = data_bounds[1], lat1 = data_bounds[2], # set view by extent: p1 - top lext, p2 - bottom right
+      #   # lng2 = data_bounds[3], lat2 = data_bounds[4]) %>% # extent is set after selection of oblast
+      #   lng1 = filteredData_bounds[1], lat1 = filteredData_bounds[2], # set view by extent: p1 - top lext, p2 - bottom right
+      #   lng2 = filteredData_bounds[3], lat2 = filteredData_bounds[4]) %>% # extent is set after selection of oblast
+      # addPolygons(
+      #   data = reaktive_bufered_polygon(), #layerId = id,   # add buffered polygon to map
+      #   options = buffered_polygon_options
+      # ) %>%
+      addCircleMarkers(
+        data = sf_clipped_data(), # lng = ~Longitude, lat = ~Latitude, # add circle markers from dataframe
+        # radius = 10,  # static radius
+        radius = 2,  # calculation radius
+        color = "red",
+        popup = ~paste0("<center>" ,"<b>", nameUk, "</b>", "</center>", # "<br>",   # popup with HTML 
+                        "<center>", scientificName, "</center>",  
+                        "<center>",
+                        "<a href=\'",URL_record,"\' target=\'_blank\'>",
+                        URL_record,
+                        "</a>",
+                        "</center>"
+                          )  # "URL_record"
       )
-      output$message_Karta_sidebar <- renderText({
-        string_message_Karta_sidebar()
-      })
-        
-      shinyjs::enable("refresh_filters")
-      
-    }
+    
+    
   })
+  
   
 
 
@@ -895,21 +855,21 @@ server = function(input, output, session) {
     
     ### General species table ####
     df_report_table <- df_filteredData() %>%
-      dplyr::select(all_of(colnames_set3)) %>%
-      group_by(scientificName,  # настроить корректно групбай чтоб не удаляло лишние поля 
-               nameUk,
-               family,
-               class,
-               kingdom #,
-               # ЧКУ,
-               # iucnRedListCategory
-      ) %>%
-      summarise(Amount = n()) %>%
-      arrange(kingdom, class, family, scientificName) %>%
-      dplyr::select(all_of(c("kingdom", "class", "family", "Amount", "nameUk", "scientificName"))) %>% 
-      dplyr::rename(all_of( rename_species_field ) ) %>%
-      # colnames(c("Царство", "Кількість", "Українська назва", "Латинська назва")) %>%
-      na.omit()
+                                  dplyr::select(all_of(colnames_set3)) %>%
+                                  group_by(scientificName,  # настроить корректно групбай чтоб не удаляло лишние поля 
+                                           nameUk,
+                                           family,
+                                           class,
+                                           kingdom #,
+                                           # ЧКУ,
+                                           # iucnRedListCategory
+                                  ) %>%
+                                  summarise(Amount = n()) %>%
+                                  arrange(kingdom, class, family, scientificName) %>%
+                                  dplyr::select(all_of(c("kingdom", "class", "family", "Amount", "nameUk", "scientificName"))) %>% 
+                                  dplyr::rename(all_of( rename_species_field ) ) %>%
+                                  # colnames(c("Царство", "Кількість", "Українська назва", "Латинська назва")) %>%
+                                  na.omit()
     
     
     tab_filtred_report(df_report_table)
@@ -918,7 +878,7 @@ server = function(input, output, session) {
     
     if (  !is.null(nrow_report()) && !is.na(nrow_report()) && !is.nan(nrow_report()) && nrow_report() > 0   ) {
       pre_df_rare_lists[nrow(pre_df_rare_lists) + 1,] = c("Загалом, згідно критеріїв пошуку", nrow_report() )
-      
+   
       output$nrow_species_doc <- renderText({
         "Загальний перелік видів" # TODO text to config
       })
@@ -952,7 +912,7 @@ server = function(input, output, session) {
     if (  !is.null(nrow_chku()) && !is.na(nrow_chku()) && !is.nan(nrow_chku()) && nrow_chku() > 0   ) {
       
       output$nrow_chku_doc <- renderText({
-        "Види, занесені до Червоної книги України"  # TODO text to config
+       "Види, занесені до Червоної книги України"  # TODO text to config
       })
       
       output$report_chku_table <- DT::renderDataTable(tab_filtred_chku())
@@ -1469,7 +1429,7 @@ server = function(input, output, session) {
     ## Draw preview report table Зведена статистика по природоохорним перелікам
     output$report_rare_lists_table <- DT::renderDataTable(df_rare_lists()) 
     
-  })
+  } )
   
   
   
