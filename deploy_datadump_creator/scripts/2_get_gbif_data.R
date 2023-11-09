@@ -159,10 +159,10 @@ print(paste0("Download link: ", gbif_dataset_metadata$downloadLink))
 
 
 save(gbif_dataset_metadata,
-#     file = "./outputs/metadata.Rdata")
-     file = paste0(Sys.getenv("OUTPUT_DATA_DIR"), "/metadata.Rdata") )
+#     file = "./gbif_data/metadata.Rdata")
+     file = paste0(Sys.getenv("GBIF_DATA_DIR"), "/metadata.Rdata") )
 
-# load(file = "./outputs/metadata.Rdata")
+# load(file = "./gbif_data/metadata.Rdata")
 # Check download status with
 occ_download_wait(gbif_dataset_metadata$key)
 

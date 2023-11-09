@@ -3,7 +3,7 @@ FROM fedora:38
 ENV FUNCTION_DIR="/app"
 ENV APP_DIR="${FUNCTION_DIR}/scripts"
 ENV INPUT_DATA_DIR="${FUNCTION_DIR}/data"
-ENV OUTPUT_DATA_DIR="${FUNCTION_DIR}/outputs"
+ENV GBIF_DATA_DIR="${FUNCTION_DIR}/gbif_data" 
 ENV TEMP_DATA_DIR="${FUNCTION_DIR}/temp"
 
 LABEL org.opencontainers.image.title="GBIF Viewer. Module: Data Dump Creator" \

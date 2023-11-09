@@ -31,7 +31,7 @@ Now you don't need to run the `scripts/1_data_preparation.R` script because the 
 ## Build Docker image:
 
 
-Before build product Docker image, you **need to change file** [`gbif_ini.R`](scripts/gbif_ini.R). You need to add your GBIF credentials into this file. 
+Before build product Docker image, you **need to change file** [`scripts/gbif_ini.R`](scripts/gbif_ini.R) . You need to add your GBIF credentials into this file. 
 
 > gbif_user = "your_GBIF_username"
 >
@@ -50,25 +50,16 @@ docker build -t gbifwiever_datadamp_creator .
 Run container based on our image.
 
 
-For test you can run it with mounted local folders with temporary data.
-
 ```bash
 
-docker run -it --rm --name gbif_datadump_creator -v "$(pwd)/outputs:/app/outputs"  gbifwiever_datadamp_creator
+docker run --rm --name gbif_datadump_creator -v "gbif_data:/app/gbif_data" gbifwiever_datadamp_creator
 
 ```
-
 
 
 ## Use Crontab for run conteiner by schedule
 
-test run
-
-```bash
-
-docker run --rm --name gbif_datadump_creator -v "gbif_data:/app/outputs" gbifwiever_datadamp_creator
-
-```
+We will schedule the launch of the GBIF data dump creator every Sunday night.
 
 Edit Crontab 
 
@@ -82,7 +73,6 @@ Add line to Crontab
 
 ```bash
 
-0 2 * * 7 docker run -it --rm --name gbif_datadump_creator -v "gbif_data:/app/outputs" antonbiatov/gbifwiever_datadamp_creator
+0 2 * * 7 docker run --rm --name gbif_datadump_creator -v "gbif_data:/app/gbif_data" gbifwiever_datadamp_creator
 
 ```
-

@@ -4,7 +4,7 @@ FROM fedora:38
 ENV FUNCTION_DIR="/app" 
 ENV APP_DIR="${FUNCTION_DIR}/scripts" \
     INPUT_DATA_DIR="${FUNCTION_DIR}/data" \
-    OUTPUT_DATA_DIR="${FUNCTION_DIR}/outputs" \
+    GBIF_DATA_DIR="${FUNCTION_DIR}/gbif_data" \
     TEMP_DATA_DIR="${FUNCTION_DIR}/temp" 
 
 LABEL org.opencontainers.image.title="GBIF Viewer. Module: Data Dump Creator" \
@@ -34,14 +34,4 @@ WORKDIR ${FUNCTION_DIR}
 
 COPY . .
 
-# COPY temp/matches.Rdata ${TEMP_DATA_DIR} 
-# COPY data/shp ${INPUT_DATA_DIR}
-# COPY scripts/2_get_gbif_data.R ${APP_DIR}/2_get_gbif_data.R
-# COPY scripts/3_filtering_cleaning_attribution.R ${APP_DIR}/3_filtering_cleaning_attribution.R
-# COPY scripts/config.R ${APP_DIR}/config.R
-# COPY scripts/gbif_ini.R ${APP_DIR}/gbif_ini.R
-# COPY scripts/execute.sh ${APP_DIR}/execute.sh
-
-CMD ["bash"]
-
-# CMD ["sh", "-c", "${APP_DIR}/execute.sh"]
+CMD ["sh", "-c", "${APP_DIR}/execute.sh"]

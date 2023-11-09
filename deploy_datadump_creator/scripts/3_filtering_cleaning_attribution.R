@@ -126,12 +126,12 @@ gbif_sf_dataset <- gbif_sf_dataset %>%
 #   theme_bw()
 
 # Save GBIF points to local drive as Robject
-# save(gbif_sf_dataset, file = "./outputs/gbif_sf_dataset.Rdata")
-save(gbif_sf_dataset, file = paste0(Sys.getenv("OUTPUT_DATA_DIR"), "/gbif_sf_dataset.Rdata") )
+# save(gbif_sf_dataset, file = "./gbif_data/gbif_sf_dataset.Rdata")
+save(gbif_sf_dataset, file = paste0(Sys.getenv("GBIF_DATA_DIR"), "/gbif_sf_dataset.Rdata") )
 
-# write.csv(gbif_sf_dataset, file = "./outputs/gbif_sf_dataset.csv", row.names=TRUE)
+# write.csv(gbif_sf_dataset, file = "./gbif_data/gbif_sf_dataset.csv", row.names=TRUE)
 
-# load(file = "./outputs/gbif_sf_dataset.Rdata")
+# load(file = "./gbif_data/gbif_sf_dataset.Rdata")
 
 # # Delete temporary files if they exist ####
 # filestodelete <- list.files(path = "./temp")
