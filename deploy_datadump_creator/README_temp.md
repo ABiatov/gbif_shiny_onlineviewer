@@ -11,6 +11,15 @@ docker build -f Dockerfile_base -t antonbiatov/base_gbifwiever_datadamp_creator 
 
 ```
 
+Build test Docker image:
+
+```bash
+
+docker build -f Dockerfile_v1 -t antonbiatov/gbifwiever_datadamp_creator .
+
+```
+
+
 Test run image
 
 ```bash

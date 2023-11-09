@@ -40,7 +40,7 @@ gbif_sf_dataset <- gbif.dump %>%
   # rename columns
   rename(Latitude = decimalLatitude, Longitude = decimalLongitude) %>%
   # make new columns for occurrence and dataset Keys
-  mutate(URL_record = paste0("https://www.gbif.org/occurrence/", gbifID)) %>%
+  mutate(URL_record = paste0("https://www.gbif.org/occurrence/", as.character(gbifID) )) %>%
   mutate(URL_dataset = paste0("https://www.gbif.org/dataset/", datasetKey)) %>% 
   # drop records from grid datasets
   filter(datasetKey %notin% dropped_datasets) %>% 
@@ -93,7 +93,7 @@ gbif_iucn_sf_extradata <- iucn_omitted %>%
   # rename columns
   rename(Latitude = decimalLatitude, Longitude = decimalLongitude) %>%
   # make new columns for occurrence and dataset Keys
-  mutate(URL_record = paste0("https://www.gbif.org/occurrence/", gbifID)) %>%
+  mutate(URL_record = paste0("https://www.gbif.org/occurrence/", as.character(gbifID) )) %>%
   mutate(URL_dataset = paste0("https://www.gbif.org/dataset/", datasetKey)) %>% 
   # drop records from grid datasets
   filter(datasetKey %notin% dropped_datasets) %>% 

@@ -1,7 +1,5 @@
 # gbif_shiny_onlineviewer
 
-===
-
 **GBIF Viewer**: an open web-based biodiversity conservation decision-making tool for policy and governance. Спільний проєкт The [Habitat Foundation](https://thehabitatfoundation.org/) та [Української Природоохоронної Групи](https://uncg.org.ua/), за підтримки [NLBIF: The Netherlands Biodiversity Information Facility](https://www.nlbif.nl/), nlbif2022.014
 
 
@@ -30,8 +28,8 @@ The storage role for the data dump can be a Docker volume or a folder on the hos
 
 1. Create a docker volume to exchange data between components
 2. Get GBIF Viewer source code
-3. Deploy datadump creator & run it 
-4. Deploy web application 
+3. Deploy datadump creator Docker image & run it 
+4. Deploy web application Docker image
 
 
 ##  Create a docker volume to exchange data between components
