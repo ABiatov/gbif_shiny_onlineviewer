@@ -1,0 +1,189 @@
+---
+title: "`r txt_report_title`"
+output: word_document
+
+---
+# `r txt_report_header`
+`r txt_report_date_created`
+
+**DOI**: [`r gbif_doi`](`r gbif_doi_url`)
+
+*`r txt_report_citation_instruction`*
+
+
+GBIF.org (`r formatted_gbif_dataset_date`) GBIF Occurrence Download [`r gbif_doi_url`](`r gbif_doi_url`)
+
+
+```{r, echo = FALSE}
+    ggplot() +
+      base_map(bbox = st_bbox(reaktive_bufered_polygon()),
+               basemap = 'mapnik',
+               increase_zoom = 2) +
+      geom_sf(data = sf_filteredData(), aes(color = kingdom), size = 2) +
+      scale_colour_manual(values = kingdom_colors, name=NULL ) +
+      geom_sf(data = reaktive_bufered_polygon(), colour = "blue", fill = NA, lwd = 1) +
+      geom_sf(data = reaktive_aoi_polygon(), colour = "red", fill = NA, lwd = 1)+ # TODO create global var for AOI
+      theme_minimal() +
+      theme(axis.text = element_blank()) +
+      theme(legend.position = "bottom",
+            legend.margin = margin()) +
+      labs(caption = "Basemap attribution: © OpenStreetMap contributors")
+```
+
+# `r txt_report_statistics`
+
+`r string_nrow_filtred_data()`  
+
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_report()) && !is.na(nrow_report()) && !is.nan(nrow_report()) && nrow_report() > 0  ) {
+      knitr::kable(df_rare_lists())
+    }
+```
+
+
+`r if (  !is.null(nrow_chku()) && !is.na(nrow_chku()) && !is.nan(nrow_chku()) && nrow_chku() > 0  ) {  paste0("## ", txt_chku_species ) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_chku()) && !is.na(nrow_chku()) && !is.nan(nrow_chku()) && nrow_chku() > 0  ) {
+      knitr::kable(tab_filtred_chku())
+    }
+```
+
+`r if (  !is.null(nrow_iucn()) && !is.na(nrow_iucn()) && !is.nan(nrow_iucn()) && nrow_iucn() > 0  ) {  paste0("## ", txt_iucn_species ) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_iucn()) && !is.na(nrow_iucn()) && !is.nan(nrow_iucn()) && nrow_iucn() > 0  ) {
+      knitr::kable(tab_filtred_iucn())
+    }
+```
+
+
+`r if (  !is.null(nrow_BernApp_1()) && !is.na(nrow_BernApp_1()) && !is.nan(nrow_BernApp_1()) && nrow_BernApp_1() > 0  ) {  paste0("## ", txt_BernApp_1_species ) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_BernApp_1()) && !is.na(nrow_BernApp_1()) && !is.nan(nrow_BernApp_1()) && nrow_BernApp_1() > 0  ) {
+      knitr::kable(tab_filtred_BernApp_1())
+    }
+```
+
+`r if (  !is.null(nrow_BernApp_2()) && !is.na(nrow_BernApp_2()) && !is.nan(nrow_BernApp_2()) && nrow_BernApp_2() > 0  ) {  paste0("## ", txt_BernApp_2_species ) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_BernApp_2()) && !is.na(nrow_BernApp_2()) && !is.nan(nrow_BernApp_2()) && nrow_BernApp_2() > 0  ) {
+      knitr::kable(tab_filtred_BernApp_2())
+    }
+```
+
+`r if (  !is.null(nrow_BernApp_3()) && !is.na(nrow_BernApp_3()) && !is.nan(nrow_BernApp_3()) && nrow_BernApp_3() > 0  ) {  paste0("## ", txt_BernApp_3_species ) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_BernApp_3()) && !is.na(nrow_BernApp_3()) && !is.nan(nrow_BernApp_3()) && nrow_BernApp_3() > 0  ) {
+      knitr::kable(tab_filtred_BernApp_3())
+    }
+```
+
+`r if (  !is.null(nrow_BernRes_6()) && !is.na(nrow_BernRes_6()) && !is.nan(nrow_BernRes_6()) && nrow_BernRes_6() > 0  ) {  paste0("## ", txt_BernRes_6_species ) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_BernRes_6()) && !is.na(nrow_BernRes_6()) && !is.nan(nrow_BernRes_6()) && nrow_BernRes_6() > 0  ) {
+      knitr::kable(tab_filtred_BernRes_6())
+    }
+```
+
+`r if (  !is.null(nrow_Bonn()) && !is.na(nrow_Bonn()) && !is.nan(nrow_Bonn()) && nrow_Bonn() > 0  ) {  paste0("## ", txt_Bonn_species ) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_Bonn()) && !is.na(nrow_Bonn()) && !is.nan(nrow_Bonn()) && nrow_Bonn() > 0  ) {
+      knitr::kable(tab_filtred_Bonn())
+    }
+```
+
+`r if (  !is.null(nrow_AEWA()) && !is.na(nrow_AEWA()) && !is.nan(nrow_AEWA()) && nrow_AEWA() > 0  ) {  paste0("## ", txt_AEWA_species ) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_AEWA()) && !is.na(nrow_AEWA()) && !is.nan(nrow_AEWA()) && nrow_AEWA() > 0  ) {
+      knitr::kable(tab_filtred_AEWA())
+    }
+```
+
+`r if (  !is.null(nrow_EUROBATS()) && !is.na(nrow_EUROBATS()) && !is.nan(nrow_EUROBATS()) && nrow_EUROBATS() > 0  ) {  paste0("## ", txt_EUROBATS_species ) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_EUROBATS()) && !is.na(nrow_EUROBATS()) && !is.nan(nrow_EUROBATS()) && nrow_EUROBATS() > 0  ) {
+      knitr::kable(tab_filtred_EUROBATS())
+    }
+```
+
+`r if (  !is.null(nrow_ACCOBAMS()) && !is.na(nrow_ACCOBAMS()) && !is.nan(nrow_ACCOBAMS()) && nrow_ACCOBAMS() > 0  ) {  paste0("## ", txt_ACCOBAMS_species ) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_ACCOBAMS()) && !is.na(nrow_ACCOBAMS()) && !is.nan(nrow_ACCOBAMS()) && nrow_ACCOBAMS() > 0  ) {
+      knitr::kable(tab_filtred_ACCOBAMS())
+    }
+```
+
+`r if (  !is.null(nrow_BirdDirAnn_I()) && !is.na(nrow_BirdDirAnn_I()) && !is.nan(nrow_BirdDirAnn_I()) && nrow_BirdDirAnn_I() > 0  ) {  paste0("## ", txt_BirdDirAnn_I_species ) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_BirdDirAnn_I()) && !is.na(nrow_BirdDirAnn_I()) && !is.nan(nrow_BirdDirAnn_I()) && nrow_BirdDirAnn_I() > 0  ) {
+      knitr::kable(tab_filtred_BirdDirAnn_I())
+    }
+```
+
+`r if (  !is.null(nrow_BirdDirAnn_II()) && !is.na(nrow_BirdDirAnn_II()) && !is.nan(nrow_BirdDirAnn_II()) && nrow_BirdDirAnn_II() > 0  ) {  paste0("## ", txt_BirdDirAnn_II_species ) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_BirdDirAnn_II()) && !is.na(nrow_BirdDirAnn_II()) && !is.nan(nrow_BirdDirAnn_II()) && nrow_BirdDirAnn_II() > 0  ) {
+      knitr::kable(tab_filtred_BirdDirAnn_II())
+    }
+```
+
+`r if (  !is.null(nrow_HabitatsDirAnn_II()) && !is.na(nrow_HabitatsDirAnn_II()) && !is.nan(nrow_HabitatsDirAnn_II()) && nrow_HabitatsDirAnn_II() > 0  ) {  paste0("## ", txt_HabitatsDirAnn_II_species ) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_HabitatsDirAnn_II()) && !is.na(nrow_HabitatsDirAnn_II()) && !is.nan(nrow_HabitatsDirAnn_II()) && nrow_HabitatsDirAnn_II() > 0  ) {
+      knitr::kable(tab_filtred_HabitatsDirAnn_II())
+    }
+```
+
+`r if (  !is.null(nrow_HabitatsDirAnn_IV()) && !is.na(nrow_HabitatsDirAnn_IV()) && !is.nan(nrow_HabitatsDirAnn_IV()) && nrow_HabitatsDirAnn_IV() > 0  ) {  paste0("## ", txt_HabitatsDirAnn_IV_species ) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_HabitatsDirAnn_IV()) && !is.na(nrow_HabitatsDirAnn_IV()) && !is.nan(nrow_HabitatsDirAnn_IV()) && nrow_HabitatsDirAnn_IV() > 0  ) {
+      knitr::kable(tab_filtred_HabitatsDirAnn_IV())
+    }
+```
+
+`r if (  !is.null(nrow_HabitatsDirAnn_V()) && !is.na(nrow_HabitatsDirAnn_V()) && !is.nan(nrow_HabitatsDirAnn_V()) && nrow_HabitatsDirAnn_V() > 0  ) {  paste0("## ", txt_HabitatsDirAnn_V_species ) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_HabitatsDirAnn_V()) && !is.na(nrow_HabitatsDirAnn_V()) && !is.nan(nrow_HabitatsDirAnn_V()) && nrow_HabitatsDirAnn_V() > 0  ) {
+      knitr::kable(tab_filtred_HabitatsDirAnn_V())
+    }
+```
+
+`r if (  !is.null(nrow_Invasive()) && !is.na(nrow_Invasive()) && !is.nan(nrow_Invasive()) && nrow_Invasive() > 0  ) {  paste0("## ", txt_Invasive_species ) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_Invasive()) && !is.na(nrow_Invasive()) && !is.nan(nrow_Invasive()) && nrow_Invasive() > 0  ) {
+      knitr::kable(tab_filtred_Invasive())
+    }
+```
+
+`r if (  !is.null(nrow_report()) && !is.na(nrow_report()) && !is.nan(nrow_report()) && nrow_report() > 0  ) { paste0("## ", txt_all_species) }  `
+
+```{r, echo = FALSE}
+if (  !is.null(nrow_report()) && !is.na(nrow_report()) && !is.nan(nrow_report()) && nrow_report() > 0  ) {
+      knitr::kable(tab_filtred_report())
+}
+```
+
+
+`r txt_about_gbif_viewer`
+
+```{r echo=FALSE, out.width='15%'}
+# TODO fix problem with pictures size
+knitr::include_graphics(c("uncg_logo.png", "the_habitat_foundation_logo.png", "logo-nlbif.png"))
+```
+
