@@ -1,0 +1,16 @@
+version: '1.0'
+
+services:
+  webgbifviewer:
+    container_name: web-gbif-viewer
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/usr/src/app  # need to correct
+    ports:
+      - "3838:3838"
+    restart: on-failure
+
+  volumes:
+    gbif_data:

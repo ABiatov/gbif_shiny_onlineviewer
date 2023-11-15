@@ -43,7 +43,7 @@ The next, run this command for build docker image:
 
 ```bash
 
-docker build -t gbifwiever_datadamp_creator .
+docker build -t gbifviewer_datadamp_creator .
 
 ```
 
@@ -52,7 +52,7 @@ Run container based on our image.
 
 ```bash
 
-docker run --rm --name gbif_datadump_creator -v "gbif_data:/app/gbif_data" gbifwiever_datadamp_creator
+docker run --rm --name gbif_datadump_creator -v "gbif_data:/app/gbif_data" gbifviewer_datadamp_creator
 
 ```
 
@@ -73,6 +73,6 @@ Add line to Crontab
 
 ```bash
 
-0 2 * * 7 docker run --rm --name gbif_datadump_creator -v "gbif_data:/app/gbif_data" gbifwiever_datadamp_creator
+0 2 * * 7 docker run --rm --name gbif_datadump_creator -v "gbif_data:/app/gbif_data" gbifviewer_datadamp_creator
 
 ```
