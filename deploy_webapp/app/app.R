@@ -2,7 +2,7 @@ options(encoding = "UTF-8" )
 
 # >>> Buffer building moved to a separate event. <<< 
 
-# setwd("C:/Mamba/Work/Presentations/2023-03_GBIF_Viewer/all_23-10-13/gbif_shiny_onlineviewer-main/gbif_app_v2")
+# setwd("C:/Mamba/Work/Presentations/2023-03_GBIF_Viewer/all_23-11-06/gbif_shiny_onlineviewer-main/gbif_app_v2")
 
 # Biodiversity Viewer v.0.1
 
@@ -17,14 +17,13 @@ gc()
 # library(tidyverse)
 library(dplyr)
 require(ggplot2)
-library(basemapR)			 
+library(basemapR)
 library(shiny)
 library(shinyWidgets)
 library(shinyalert)
-# library(shinyjs)
+library(shinyjs)
 library(sf)
 library(sp)
-# library(rgeos)
 # library(dismo)
 # library(rgbif) # do we still need it?
 library(leaflet)
@@ -46,15 +45,15 @@ source("global_reactive_value.R")
 source("custom_functions.R")
 
 ## load prepared GBIF data ####
-# load(file = "data/gbif_dataset_metadata.Rdata")
-# load(file = "data/gbif_sf_dataset.Rdata")
+load(file = path_metadata_datadump)
+# load(file = path_datadump)
 
-load(url(url_metadata_datadump))
-load(url(url_datadump))
+# load(url(url_metadata_datadump))
+# options(timeout = 200) # in the case of slow download speed
+# load(url(url_datadump))
 
 # load dump from folder (temporary solution!!!)
 # load(file = "../name_lookup/outputs/gbif_sf_dataset.Rdata")
-
 
 # import data ####
 ## import spatial data ####
@@ -88,7 +87,9 @@ formatted_gbif_dataset_date <- format(parsed_gbif_dataset_date, "%d %B %Y")
 ## End Preparation of GBIF data -----
 
 # Frontend ####
+
 ui = fluidPage(
+  shinyjs::useShinyjs(),
   tags$head(
     tags$style(type="text/css",
                "
@@ -125,33 +126,33 @@ ui = fluidPage(
   # Tabs
   tabsetPanel(type = "tabs",
               ## Tab main map ####
-              tabPanel("Карта", 
+              tabPanel(txt_interface_tabs_map_title,
                        ### Sidebar layout with input and output definitions ####
                        sidebarLayout(
                          #### Sidebar panel for inputs ####
                          sidebarPanel(
                            ## Oblast selection ####
-                           pickerInput('regions', 'Оберіть область', sort(unique(adm_1$adm_1_name)),
+                           pickerInput('regions', txt_interface_tabs_map_choose_region, sort(unique(adm_1$adm_1_name)),
                                        selected = c(unique(adm_1$adm_1_name)),
                                        options = list(`actions-box` = TRUE), multiple = T),
                            ## Raion selection ####
-                           pickerInput('raions', 'Оберіть район',
+                           pickerInput('raions', txt_interface_tabs_map_choose_subregion,
                                        unique(adm_2$adm_2_name),
                                        selected = NULL,
                                        options = list(`actions-box` = TRUE), multiple = T),
                            ## OTG selection ####
-                           pickerInput('OTG', 'Оберіть територіальну громаду',
+                           pickerInput('OTG', txt_interface_tabs_map_choose_commune,
                                        choices = choices_OTG,
                                        selected = NULL,
                                        options = list(`actions-box` = TRUE), multiple = T),
                            ## Upload custom contour ####
-                          fileInput("userContours", "Завантажте власний kml/kmz файл",
+                          fileInput("userContours", txt_interface_tabs_map_upload_custom_file,
                                                   multiple = F,
                                                   accept = c('.kml','.kmz')),
                            ## Select buffer radius ####
                            radioButtons(
                              inputId = "buffer_radius",
-                             label = "Буфер довкола області інтересу",
+                             label = txt_interface_tabs_map_draw_buffer,
                              choices = buffer_choices,
                              selected = 0 # NULL
                            ),
@@ -161,7 +162,10 @@ ui = fluidPage(
                            #br(),
                            
                            ## Button for sending GBIF request ####
-                           actionButton("act_get_gbif_data", label = "Отримати GBIF дані"),
+                           actionButton("act_get_gbif_data", label = txt_interface_tabs_map_getdata_button),
+                          
+                          ## Place for messages ####
+                          textOutput("message_Karta_sidebar"),
                            
                          ),
                          #### Main map panel for displaying outputs ####
@@ -169,96 +173,44 @@ ui = fluidPage(
                            leafletOutput("map",  width = "100%", height="85vh"),
                          )
                        ),
-                       p("GBIF Viewer: an open web-based biodiversity conservation decision-making tool for policy and governance. Спільний проєкт The Habitat Foundation та Української Природоохоронної Групи, за підтримки NLBIF: The Netherlands Biodiversity Information Facility, nlbif2022.014",
+                       p(txt_about_gbif_viewer_noFormat,
                          # class = "footer-class"
                          )
               ),
-              ## Tab - Попередній перегляд ####
-              tabPanel("Фільтрувати дані", # "Попередній перегляд на карті"
+              ## Tab - Preview ####
+              tabPanel(txt_interface_tabs_filter_title, # "Попередній перегляд на карті"
                        # TODO gbif_table_set2 >> gbif_table_set3
                        sidebarLayout(
                          sidebarPanel(
-                           p("Визначіть критерії пошуку та натисніть кнопку <Застосувати фільтри>"), # TODO format this sting
+                           p(txt_interface_tabs_filter_comment), # TODO format this sting
                            textOutput("nrow_filtred_data_map"),
                            # dateRangeInput("dates", label = h3("Date range")), # Field: eventDate
                            # dateRangeInput("inDateRange", label = "Date range input:", 
                            #                start = min(na.omit(gbif_sf_dataset$eventDate)),
                            #                end = Sys.Date() ),
-                           pickerInput("redbook", "Червона Книга України",
+                           pickerInput("redbook", txt_interface_tabs_filter_reddatabookofukraine,
                                        choices = chku_category,
                                        selected = chku_category,
                                        options = list(`actions-box` = TRUE), multiple = TRUE
                            ),
-                           pickerInput("iucn", "Червоний список IUCN",
-                                       choices = c(
-                                         "Вимерлий (Extinct, EX)" = "EX",
-                                         "Вимерлий у природі (Extinct in the Wild, EW)" = "EW",
-                                         "У критичній небезпеці (Critically Endangered, CR)" = "CR",
-                                         "Зникаючий (Endangered, EN)" = "EN",
-                                         "Уразливий (Vulnerable, VU)" = "VU",
-                                         "Майже під загрозою (Near Threatened, NT)" = "NT",
-                                         # "Найменша осторога (Least Concern, LC)" = "LC",
-                                         "Відомостей недостатньо (Data Deficient, DD)" = "DD"  # ,
-                                         # "Неоцінений (Not Evaluated, NE)" = "NE"
-                                       ),
+                           pickerInput("iucn", txt_interface_tabs_filter_iucnrl,
+                                       choices = txt_interface_tabs_filter_iucnrl_choices,
                                        selected = iucn_category_selected,
                                        options = list(`actions-box` = TRUE), multiple = TRUE
                            ),
-                           pickerInput("international_filters", "Міжнародні конвенції та угоди",
-                                       choices = c(
-                                         "Бернська конвенція. Додаток 1" = "Bern Appendix 1",
-                                         "Бернська конвенція. Додаток 2" = "Bern Appendix 2",
-                                         "Бернська конвенція. Додаток 3" = "Bern Appendix 3",
-                                         "Бернська конвенція. Резолюція 6" = "Bern Resolution 6",
-                                         "Конвенція про збереження мігруючих видів диких тварин (Боннська конвенція)" = "Bonn",
-                                         "Угода про збереження афро-євразійських мігруючих водно-болотних птахів (AEWA)" = "AEWA",
-                                         "Угода про збереження популяцій європейських кажанів (EUROBATS)" = "EUROBATS",
-                                         # "Угода про збереження китоподібних Чорного моря, Середземного моря та прилеглої акваторії Атлантичного океану (ACCOBAMS)" = "ACCOBAMS",
-                                         "Угода про збереження китоподібних (ACCOBAMS)" = "ACCOBAMS",
-                                         "Пташина директива ЄС. Додаток I" = "Birds Directive Annex I",
-                                         "Пташина директива ЄС. Додаток IІ" = "Birds Directive Annex IІ",
-                                         "Оселищна директива ЄС. Додаток IІ" = "Habitats Directive Annex II",
-                                         "Оселищна директива ЄС. Додаток IV" = "Habitats Directive Annex IV",
-                                         "Оселищна директива ЄС. Додаток V" = "Habitats Directive Annex V"
-                                       ),
+                           pickerInput("international_filters", txt_interface_tabs_filter_international,
+                                       choices = txt_interface_tabs_filter_international_choices,
                                        selected = vector_conventions,
                                        options = list(`actions-box` = TRUE), multiple = TRUE
                            ),
-                           pickerInput("region_redlist_filters", "Обласні червоні списки",
-                                       choices = c(
-                                         "Вінницька обл." = "ЧС_Вінницька",
-                                         "Волинська обл." = "ЧС_Волинська",
-                                         "Дніпропетровська обл." = "ЧС_Дніпропетровська",
-                                         "Донецька обл." = "ЧС_Донецька",
-                                         "Житомирська обл." = "ЧС_Житомирська",
-                                         "Закарпатська обл." = "ЧС_Закарпатська",
-                                         "Запорізька обл." = "ЧС_Запорізька",
-                                         "Івано-Франківська обл." = "ЧС_Івано_Франківська",
-                                         "Київська обл." = "ЧС_Київська",
-                                         "Кіровоградська обл." = "ЧС_Кіровоградська",
-                                         "Луганська обл." = "ЧС_Луганська",
-                                         "Львівська обл." = "ЧС_Львівська",
-                                         "Миколаївська обл." = "ЧС_Миколаївська",
-                                         "Одеська обл." = "ЧС_Одеська",
-                                         "Полтавська обл." = "ЧС_Полтавська",
-                                         "Рівненська обл." = "ЧС_Рівненська",
-                                         "Сумська обл." = "ЧС_Сумська",
-                                         "Тернопільська обл." = "ЧС_Тернопільська",
-                                         "Черкаська обл." = "ЧС_Черкаська",
-                                         "Чернівецька обл." = "ЧС_Чернівецька",
-                                         "Чернігівська обл." = "ЧС_Чернігівська",
-                                         "Харківська обл." = "ЧС_Харківська",
-                                         "Херсонська обл." = "ЧС_Херсонська",
-                                         "Хмельницька обл." = "ЧС_Хмельницька", 
-                                         "м. Київ" = "ЧС_Київ",
-                                         "м. Севастополь" = "ЧС_Севастополь"
-                                       ),
-                                       # selected = vect_region_redlist,
+                           pickerInput("region_redlist_filters", txt_interface_tabs_filter_regionalrl,
+                                       choices = txt_interface_tabs_filter_regionalrl_choices,
+                                       # selected = vect_region_redlist,    # no choices selected by default
                                        options = list(`actions-box` = TRUE), multiple = TRUE
                            ),
                            hr(),
-                           checkboxInput("invasive", "Інвазійні та чужорідні види", FALSE),
-                           actionButton("refresh_filters", "Застосувати фільтри", icon("refresh"), class = "btn-success"),
+                           checkboxInput("invasive", invasive_alien_species, FALSE),
+                           actionButton("refresh_filters", txt_apply_filters_button, icon("refresh"), class = "btn-success", disabled = ''),
                            
                          ),
                          
@@ -267,36 +219,36 @@ ui = fluidPage(
                            leafletOutput("map2",  width = "100%", height="85vh"),
                          )
                        ),
-                       p("GBIF Viewer: an open web-based biodiversity conservation decision-making tool for policy and governance. Спільний проєкт The Habitat Foundation та Української Природоохоронної Групи, за підтримки NLBIF: The Netherlands Biodiversity Information Facility, nlbif2022.014",
+                       p(txt_about_gbif_viewer_noFormat
                          # class = "footer-class"
                        )
                        
               ),
               ## Tab - Попередній перегляд ####
-              tabPanel("Попередній перегляд таблиці даних",
+              tabPanel(txt_interface_tabs_preview_title,
 			           tags$br(),
                        ## Button for send GBIF request ####
-                       downloadButton("downloadData_CSV", "Download CSV"),
-                       downloadButton("downloadData_XLSX", "Download XLSX"),
+                       downloadButton("downloadData_CSV", txt_interface_tabs_preview_downloadCSV_button),
+                       downloadButton("downloadData_XLSX", txt_interface_tabs_preview_downloadXLSX_button),
                        textOutput("nrow_filtred_data_tab"),
                        tags$hr(),
                        DT::dataTableOutput("gbif_table_set2"), # TODO gbif_table_set3
-					   p("GBIF Viewer: an open web-based biodiversity conservation decision-making tool for policy and governance. Спільний проєкт The Habitat Foundation та Української Природоохоронної Групи, за підтримки NLBIF: The Netherlands Biodiversity Information Facility, nlbif2022.014",
+					   p(txt_about_gbif_viewer_noFormat
                          # class = "footer-class"
                        )
               ),
               ## Tab - Генерування звітів ####              
-              tabPanel("Генерування звітів",
+              tabPanel(txt_interface_tabs_reports_title,
                        tags$br(),
                        # downloadButton("downloadData_DOCX", "Download DOCX"),
                        # # downloadButton("downloadData_PDF", "Download PDF"), # it don't work
-                       # radioButtons('format', 'Document format', c('PDF', 'HTML', 'Word'), inline = TRUE),
-                       radioButtons('format', 'Document format', c('HTML', 'Word'), inline = TRUE),
+                       # radioButtons("format", txt_interface_tabs_reports_docFormats_button, c('PDF', 'HTML', 'Word'), inline = TRUE),
+                       radioButtons("format", txt_interface_tabs_reports_docFormats_button, c('HTML', 'Word'), inline = TRUE),
                        downloadButton('downloadReport'),
                        tags$hr(),
                        plotOutput("plot_map"),
                        tags$hr(),
-                       h2("Зведена статистика"),
+                       h2(txt_interface_tabs_reports_h2),
                        textOutput("nrow_filtred_data_doc"),
                        DT::dataTableOutput("report_rare_lists_table"),
                        tags$hr(),
@@ -351,15 +303,15 @@ ui = fluidPage(
                        tags$h3(textOutput("nrow_species_doc")),
                        # tags$br(),
                        DT::dataTableOutput("report_table"),
-                       p("GBIF Viewer: an open web-based biodiversity conservation decision-making tool for policy and governance. Спільний проєкт The Habitat Foundation та Української Природоохоронної Групи, за підтримки NLBIF: The Netherlands Biodiversity Information Facility, nlbif2022.014",
+                       p(txt_about_gbif_viewer_noFormat
                          # class = "footer-class"
                        )
-              ),
+              )
 
   ),
   conditionalPanel(condition="$('html').hasClass('shiny-busy')",
                    tags$div(id="loadmessage", 
-                            tags$div(class="loader"),
+                            tags$div(class="loader")
                             )
                    )
 )
@@ -378,7 +330,7 @@ server = function(input, output, session) {
       polygonOptions = drawPolygonOptions(
         showArea = TRUE,
         repeatMode = F,
-        shapeOptions = draw_new_shape_options,
+        shapeOptions = draw_new_shape_options
         # zIndexOffset = 30
       ),
       # rectangleOptions = TRUE,
@@ -394,7 +346,7 @@ server = function(input, output, session) {
       # editOptions = FALSE, # hidden editTool button
       editOptions = editToolbarOptions(
         edit = TRUE, # hidden edit button
-        remove = TRUE),
+        remove = TRUE)
     )
   
   output$map <- renderLeaflet({
@@ -436,6 +388,8 @@ server = function(input, output, session) {
       addPolygons(data = obl(), weight = 2, fill = F) %>%
       fitBounds(lng1 = obl_bounds()[1], lat1 = obl_bounds()[2], # set view by extent: p1 - top lext, p2 - bottom right
                 lng2 = obl_bounds()[3], lat2 = obl_bounds()[4]) # extent is set after selection of oblast
+	
+	shinyjs::enable("act_get_gbif_data")
   })
   
   ## create object with selected raion ##
@@ -454,7 +408,7 @@ server = function(input, output, session) {
                        choices = buffer_choices,
                        selected = 0 )
     
-    raion_geom <- st_geometry(raion()) # to extract geometry
+    raion_geom <- st_geometry(raion()) %>% st_union() # to extract geometry
     reaktive_aoi_polygon(raion_geom)
     reaktive_bufered_polygon(raion_geom)
     
@@ -462,6 +416,8 @@ server = function(input, output, session) {
       addPolygons(data = raion(), options = polygon_aoi_options) %>%
       fitBounds(lng1 = raion_bounds()[1], lat1 = raion_bounds()[2],  # set view by extent: p1 - top lext, p2 - bottom right
                 lng2 = raion_bounds()[3], lat2 = raion_bounds()[4]) #  to allow map zoom to selected area
+    
+    shinyjs::enable("act_get_gbif_data")
   })
   
   ## create object with selected OTG ##
@@ -476,7 +432,7 @@ server = function(input, output, session) {
                        choices = buffer_choices,
                        selected = 0 )
     
-    OTG_geom <- st_geometry(OTG()) # to extract geometry
+    OTG_geom <- st_geometry(OTG())  %>% st_union() # to extract geometry
     reaktive_aoi_polygon(OTG_geom)
     reaktive_bufered_polygon(OTG_geom)
     
@@ -484,8 +440,9 @@ server = function(input, output, session) {
       addPolygons(data = OTG(), options = polygon_aoi_options) %>%
       fitBounds(lng1 = OTG_bounds()[1], lat1 = OTG_bounds()[2],  # set view by extent: p1 - top lext, p2 - bottom right
                 lng2 = OTG_bounds()[3], lat2 = OTG_bounds()[4]) # to allow map zoom to selected area
-
-  })
+    
+    shinyjs::enable("act_get_gbif_data")
+    })
   
   ## Adding custom contours ## 
  
@@ -508,7 +465,7 @@ server = function(input, output, session) {
       uploaded_cont <-  st_zm(st_read(input$userContours$datapath)) # reading .kml and removing Z dimension
     }
     
-    uploaded_cont_geom <- st_geometry(uploaded_cont) # to extract geometry
+    uploaded_cont_geom <- st_geometry(uploaded_cont) %>% st_union() # to extract geometry
     reaktive_aoi_polygon(uploaded_cont_geom)
     reaktive_bufered_polygon(uploaded_cont_geom)
     
@@ -519,7 +476,9 @@ server = function(input, output, session) {
     map %>%
       fitBounds(lng1 = uploaded_cont_bounds[1], lat1 = uploaded_cont_bounds[2],
                 lng2 = uploaded_cont_bounds[3], lat2 = uploaded_cont_bounds[4]) %>%
-      addPolygons(data = reaktive_aoi_polygon(), options = polygon_aoi_options) 
+      addPolygons(data = reaktive_aoi_polygon(), options = polygon_aoi_options)
+    
+    shinyjs::enable("act_get_gbif_data")
   })
   
   
@@ -544,6 +503,7 @@ server = function(input, output, session) {
                        choices = buffer_choices,
                        selected = 0)
     
+    shinyjs::enable("act_get_gbif_data")
   })
   
   observeEvent(input$map_draw_edited_features, {
@@ -561,17 +521,21 @@ server = function(input, output, session) {
     updateRadioButtons(session = session, inputId = "buffer_radius",
                        choices = buffer_choices,
                        selected = 0)
+    
+    shinyjs::enable("act_get_gbif_data")
   })
   
   # Delete buffered polygon with source polygon
   observeEvent(input$map_draw_deleted_features, {
-    clearShapes(map) # delet all shapes from map
+    clearShapes(map) # delete all shapes from map
     clearMarkers(map) # clean previously loaded markers
-    reaktive_aoi_polygon("")
-	  reaktive_bufered_polygon("")    
+    reaktive_aoi_polygon(adm_1[0, ])
+	  reaktive_bufered_polygon(adm_1[0, ])
 	  updateRadioButtons(session = session, inputId = "buffer_radius",
 	                     choices = buffer_choices,
 	                     selected = 0)
+	  
+	  shinyjs::disable("act_get_gbif_data")
   })
   
 # Build buffer   ####
@@ -601,10 +565,20 @@ server = function(input, output, session) {
 # clip global GBIF data by reaktive_bufered_polygon() ####
   
   sf_clipped_data <- eventReactive(
-
+    
     eventExpr = input$act_get_gbif_data,
     valueExpr = {
-      st_intersection(gbif_sf_dataset, reaktive_bufered_polygon() ) # use dissolved polygon for occurrence search
+      if(is.null(reaktive_bufered_polygon)){
+        gbif_sf_dataset[0, ]  # TODO убрать gbif_sf_dataset[0, ]
+      } else {
+        # load(url(url_datadump))
+        # load(file = path_datadump)
+        # st_intersection(gbif_sf_dataset, reaktive_bufered_polygon()) # use dissolved polygon for occurrence search
+        # gbif_sf_dataset %>%
+        # filter(st_intersects(geometry, reaktive_bufered_polygon(), sparse = FALSE))
+        # wkt <- reaktive_bufered_polygon() %>% st_as_text()
+        read_sf(path_datadump_fgb, wkt_filter = reaktive_bufered_polygon() %>% st_as_text() )
+      }
     }
   )
 
@@ -613,74 +587,93 @@ server = function(input, output, session) {
   
   observeEvent(input$act_get_gbif_data, {
     
-    clearShapes(map) # delet all shapes from map
-    # clearShapes(map2) # delet all shapes from map2
-    clearMarkers(map2)
-    
-    
-    # if ( (class(reaktive_bufered_polygon())[2] == "sfc") ) {
-    #   sf_clipped_data <- st_intersection(gbif_sf_dataset, reaktive_bufered_polygon() )
-    # } else {
-    #   showModal(modalDialog(
-    #     title = "Увага! Зона тінтересу не визначена",
-    #     "Оберіть територію інтересу (район чи ОТГ), завантажте файл або намалюйте полігон.",
-    #     easyClose = TRUE,
-    #     footer = tagList(
-    #       modalButton("Закрити"),
-    #     )
-    #   ))
-    # }
-    
-    
-    
-    
-    map %>%
-      addPolygons(
-        data = reaktive_aoi_polygon(),
-        options = polygon_aoi_options
-      ) %>%
-      addPolygons(
-        data = reaktive_bufered_polygon(), #layerId = id,   # add buffered polygon to map
-        options = buffered_polygon_options
-      ) %>%
-      addCircleMarkers(
-        data = sf_clipped_data(), # lng = ~Longitude, lat = ~Latitude, # add circle markers from dataframe
-        # radius = 10,  # static radius
-        radius = 2,  # calculation radius
-        color = "red",
-        popup = ~scientificName # simple popup from field "scientificName"
-        # popup = ~paste0("<center>" ,"<b>", scientificName, "</b>", "</center>", "<br>",   # popup with HTML
-        #                 "Население: ", population, " чел." )
+    if(is.null(reaktive_bufered_polygon())){
+      clearShapes(map)
+      clearMarkers(map2)
+      
+      string_message_Karta_sidebar <- reactive(
+        paste0(txt_backend_no_polygon)
       )
-    
-    map2 %>%
-      # fitBounds(
-      #   # lng1 = data_bounds[1], lat1 = data_bounds[2], # set view by extent: p1 - top lext, p2 - bottom right
-      #   # lng2 = data_bounds[3], lat2 = data_bounds[4]) %>% # extent is set after selection of oblast
-      #   lng1 = filteredData_bounds[1], lat1 = filteredData_bounds[2], # set view by extent: p1 - top lext, p2 - bottom right
-      #   lng2 = filteredData_bounds[3], lat2 = filteredData_bounds[4]) %>% # extent is set after selection of oblast
-      # addPolygons(
-      #   data = reaktive_bufered_polygon(), #layerId = id,   # add buffered polygon to map
-      #   options = buffered_polygon_options
-      # ) %>%
-      addCircleMarkers(
-        data = sf_clipped_data(), # lng = ~Longitude, lat = ~Latitude, # add circle markers from dataframe
-        # radius = 10,  # static radius
-        radius = 2,  # calculation radius
-        color = "red",
-        popup = ~paste0("<center>" ,"<b>", nameUk, "</b>", "</center>", # "<br>",   # popup with HTML 
-                        "<center>", scientificName, "</center>",  
-                        "<center>",
-                        "<a href=\'",URL_record,"\' target=\'_blank\'>",
-                        URL_record,
-                        "</a>",
-                        "</center>"
-                          )  # "URL_record"
+      output$message_Karta_sidebar <- renderText({
+        string_message_Karta_sidebar() 
+      })
+    } else {
+      clearShapes(map) # delete all shapes from map
+      # clearShapes(map2) # delete all shapes from map2
+      clearMarkers(map2)
+      
+      
+      # if ( (class(reaktive_bufered_polygon())[2] == "sfc") ) {
+      #   sf_clipped_data <- st_intersection(gbif_sf_dataset, reaktive_bufered_polygon() )
+      # } else {
+      #   showModal(modalDialog(
+      #     title = "Увага! Зона тінтересу не визначена",
+      #     "Оберіть територію інтересу (район чи ОТГ), завантажте файл або намалюйте полігон.",
+      #     easyClose = TRUE,
+      #     footer = tagList(
+      #       modalButton("Закрити"),
+      #     )
+      #   ))
+      # }
+      
+      
+      
+      
+      map %>%
+        addPolygons(
+          data = reaktive_aoi_polygon(),
+          options = polygon_aoi_options
+        ) %>%
+        addPolygons(
+          data = reaktive_bufered_polygon(), #layerId = id,   # add buffered polygon to map
+          options = buffered_polygon_options
+        ) %>%
+        addCircleMarkers(
+          data = sf_clipped_data(), # lng = ~Longitude, lat = ~Latitude, # add circle markers from dataframe
+          # radius = 10,  # static radius
+          radius = 2,  # calculation radius
+          color = "red",
+          popup = ~scientificName # simple popup from field "scientificName"
+          # popup = ~paste0("<center>" ,"<b>", scientificName, "</b>", "</center>", "<br>",   # popup with HTML
+          #                 "Население: ", population, " чел." )
+        )
+      
+      map2 %>%
+        # fitBounds(
+        #   # lng1 = data_bounds[1], lat1 = data_bounds[2], # set view by extent: p1 - top lext, p2 - bottom right
+        #   # lng2 = data_bounds[3], lat2 = data_bounds[4]) %>% # extent is set after selection of oblast
+        #   lng1 = filteredData_bounds[1], lat1 = filteredData_bounds[2], # set view by extent: p1 - top lext, p2 - bottom right
+        #   lng2 = filteredData_bounds[3], lat2 = filteredData_bounds[4]) %>% # extent is set after selection of oblast
+        # addPolygons(
+        #   data = reaktive_bufered_polygon(), #layerId = id,   # add buffered polygon to map
+        #   options = buffered_polygon_options
+        # ) %>%
+        addCircleMarkers(
+          data = sf_clipped_data(), # lng = ~Longitude, lat = ~Latitude, # add circle markers from dataframe
+          # radius = 10,  # static radius
+          radius = 2,  # calculation radius
+          color = "red",
+          popup = ~paste0("<center>" ,"<b>", nameUk, "</b>", "</center>", # "<br>",   # popup with HTML 
+                          "<center>", scientificName, "</center>",  
+                          "<center>",
+                          "<a href=\'",URL_record,"\' target=\'_blank\'>",
+                          URL_record,
+                          "</a>",
+                          "</center>"
+          )  # "URL_record"
+        )
+      
+      string_message_Karta_sidebar <- reactive(
+        paste0("") # TODO text to config
       )
-    
-    
+      output$message_Karta_sidebar <- renderText({
+        string_message_Karta_sidebar()
+      })
+        
+      shinyjs::enable("refresh_filters")
+      
+    }
   })
-  
   
 
 
@@ -824,7 +817,7 @@ server = function(input, output, session) {
   )
   
   string_nrow_filtred_data <- reactive(
-    paste0("Загальна кількість спостережень: ", toString(nrow(df_filteredData())) ) # TODO text to config
+    paste0(txt_backend_number_of_records, toString(nrow(df_filteredData())) )
     )
   
   output$nrow_filtred_data_map <- renderText({
@@ -856,21 +849,21 @@ server = function(input, output, session) {
     
     ### General species table ####
     df_report_table <- df_filteredData() %>%
-                                  dplyr::select(all_of(colnames_set3)) %>%
-                                  group_by(scientificName,  # настроить корректно групбай чтоб не удаляло лишние поля 
-                                           nameUk,
-                                           family,
-                                           class,
-                                           kingdom #,
-                                           # ЧКУ,
-                                           # iucnRedListCategory
-                                  ) %>%
-                                  summarise(Amount = n()) %>%
-                                  arrange(kingdom, class, family, scientificName) %>%
-                                  dplyr::select(all_of(c("kingdom", "class", "family", "Amount", "nameUk", "scientificName"))) %>% 
-                                  dplyr::rename(all_of( rename_species_field ) ) %>%
-                                  # colnames(c("Царство", "Кількість", "Українська назва", "Латинська назва")) %>%
-                                  na.omit()
+      dplyr::select(all_of(colnames_set3)) %>%
+      group_by(scientificName,  # настроить корректно групбай чтоб не удаляло лишние поля 
+               nameUk,
+               family,
+               class,
+               kingdom #,
+               # ЧКУ,
+               # iucnRedListCategory
+      ) %>%
+      summarise(Amount = n()) %>%
+      arrange(kingdom, class, family, scientificName) %>%
+      dplyr::select(all_of(c("kingdom", "class", "family", "Amount", "nameUk", "scientificName"))) %>% 
+      dplyr::rename(all_of( rename_species_field ) ) %>%
+      # colnames(c("Царство", "Кількість", "Українська назва", "Латинська назва")) %>%
+      na.omit()
     
     
     tab_filtred_report(df_report_table)
@@ -878,10 +871,10 @@ server = function(input, output, session) {
     
     
     if (  !is.null(nrow_report()) && !is.na(nrow_report()) && !is.nan(nrow_report()) && nrow_report() > 0   ) {
-      pre_df_rare_lists[nrow(pre_df_rare_lists) + 1,] = c("Загалом, згідно критеріїв пошуку", nrow_report() )
-   
+      pre_df_rare_lists[nrow(pre_df_rare_lists) + 1,] = c(txt_backend_report_total, nrow_report())
+      
       output$nrow_species_doc <- renderText({
-        "Загальний перелік видів" # TODO text to config
+        txt_backend_species_list
       })
       
       ## Draw preview report table Генерування звітів - загальний список видів
@@ -913,12 +906,13 @@ server = function(input, output, session) {
     if (  !is.null(nrow_chku()) && !is.na(nrow_chku()) && !is.nan(nrow_chku()) && nrow_chku() > 0   ) {
       
       output$nrow_chku_doc <- renderText({
-       "Види, занесені до Червоної книги України"  # TODO text to config
+        txt_backend_species_rdbuk
       })
       
       output$report_chku_table <- DT::renderDataTable(tab_filtred_chku())
       
-      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Червона книга України", nrow_chku())
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c(txt_interface_tabs_filter_reddatabookofukraine,
+                                                           nrow_chku())
       
     } else {
       tab_filtred_chku(NULL)
@@ -946,12 +940,13 @@ server = function(input, output, session) {
     if (  !is.null(nrow_iucn()) && !is.na(nrow_iucn()) && !is.nan(nrow_iucn()) && nrow_iucn() > 0   ) {
       
       output$nrow_iucn_doc <- renderText({
-        "Види, занесені до Червоного списку IUCN"  # TODO text to config
+        txt_backend_species_iucnrl
       })
       
       output$report_iucn_table <- DT::renderDataTable(tab_filtred_iucn())
       
-      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Червоний список IUCN", nrow_iucn())
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c(txt_interface_tabs_filter_iucnrl,
+                                                           nrow_iucn())
       
     } else {
       tab_filtred_iucn(NULL)
@@ -979,12 +974,13 @@ server = function(input, output, session) {
     if (  !is.null(nrow_BernApp_1()) && !is.na(nrow_BernApp_1()) && !is.nan(nrow_BernApp_1()) && nrow_BernApp_1() > 0   ) {
       
       output$nrow_BernApp_1_doc <- renderText({
-        "Види, занесені до Додатку 1 Бернської конвенції"  # TODO text to config
+        txt_backend_species_bern1
       })
       
       output$report_BernApp_1_table <- DT::renderDataTable(tab_filtred_BernApp_1())
       
-      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Бернська конвенція. Додаток 1", nrow_BernApp_1())
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c(names(txt_interface_tabs_filter_international_choices[1]),
+                                                           nrow_BernApp_1())
       
     } else {
       tab_filtred_BernApp_1(NULL)
@@ -1012,12 +1008,13 @@ server = function(input, output, session) {
     if (  !is.null(nrow_BernApp_2()) && !is.na(nrow_BernApp_2()) && !is.nan(nrow_BernApp_2()) && nrow_BernApp_2() > 0   ) {
       
       output$nrow_BernApp_2_doc <- renderText({
-        "Види, занесені до Додатку 2 Бернської конвенції"  # TODO text to config
+        txt_backend_species_bern2
       })
       
       output$report_BernApp_2_table <- DT::renderDataTable(tab_filtred_BernApp_2())
       
-      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Бернська конвенція. Додаток 2", nrow_BernApp_2())
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c(names(txt_interface_tabs_filter_international_choices[2]),
+                                                           nrow_BernApp_2())
       
     } else {
       tab_filtred_BernApp_2(NULL)
@@ -1046,12 +1043,13 @@ server = function(input, output, session) {
     if (  !is.null(nrow_BernApp_3()) && !is.na(nrow_BernApp_3()) && !is.nan(nrow_BernApp_3()) && nrow_BernApp_3() > 0   ) {
       
       output$nrow_BernApp_3_doc <- renderText({
-        "Види, занесені до Додатку 3 Бернської конвенції"  # TODO text to config
+        txt_backend_species_bern3
       })
       
       output$report_BernApp_3_table <- DT::renderDataTable(tab_filtred_BernApp_3())
       
-      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Бернська конвенція. Додаток 3", nrow_BernApp_3())
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c(names(txt_interface_tabs_filter_international_choices[3]),
+                                                           nrow_BernApp_3())
       
     } else {
       tab_filtred_BernApp_3(NULL)
@@ -1079,12 +1077,13 @@ server = function(input, output, session) {
     if (  !is.null(nrow_BernRes_6()) && !is.na(nrow_BernRes_6()) && !is.nan(nrow_BernRes_6()) && nrow_BernRes_6() > 0   ) {
       
       output$nrow_BernRes_6_doc <- renderText({
-        "Види, занесені до Резолюції 6 Бернської конвенції"  # TODO text to config
+        txt_backend_species_BernRes_6
       })
       
       output$report_BernRes_6_table <- DT::renderDataTable(tab_filtred_BernRes_6())
       
-      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Бернська конвенція. Резолюція 6", nrow_BernRes_6())
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c(names(txt_interface_tabs_filter_international_choices[4]),
+                                                           nrow_BernRes_6())
       
     } else {
       tab_filtred_BernRes_6(NULL)
@@ -1112,12 +1111,13 @@ server = function(input, output, session) {
     if (  !is.null(nrow_Bonn()) && !is.na(nrow_Bonn()) && !is.nan(nrow_Bonn()) && nrow_Bonn() > 0   ) {
       
       output$nrow_Bonn_doc <- renderText({
-        "Види, занесені до Конвенції про збереження мігруючих видів диких тварин (Боннська конвенція)"  # TODO text to config
+        txt_backend_species_Bonn
       })
       
       output$report_Bonn_table <- DT::renderDataTable(tab_filtred_Bonn())
       
-      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Конвенція про збереження мігруючих видів диких тварин (Боннська конвенція)", nrow_Bonn())
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c(names(txt_interface_tabs_filter_international_choices[5]),
+                                                           nrow_Bonn())
       
     } else {
       tab_filtred_Bonn(NULL)
@@ -1145,12 +1145,13 @@ server = function(input, output, session) {
     if (  !is.null(nrow_AEWA()) && !is.na(nrow_AEWA()) && !is.nan(nrow_AEWA()) && nrow_AEWA() > 0   ) {
       
       output$nrow_AEWA_doc <- renderText({
-        "Види, що охороняються в рамках Угоди про збереження афро-євразійських мігруючих водно-болотних птахів (AEWA)"  # TODO text to config
+        txt_backend_species_AEWA
       })
       
       output$report_AEWA_table <- DT::renderDataTable(tab_filtred_AEWA())
       
-      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Угода про збереження афро-євразійських мігруючих водно-болотних птахів (AEWA)", nrow_AEWA())
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c(names(txt_interface_tabs_filter_international_choices[6]),
+                                                           nrow_AEWA())
       
     } else {
       tab_filtred_AEWA(NULL)
@@ -1178,12 +1179,13 @@ server = function(input, output, session) {
     if (  !is.null(nrow_EUROBATS()) && !is.na(nrow_EUROBATS()) && !is.nan(nrow_EUROBATS()) && nrow_EUROBATS() > 0   ) {
       
       output$nrow_EUROBATS_doc <- renderText({
-        "Види, що охороняються в рамках Угоди про збереження популяцій європейських кажанів (EUROBATS)"  # TODO text to config
+        txt_backend_report_eurobats
       })
       
       output$report_EUROBATS_table <- DT::renderDataTable(tab_filtred_EUROBATS())
       
-      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Угода про збереження популяцій європейських кажанів (EUROBATS)", nrow_EUROBATS())
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c(names(txt_interface_tabs_filter_international_choices[7]),
+                                                           nrow_EUROBATS())
       
     } else {
       tab_filtred_EUROBATS(NULL)
@@ -1211,12 +1213,13 @@ server = function(input, output, session) {
     if (  !is.null(nrow_ACCOBAMS()) && !is.na(nrow_ACCOBAMS()) && !is.nan(nrow_ACCOBAMS()) && nrow_ACCOBAMS() > 0   ) {
       
       output$nrow_ACCOBAMS_doc <- renderText({
-        "Види, що охороняються в рамках Угоди про збереження китоподібних Чорного моря, Середземного моря та прилеглої акваторії Атлантичного океану (ACCOBAMS)"  # TODO text to config
+        txt_backend_report_accobams
       })
       
       output$report_ACCOBAMS_table <- DT::renderDataTable(tab_filtred_ACCOBAMS())
       
-      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Угода про збереження китоподібних Чорного моря, Середземного моря та прилеглої акваторії Атлантичного океану (ACCOBAMS)", nrow_ACCOBAMS())
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c(txt_accobams_fullname,
+                                                           nrow_ACCOBAMS())
       
     } else {
       tab_filtred_ACCOBAMS(NULL)
@@ -1244,12 +1247,13 @@ server = function(input, output, session) {
     if (  !is.null(nrow_BirdDirAnn_I()) && !is.na(nrow_BirdDirAnn_I()) && !is.nan(nrow_BirdDirAnn_I()) && nrow_BirdDirAnn_I() > 0   ) {
       
       output$nrow_BirdDirAnn_I_doc <- renderText({
-        "Види, занесені до Додатку I Пташиної директиви ЄС"  # TODO text to config
+        txt_backend_report_birdDirectiveApp1
       })
       
       output$report_BirdDirAnn_I_table <- DT::renderDataTable(tab_filtred_BirdDirAnn_I())
       
-      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Пташина директива ЄС. Додаток I", nrow_BirdDirAnn_I())
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c(names(txt_interface_tabs_filter_international_choices[9]),
+                                                           nrow_BirdDirAnn_I())
       
     } else {
       tab_filtred_BirdDirAnn_I(NULL)
@@ -1277,12 +1281,13 @@ server = function(input, output, session) {
     if (  !is.null(nrow_BirdDirAnn_II()) && !is.na(nrow_BirdDirAnn_II()) && !is.nan(nrow_BirdDirAnn_II()) && nrow_BirdDirAnn_II() > 0   ) {
       
       output$nrow_BirdDirAnn_II_doc <- renderText({
-        "Види, занесені до Додатку II Пташиної директиви ЄС"  # TODO text to config
+        txt_backend_report_birdDirectiveApp2
       })
       
       output$report_BirdDirAnn_II_table <- DT::renderDataTable(tab_filtred_BirdDirAnn_II())
       
-      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Пташина директива ЄС. Додаток II", nrow_BirdDirAnn_II())
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c(names(txt_interface_tabs_filter_international_choices[10]),
+                                                           nrow_BirdDirAnn_II())
       
     } else {
       tab_filtred_BirdDirAnn_II(NULL)
@@ -1310,12 +1315,13 @@ server = function(input, output, session) {
     if (  !is.null(nrow_HabitatsDirAnn_II()) && !is.na(nrow_HabitatsDirAnn_II()) && !is.nan(nrow_HabitatsDirAnn_II()) && nrow_HabitatsDirAnn_II() > 0   ) {
       
       output$nrow_HabitatsDirAnn_II_doc <- renderText({
-        "Види, занесені до Додатку II Оселищної директиви ЄС"  # TODO text to config
+        txt_backend_report_habitatDirectiveApp2
       })
       
       output$report_HabitatsDirAnn_II_table <- DT::renderDataTable(tab_filtred_HabitatsDirAnn_II())
       
-      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Оселищна директива ЄС. Додаток IІ", nrow_HabitatsDirAnn_II())
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c(names(txt_interface_tabs_filter_international_choices[11]),
+                                                           nrow_HabitatsDirAnn_II())
       
     } else {
       tab_filtred_HabitatsDirAnn_II(NULL)
@@ -1343,12 +1349,13 @@ server = function(input, output, session) {
     if (  !is.null(nrow_HabitatsDirAnn_IV()) && !is.na(nrow_HabitatsDirAnn_IV()) && !is.nan(nrow_HabitatsDirAnn_IV()) && nrow_HabitatsDirAnn_IV() > 0   ) {
       
       output$nrow_HabitatsDirAnn_IV_doc <- renderText({
-        "Види, занесені до Додатку IV Оселищної директиви ЄС"  # TODO text to config
+        txt_backend_report_habitatDirectiveApp4
       })
       
       output$report_HabitatsDirAnn_IV_table <- DT::renderDataTable(tab_filtred_HabitatsDirAnn_IV())
       
-      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Оселищна директива ЄС. Додаток IV", nrow_HabitatsDirAnn_IV())
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c(names(txt_interface_tabs_filter_international_choices[12]),
+                                                           nrow_HabitatsDirAnn_IV())
       
     } else {
       tab_filtred_HabitatsDirAnn_IV(NULL)
@@ -1376,12 +1383,13 @@ server = function(input, output, session) {
     if (  !is.null(nrow_HabitatsDirAnn_V()) && !is.na(nrow_HabitatsDirAnn_V()) && !is.nan(nrow_HabitatsDirAnn_V()) && nrow_HabitatsDirAnn_V() > 0   ) {
       
       output$nrow_HabitatsDirAnn_V_doc <- renderText({
-        "Види, занесені до Додатку V Оселищної директиви ЄС"  # TODO text to config
+        txt_backend_report_habitatDirectiveApp5
       })
       
       output$report_HabitatsDirAnn_V_table <- DT::renderDataTable(tab_filtred_HabitatsDirAnn_V())
       
-      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Оселищна директива ЄС. Додаток V", nrow_HabitatsDirAnn_V())
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c(names(txt_interface_tabs_filter_international_choices[13]),
+                                                           nrow_HabitatsDirAnn_V())
       
     } else {
       tab_filtred_HabitatsDirAnn_V(NULL)
@@ -1409,12 +1417,13 @@ server = function(input, output, session) {
     if (  !is.null(nrow_Invasive()) && !is.na(nrow_Invasive()) && !is.nan(nrow_Invasive()) && nrow_Invasive() > 0   ) {
       
       output$nrow_Invasive_doc <- renderText({
-        "Інвазійні та чужорідні види"  # TODO text to config
+        txt_backend_report_invasive_alien_species
       })
       
       output$report_Invasive_table <- DT::renderDataTable(tab_filtred_Invasive())
       
-      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c("Інвазійні та чужорідні види", nrow_Invasive())
+      pre_df_rare_lists[nrow(pre_df_rare_lists ) + 1,] = c(txt_backend_report_invasive_alien_species,
+                                                           nrow_Invasive())
       
     } else {
       tab_filtred_Invasive(NULL)
@@ -1430,7 +1439,7 @@ server = function(input, output, session) {
     ## Draw preview report table Зведена статистика по природоохорним перелікам
     output$report_rare_lists_table <- DT::renderDataTable(df_rare_lists()) 
     
-  } )
+  })
   
   
   

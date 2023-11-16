@@ -45,12 +45,12 @@ source("global_reactive_value.R")
 source("custom_functions.R")
 
 ## load prepared GBIF data ####
-# load(file = "data/gbif_dataset_metadata.Rdata")
-# load(file = "data/gbif_sf_dataset.Rdata")
+load(file = path_metadata_datadump)
+# load(file = path_datadump)
 
-load(url(url_metadata_datadump))
+# load(url(url_metadata_datadump))
 # options(timeout = 200) # in the case of slow download speed
-load(url(url_datadump))
+# load(url(url_datadump))
 
 # load dump from folder (temporary solution!!!)
 # load(file = "../name_lookup/outputs/gbif_sf_dataset.Rdata")
@@ -408,7 +408,7 @@ server = function(input, output, session) {
                        choices = buffer_choices,
                        selected = 0 )
     
-    raion_geom <- st_geometry(raion()) # to extract geometry
+    raion_geom <- st_geometry(raion()) %>% st_union() # to extract geometry
     reaktive_aoi_polygon(raion_geom)
     reaktive_bufered_polygon(raion_geom)
     
@@ -432,7 +432,7 @@ server = function(input, output, session) {
                        choices = buffer_choices,
                        selected = 0 )
     
-    OTG_geom <- st_geometry(OTG()) # to extract geometry
+    OTG_geom <- st_geometry(OTG())  %>% st_union() # to extract geometry
     reaktive_aoi_polygon(OTG_geom)
     reaktive_bufered_polygon(OTG_geom)
     
@@ -465,7 +465,7 @@ server = function(input, output, session) {
       uploaded_cont <-  st_zm(st_read(input$userContours$datapath)) # reading .kml and removing Z dimension
     }
     
-    uploaded_cont_geom <- st_geometry(uploaded_cont) # to extract geometry
+    uploaded_cont_geom <- st_geometry(uploaded_cont) %>% st_union() # to extract geometry
     reaktive_aoi_polygon(uploaded_cont_geom)
     reaktive_bufered_polygon(uploaded_cont_geom)
     
@@ -569,9 +569,15 @@ server = function(input, output, session) {
     eventExpr = input$act_get_gbif_data,
     valueExpr = {
       if(is.null(reaktive_bufered_polygon)){
-        gbif_sf_dataset[0, ]
+        gbif_sf_dataset[0, ]  # TODO убрать gbif_sf_dataset[0, ]
       } else {
-        st_intersection(gbif_sf_dataset, reaktive_bufered_polygon()) # use dissolved polygon for occurrence search
+        # load(url(url_datadump))
+        # load(file = path_datadump)
+        # st_intersection(gbif_sf_dataset, reaktive_bufered_polygon()) # use dissolved polygon for occurrence search
+        # gbif_sf_dataset %>%
+        # filter(st_intersects(geometry, reaktive_bufered_polygon(), sparse = FALSE))
+        # wkt <- reaktive_bufered_polygon() %>% st_as_text()
+        read_sf(path_datadump_fgb, wkt_filter = reaktive_bufered_polygon() %>% st_as_text() )
       }
     }
   )

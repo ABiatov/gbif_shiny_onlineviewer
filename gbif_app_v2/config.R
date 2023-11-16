@@ -4,10 +4,15 @@ CRS_used_in_calculations <- 3537 # WGS 84 / North Pole LAEA Europe
 # url_metadata_datadump <- "https://github.com/ABiatov/gbif_shiny_onlineviewer/raw/main/name_lookup/outputs/metadata.Rdata"
 # url_datadump <- "https://github.com/ABiatov/gbif_shiny_onlineviewer/raw/main/name_lookup/outputs/gbif_sf_dataset.Rdata"
 
-url_metadata_datadump <- "https://fra1.digitaloceanspaces.com/abspatial/WD/gbif_shiny_onlineviewer/metadata.Rdata"
-url_datadump <- "https://fra1.digitaloceanspaces.com/abspatial/WD/gbif_shiny_onlineviewer/gbif_sf_dataset.Rdata"
+# url_metadata_datadump <- "https://fra1.digitaloceanspaces.com/abspatial/WD/gbif_shiny_onlineviewer/metadata.Rdata"
+# url_datadump <- "https://fra1.digitaloceanspaces.com/abspatial/WD/gbif_shiny_onlineviewer/gbif_sf_dataset.Rdata"
 
+# url_metadata_datadump <- "https://abspatial.com/data/gbif_viewer/metadata.Rdata"
+# url_datadump <- "https://abspatial.com/data/gbif_viewer/gbif_sf_dataset.Rdata"
 
+path_metadata_datadump <- "gbif_data/metadata.Rdata"
+path_datadump <- "gbif_data/gbif_sf_dataset.Rdata"
+path_datadump_fgb <- "gbif_data/gbif_sf_dataset.fgb"
 
 
 # Lists of columns
@@ -17,7 +22,9 @@ colnames_set1 <- c(
   "eventDate", "year", "Latitude", "Longitude", "coordinateUncertaintyInMeters", "coordinatePrecision", "verbatimLocality",
   "nameUk", "scientificName", "kingdom",
   # "phylum",
-  "class", "order", "family",
+  "class", 
+  # "order", 
+  "family",
   # "genus",
   "ЧКУ",
   "iucnRedListCategory",

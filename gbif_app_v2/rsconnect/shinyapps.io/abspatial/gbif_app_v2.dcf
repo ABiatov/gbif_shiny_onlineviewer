@@ -1,13 +1,13 @@
 name: gbif_app_v2
 title: gbif_app_v2
-username:
+username: abspatial
 account: abspatial
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
-appId: 9729222
-bundleId: 7630217
+appId: 10543289
+bundleId: 7933946
 url: https://abspatial.shinyapps.io/gbif_app_v2/
-when: 1693485983.42806
-lastSyncTime: 1693485983.42808
+version: 1
 asMultiple: FALSE
 asStatic: FALSE
+ignoredFiles: app1.0.R|app1.1.R
