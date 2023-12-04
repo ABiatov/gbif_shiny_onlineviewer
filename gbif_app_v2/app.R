@@ -42,6 +42,7 @@ library(lubridate) # for paring date to GBIF cite
 source("config.R")
 source("global_reactive_value.R")
 source("custom_functions.R")
+source("localization_ua.R")
 
 ## load prepared GBIF data ####
 load(file = path_metadata_datadump)
