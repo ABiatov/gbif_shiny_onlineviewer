@@ -2,8 +2,6 @@ options(encoding = "UTF-8" )
 
 # >>> Buffer building moved to a separate event. <<< 
 
-# setwd("C:/Mamba/Work/Presentations/2023-03_GBIF_Viewer/all_23-11-06/gbif_shiny_onlineviewer-main/gbif_app_v2")
-
 # Biodiversity Viewer v.0.1
 
 # use https://mastering-shiny.org/action-layout.html
@@ -28,6 +26,7 @@ library(sp)
 # library(rgbif) # do we still need it?
 library(leaflet)
 library(leaflet.extras)
+library(leaflet.esri)
 library(leafem)
 library(DT)
 library(data.table)
@@ -246,6 +245,9 @@ ui = fluidPage(
                        radioButtons("format", txt_interface_tabs_reports_docFormats_button, c('HTML', 'Word'), inline = TRUE),
                        downloadButton('downloadReport'),
                        tags$hr(),
+                       h2(txt_report_header),
+                       em(txt_report_citation_instruction),
+                       strong(textOutput("txt_doi_url") ),
                        plotOutput("plot_map"),
                        tags$hr(),
                        h2(txt_interface_tabs_reports_h2),
@@ -321,7 +323,14 @@ server = function(input, output, session) {
   
 
   ## create the leaflet map ####
-  main_map <-  leaflet() %>% addTiles() %>%
+  main_map <-  leaflet() %>%
+    addTiles(group = "OpenStreetMap") %>%
+    addEsriBasemapLayer(esriBasemapLayers$Imagery,
+                        autoLabels = TRUE,
+                        group = "ESRI imagery with labels") %>%
+    addLayersControl(
+      baseGroups = c("ESRI imagery with labels", "OpenStreetMap")
+    ) %>%
     # addSearchOSM() %>% 
     leafem::addMouseCoordinates() %>%
     addDrawToolbar(
@@ -356,7 +365,15 @@ server = function(input, output, session) {
   # create map proxy to make further changes to existing map
   map <- leafletProxy("map", session)
   
-  main_map2 <-  leaflet() %>% addTiles()  %>% leafem::addMouseCoordinates()
+  main_map2 <-  leaflet() %>%
+    addTiles(group = "OpenStreetMap") %>%
+    addEsriBasemapLayer(esriBasemapLayers$Imagery,
+                        autoLabels = TRUE,
+                        group = "ESRI imagery with labels") %>%
+    addLayersControl(
+      baseGroups = c("ESRI imagery with labels", "OpenStreetMap")
+    ) %>%
+    leafem::addMouseCoordinates()
 
   output$map2 <- renderLeaflet({
     main_map2
@@ -529,8 +546,8 @@ server = function(input, output, session) {
   observeEvent(input$map_draw_deleted_features, {
     clearShapes(map) # delete all shapes from map
     clearMarkers(map) # clean previously loaded markers
-    reaktive_aoi_polygon(adm_1[0, ])
-	  reaktive_bufered_polygon(adm_1[0, ])
+    reaktive_aoi_polygon()
+	  reaktive_bufered_polygon()
 	  updateRadioButtons(session = session, inputId = "buffer_radius",
 	                     choices = buffer_choices,
 	                     selected = 0)
@@ -569,7 +586,7 @@ server = function(input, output, session) {
     eventExpr = input$act_get_gbif_data,
     valueExpr = {
       if(is.null(reaktive_bufered_polygon)){
-        gbif_sf_dataset[0, ]  # TODO убрать gbif_sf_dataset[0, ]
+        #gbif_sf_dataset[0, ]  # works without it
       } else {
         # load(url(url_datadump))
         # load(file = path_datadump)
@@ -672,6 +689,24 @@ server = function(input, output, session) {
         
       shinyjs::enable("refresh_filters")
       
+      # Update filters in Tab Preview #
+      updatePickerInput(session = session, inputId = "redbook",
+                        choices = chku_category,
+                        selected = chku_category)
+      
+      updatePickerInput(session = session, inputId = "iucn",
+                        choices = txt_interface_tabs_filter_iucnrl_choices,
+                        selected = iucn_category_selected)
+      
+      updatePickerInput(session = session, inputId = "international_filters",
+                        choices = txt_interface_tabs_filter_international_choices,
+                        selected = vector_conventions)
+      
+      updatePickerInput(session = session, inputId = "region_redlist_filters",
+                        choices = txt_interface_tabs_filter_regionalrl_choices,
+                        selected = NULL)
+      
+      updateCheckboxInput(session = session, inputId = "invasive", value = FALSE)
     }
   })
   
@@ -832,6 +867,9 @@ server = function(input, output, session) {
     string_nrow_filtred_data() 
   })
   
+  output$txt_doi_url <- renderText({
+    paste0("GBIF.org ", formatted_gbif_dataset_date, " GBIF Occurrence Download ", gbif_doi_url )
+  })
   
   
 
@@ -1022,7 +1060,6 @@ server = function(input, output, session) {
       output$nrow_BernApp_2_doc <- renderText({NULL})
       output$report_BernApp_2_table <- DT::renderDataTable(NULL)
     }
-    
     
     ### BernApp_3 species table ####
     
@@ -1437,7 +1474,7 @@ server = function(input, output, session) {
     df_rare_lists(pre_df_rare_lists)
     
     ## Draw preview report table Зведена статистика по природоохорним перелікам
-    output$report_rare_lists_table <- DT::renderDataTable(df_rare_lists()) 
+    output$report_rare_lists_table <- DT::renderDataTable(df_rare_lists())
     
   })
   
@@ -1527,6 +1564,12 @@ server = function(input, output, session) {
   
   ## Red book table ####
   # output$redbook_table <- DT::renderDataTable(df_redbook)
+  
+  ## On session ended ####
+  session$onSessionEnded(function() {
+    rm(list = ls())
+    gc()
+  })
   
   observe({   # применяется для доступа к реактивным переменным, распечатки их в консоль и отладки
     print("reaktive_bufered_polygon: ")

@@ -27,7 +27,7 @@ ENV LANG=uk_UA.UTF-8 \
 RUN install2.r --error --skipinstalled \
     shinyWidgets shinyalert shinyjs sp \
     DT openxlsx openxlsx2 rgbif sf \
-    leaflet leaflet.extras leafem
+    leaflet leaflet.extras leafem leaflet.esri
 
 RUN installGithub.r Chrisjb/basemapR
 

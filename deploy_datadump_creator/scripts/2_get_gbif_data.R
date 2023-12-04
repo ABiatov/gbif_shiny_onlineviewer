@@ -1,3 +1,48 @@
+# ---------------------
+# This script is fully automated and can be run in the background.
+# The script takes Rdata/csv files created at the previous steps, then looks for
+# gbifIDs (unique persistent identifier of any record published through GBIF).
+# It also build a request to GBIF database and download all occurrences from the 
+# territory of the country, which meet user-specified conditions. After that, 
+# only those occurrences which belong to the mined gbifIDs are filtered.
+# 
+# Since GBIF controls species' IUCN Red List status on its own, and the number of
+# taxa which possess some IUCN RL category is quite large, we didn't include IUCN 
+# RL into the original data. Instead, we extract those data from GBIF downloads.
+# We decided to exclude LC category since it contains a lot of species currently
+# don't require special protection, which doesn't meet the main goal of the tool.
+# 
+# Inputs:
+# 1) matches.Rdata - list of two with the result of name matching.
+#   [[1]] - "goodmatch" - Names whose matching is satisfactory - we will then look 
+#   for occurrences for these names using taxon keys.
+#   [[2]] - "badmatch" - Names whose matching is supposed to be wrong/unsatisfactory.
+# 
+# 2) higherrank_nameVariants.csv - possible spelling variants / synonyms for the
+#   names matched as 'higherrank' by GBIF matching tool.
+# 
+# Outputs:
+# 1) gbifIDs.Rdata - dataframe with all existing gbifIDs, associated with the 
+#   internal IDs, assigned automatically to each scientific name in the original data.
+# 
+# 2) metadata.Rdata - list of ..., containing metadata of GBIF occurrence download
+#   (including DOI, download key, query date).
+# 
+# 3) gbif_data.Rdata - all existing occurrences, associated with the names (IDs)
+#   from the original data.
+# 
+# 4) iucn_omitted.Rdata - all existing occurrences, don't associated with the 
+#   names (IDs) from the original data set, but with species that have IUCN Red 
+#   List category (except 'Least Concern', LC).
+# 
+# All output files are going to be stored within "./temp" directory.
+# During GBIF data downloading, a large zip archive is created and stores in the
+# "./temp" directory, too. The final part of the script automatically erase it 
+# to prevent you running out of storage. But, if you work locally, or modify the
+# code, it's recommended to keep it in case you will need to import the data during
+# further R sessions and you don't want to perform the (quite large) query again. 
+
+
 # Environment preparation ####
 rm(list = ls()) # Reset R`s brain
 
@@ -10,15 +55,13 @@ library(rgbif)
 ## Import some variables
 # source( "./scripts/config.R") 
 source( paste0(Sys.getenv("APP_DIR"), "/config.R") )
-
 ## Import GBIF credentials
 # source( "./scripts/gbif_ini.R") 
 source( paste0(Sys.getenv("APP_DIR"), "/gbif_ini.R") )
 
 # Load data saved at step #1
-# load(file = "./temp/matches.Rdata")
-load(file = paste0(Sys.getenv("TEMP_DATA_DIR"), "/matches.Rdata") )
-
+# load(file = "./temp_1/matches.Rdata")
+load(file = paste0(Sys.getenv("TEMP_1_DATA_DIR"), "/matches.Rdata") )
 list2env(matches, .GlobalEnv)
 rm(matches)
 
@@ -26,12 +69,9 @@ rm(matches)
 # Should be searched by verbatinScientificName term
 
 # Load names that should be searched by verbatim scientific names
-# speciesnames <- read.csv( "./data/higherrank_nameVariants.csv")  %>% 
-speciesnames <- read.csv( paste0(Sys.getenv("INPUT_DATA_DIR"), "/higherrank_nameVariants.csv") ) %>%
+# speciesnames <- read.csv("./data/higherrank_nameVariants.csv") %>% 
+speciesnames <- read.csv( paste0(Sys.getenv("INPUT_DATA_DIR"), "/higherrank_nameVariants.csv") ) %>%		
   select(-X)
-
-
-
 # Resulting dataframe internal ID, which helps us later to merge their occurrence 
 # data with occ. data for "goodmatch", and possible spellings for verbatim 
 # scientific names for each taxon.
@@ -123,15 +163,15 @@ good.id <- bind_rows(search_results)
 
 
 # Merge gbifIDs for the 'good' and 'bad' matches
-all.id <- good.id %>% bind_rows(bad.id) %>% 
-  mutate_at("gbifID", bit64::as.integer64) # convert to integer64 format
+all.id <- good.id %>% bind_rows(bad.id) # %>% 
+#  mutate_at("gbifID", bit64::as.integer64) # convert to integer64 format
 
 # save(all.id, file = "./temp/gbifIDs.Rdata")
-save(all.id, file = paste0(Sys.getenv("TEMP_DATA_DIR"), "/gbifIDs.Rdata") )
+save(all.id, file = paste0(Sys.getenv("TEMP_2_DATA_DIR"), "/gbifIDs.Rdata") )
+# load(file = "./temp_2/gbifIDs.Rdata") # if you need to read it from local drive
 
-# load(file = "./temp/gbifIDs.Rdata") # if you need to write it from local drive
+# Free unused R's memory and drop unused variables
 gc()
-# rm(list = ls()) # Reset R`s brain
 rm(good.id, bad.id, search_results)
 
 
@@ -143,6 +183,8 @@ response <- occ_download(
   pred_not(pred("basisOfRecord", "FOSSIL_SPECIMEN")),
   pred("country", country), 
   format = "DWCA",
+  # following arguments are needed only if you don't store your GBIF credentials
+  # in either config file or R environment.
   user = gbif_user,
   pwd = gbif_pwd,
   email = gbif_email
@@ -160,14 +202,22 @@ print(paste0("Download link: ", gbif_dataset_metadata$downloadLink))
 
 save(gbif_dataset_metadata,
 #     file = "./gbif_data/metadata.Rdata")
-     file = paste0(Sys.getenv("GBIF_DATA_DIR"), "/metadata.Rdata") )
-
-# load(file = "./gbif_data/metadata.Rdata")
+	 file = paste0(Sys.getenv("GBIF_DATA_DIR"), "/metadata.Rdata") )
+# load(file = "./gbif_data/metadata.Rdata") # if you need to read it from local drive
 # Check download status with
 occ_download_wait(gbif_dataset_metadata$key)
 
-# Create local archive with data on disk (project folder root directory)
-dump_dataset <- occ_download_get(gbif_dataset_metadata$key, overwrite = TRUE)
+# Create local archive with data on disk (zip, stored at the project folder root)
+dump_dataset <- occ_download_get(key = gbif_dataset_metadata$key,
+#                                 path = "./temp_2",
+								 path = Sys.getenv("TEMP_2_DATA_DIR"),
+                                 overwrite = TRUE)
+
+
+# In case you need to import data from the previously generated by 
+# 'occ_download_get()' local zip archive, uncomment and run the following line
+# dd <- occ_download_import(path = "./temp", key = gbif_dataset_metadata$key)
+# then use `dd` as an input for the next code pipeline
 
 # Import occurrence data to the Environment
 all.occurrences <- occ_download_import(dump_dataset) %>%
@@ -177,10 +227,7 @@ all.occurrences <- occ_download_import(dump_dataset) %>%
          datasetKey,
          scientificName,
          verbatimScientificName,
-         kingdom, #check is need it ?
-         class,
-         order,
-         family,
+         kingdom,
          individualCount,
          organismQuantity,
          organismQuantityType,
@@ -193,13 +240,11 @@ all.occurrences <- occ_download_import(dump_dataset) %>%
          verbatimLocality,
          iucnRedListCategory,
          license) %>% 
+  # mutate_at("gbifID", bit64::as.integer64) %>%
   mutate_at(c("gbifID",
               "datasetKey",
               "scientificName",
               "verbatimScientificName",
-              "class",
-              "order",
-              "family",
               "eventDate",
               "verbatimLocality",
               "iucnRedListCategory",
@@ -208,14 +253,12 @@ all.occurrences <- occ_download_import(dump_dataset) %>%
               "decimalLongitude",
               "coordinateUncertaintyInMeters",
               "coordinatePrecision"), as.double)
-# gives warning "Found and resolved improper quoting out-of-sample..."
 
 
 # Filter all downloaded occurrences by gbifIDs, generated before, and joint it
 # with internal IDs.
-# `gbifID` var should be in the same type (integer64) for both data frames
-all.occurrences$gbifID <- bit64::as.integer64(all.occurrences$gbifID)
-
+# # `gbifID` var should be in the same type (integer64) for both data frames
+# all.occurrences$gbifID <- bit64::as.integer64(all.occurrences$gbifID)		 
 gbif.dump <- all.occurrences %>% 
   inner_join(all.id) %>% 
   relocate(ID) %>% 
@@ -223,10 +266,9 @@ gbif.dump <- all.occurrences %>%
 
 
 # Save occurrence data to local drive
-# save(gbif.dump, file = "./temp/gbif_data.Rdata")
-save(gbif.dump, file = paste0(Sys.getenv("TEMP_DATA_DIR"), "/gbif_data.Rdata") )
-
-# load(file = "./temp/gbif_data.Rdata")
+# save(gbif.dump, file = "./temp_2/gbif_data.Rdata")
+save(gbif.dump, file = paste0(Sys.getenv("TEMP_2_DATA_DIR"), "/gbif_data.Rdata") )																			 
+# load(file = "./temp_2/gbif_data.Rdata") # if you need to read it from the local file later
 
 
 # IUCN Red List species omitted by input data (not in the original species list),
@@ -239,23 +281,23 @@ iucn_omitted <- all.occurrences %>%
 
 # Save occurrence data for names not included to the input data, but have IUCN RL
 # category (except LC)
-# save(iucn_omitted, file = "./temp/iucn_omitted.Rdata")
-save(iucn_omitted, file = paste0(Sys.getenv("TEMP_DATA_DIR"), "/iucn_omitted.Rdata") )
+# save(iucn_omitted, file = "./temp_2/iucn_omitted.Rdata")
+save(iucn_omitted, file = paste0(Sys.getenv("TEMP_2_DATA_DIR"), "/iucn_omitted.Rdata") )
 
 # Clean-up the session ####
 
-# Delete zip archives with occurrence downloads
-# List all files matched pattern "zip" in the project directory
-downloaded_files <- list.files(path = ".", pattern = "zip")
-# Delete all listed files
-for (i in 1:length(downloaded_files)) {
-  if (file.exists(downloaded_files[i])) {
-    file.remove(downloaded_files[i])
-    cat("File deleted")
-  } else {
-    cat("No file found")
-  }
-}
+# # Delete zip archives with occurrence downloads
+# # List all files matched pattern "zip" in the project directory
+# downloaded_files <- list.files(path = "./temp_2", pattern = "zip")
+# # Delete all listed files
+# for (i in 1:length(downloaded_files)) {
+#   if (file.exists(downloaded_files[i])) {
+#     file.remove(downloaded_files[i])
+#     cat("File deleted")
+#   } else {
+#     cat("No file found")
+#   }
+# }
 
 rm(list = ls()) # Reset R`s brain
 gc()            # Free unused R's memory
