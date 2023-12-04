@@ -1,6 +1,6 @@
 FROM fedora:38
 
-LABEL org.opencontainers.image.title="GBIF Viewer. Module: Web Viewer - Shiny App" \
+LABEL org.opencontainers.image.title="Biodiversity Viewer. Module: Web Viewer - Shiny App" \
       org.opencontainers.image.version="1.0" \
       org.opencontainers.image.created="2023-11-15" \
       org.opencontainers.image.authors="Anton Biatov (GitHub @ABiatov), Oleh Prylutskyi (GitHub @olehprylutskyi), Yehor Yatsiuk " \
@@ -45,7 +45,7 @@ ENV LANG=uk_UA.UTF-8 \
 RUN R -e "install.packages(pkgs=c('tidyverse', 'shiny', \
     'shinyWidgets', 'shinyalert', 'shinyjs', 'sp', 'DT', \
     'ggplot2', 'openxlsx', 'openxlsx2', 'sf', 'leaflet', \
-    'leaflet.extras', 'leafem', 'rgbif'),  \
+    'leaflet.extras', 'leafem', 'leaflet.esri', 'rgbif'),  \
     repos='https://cran.rstudio.com/')" 
 
 # RUN install2.r --error --skipinstalled \

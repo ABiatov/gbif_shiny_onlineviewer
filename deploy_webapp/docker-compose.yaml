@@ -2,7 +2,7 @@ version: '1.0'
 
 services:
   webgbifviewer:
-    container_name: web-gbif-viewer
+    container_name: biodiversity-viewer
     build:
       context: .
       dockerfile: Dockerfile

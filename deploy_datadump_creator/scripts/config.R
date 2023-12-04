@@ -7,9 +7,19 @@ occ_search_limit = 100000
 
 iucnRL_category = c("EX", "EW", "CR", "EN", "VU", "NT", "DD")
 
-# Vector of datasetKeys for the dataset occurrences from which we 
-# deliberately drop from the data
-dropped_datasets <- c("c779b049-28f3-4daf-bbf4-0a40830819b6") # EBCC Atlas of European Breeding Birds
+# Vector of datasetKeys for the dataset occurrences from which we deliberately 
+# drop from the data
+# EBCC Atlas of European Breeding Birds
+dropped_datasets <- c("c779b049-28f3-4daf-bbf4-0a40830819b6")
+
+# Limit for coordinate uncertainty in meters (occurrences with uncertainty above 
+# the threshold will be dropped)
+coordUncert.threshold <- 500
+
+# Minimum coordinate precision (occurrences with precision above the threshold 
+# will be dropped)
+# https://dwc.tdwg.org/terms/#dwc:coordinatePrecision
+coordinatePrec.threshold <- 0.001
 
 # Fields list for export
 colnames_set0 <- c(
