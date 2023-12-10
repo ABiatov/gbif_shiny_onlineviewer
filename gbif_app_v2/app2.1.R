@@ -43,7 +43,6 @@ source("config.R")
 source("global_reactive_value.R")
 source("custom_functions.R")
 source("localization_ua.R")
-# source("localization_en.R")
 
 ## load prepared GBIF data ####
 load(file = path_metadata_datadump)
