@@ -13,7 +13,7 @@ txt_interface_tabs_map_upload_custom_file <- "Завантажте власни�
 
 txt_interface_tabs_map_draw_buffer <- "Буфер довкола області інтересу"
 
-txt_interface_tabs_map_getdata_button <- "Отримати GBIF дані"
+txt_interface_tabs_map_getdata_button <- "Отримати дані GBIF"
 
 txt_about_gbif_viewer_noFormat <- "Biodiversity Viewer: an open web-based biodiversity conservation decision-making tool for policy and governance. Спільний проєкт The Habitat Foundation та Української Природоохоронної Групи, за підтримки NLBIF: The Netherlands Biodiversity Information Facility, nlbif2022.014"
 
