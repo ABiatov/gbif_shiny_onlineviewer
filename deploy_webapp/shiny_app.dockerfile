@@ -2,11 +2,11 @@ FROM fedora:38
 
 LABEL org.opencontainers.image.title="Biodiversity Viewer. Module: Web Viewer - Shiny App" \
       org.opencontainers.image.version="1.0" \
-      org.opencontainers.image.created="2023-11-15" \
+      org.opencontainers.image.created="2023-12-13" \
       org.opencontainers.image.authors="Anton Biatov (GitHub @ABiatov), Oleh Prylutskyi (GitHub @olehprylutskyi), Yehor Yatsiuk " \
       org.opencontainers.image.vendor="Ukrainian Nature Conservation Group (UNCG Ukraine) & Netherlands Biodiversity Information Facility (NLBIF)" \
       org.opencontainers.image.licenses="Creative Commons Attribution 4.0 International (CC-BY-4.0)" \
-      org.opencontainers.image.url="https://github.com/ABiatov/gbif_shiny_onlineviewer/deploy_datadump_creator/" 
+      org.opencontainers.image.url="https://github.com/ABiatov/gbif_shiny_onlineviewer/tree/main/deploy_webapp" 
 
 # install R
 RUN echo "install_weak_deps=False" >> /etc/dnf/dnf.conf \
@@ -44,7 +44,8 @@ ENV LANG=uk_UA.UTF-8 \
 
 RUN R -e "install.packages(pkgs=c('tidyverse', 'shiny', \
     'shinyWidgets', 'shinyalert', 'shinyjs', 'sp', 'DT', \
-    'ggplot2', 'openxlsx', 'openxlsx2', 'sf', 'leaflet', \
+    'data.table', 'openxlsx', 'openxlsx2', 'sf',  \
+    'rmarkdown', 'tinytex' , 'knitr', 'leaflet', \
     'leaflet.extras', 'leafem', 'leaflet.esri', 'rgbif'),  \
     repos='https://cran.rstudio.com/')" 
 

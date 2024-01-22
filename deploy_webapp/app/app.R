@@ -42,6 +42,8 @@ library(lubridate) # for paring date to GBIF cite
 source("config.R")
 source("global_reactive_value.R")
 source("custom_functions.R")
+source("localization_ua.R")
+# source("localization_en.R")
 
 ## load prepared GBIF data ####
 load(file = path_metadata_datadump)
@@ -121,7 +123,10 @@ ui = fluidPage(
     )
   ),
   # App title 
-  titlePanel("Biodiversity Viewer"),
+  titlePanel(
+    title = span(img(src = "icon-2.png", height = 33), "Biodiversity Viewer"), # icon-2.png in www folder
+    windowTitle = "Biodiversity Viewer" # favicon from www/favicon.ico has to load automatically
+  ),
   # Tabs
   tabsetPanel(type = "tabs",
               ## Tab main map ####
@@ -208,7 +213,15 @@ ui = fluidPage(
                                        options = list(`actions-box` = TRUE), multiple = TRUE
                            ),
                            hr(),
+                           pickerInput("kingdom_filters", txt_interface_tabs_filter_kingdom,
+                                       choices = txt_interface_tabs_filter_kingdom_choices,
+                                       selected = kingdom_selected,
+                                       options = list(`actions-box` = TRUE), multiple = TRUE
+                           ),
+                           hr(),
                            checkboxInput("invasive", invasive_alien_species, FALSE),
+                           actionButton("clear_filters", txt_clear_filters_button, icon("brush"), class = "btn-success", disabled = ''), # change icon
+                           hr(),
                            actionButton("refresh_filters", txt_apply_filters_button, icon("refresh"), class = "btn-success", disabled = ''),
                            
                          ),
@@ -689,6 +702,8 @@ server = function(input, output, session) {
         
       shinyjs::enable("refresh_filters")
       
+      shinyjs::enable("clear_filters")
+      
       # Update filters in Tab Preview #
       updatePickerInput(session = session, inputId = "redbook",
                         choices = chku_category,
@@ -705,6 +720,10 @@ server = function(input, output, session) {
       updatePickerInput(session = session, inputId = "region_redlist_filters",
                         choices = txt_interface_tabs_filter_regionalrl_choices,
                         selected = NULL)
+      
+      updatePickerInput(session = session, inputId = "kingdom_filters",
+                        choices = txt_interface_tabs_filter_kingdom_choices,
+                        selected = kingdom_selected)
       
       updateCheckboxInput(session = session, inputId = "invasive", value = FALSE)
     }
@@ -728,7 +747,30 @@ server = function(input, output, session) {
   #   }
   # )
   
-
+  observeEvent(input$clear_filters, {
+    # Clear filters in Tab Preview #
+    updatePickerInput(session = session, inputId = "redbook",
+                      choices = chku_category,
+                      selected = NULL)
+    
+    updatePickerInput(session = session, inputId = "iucn",
+                      choices = txt_interface_tabs_filter_iucnrl_choices,
+                      selected = NULL)
+    
+    updatePickerInput(session = session, inputId = "international_filters",
+                      choices = txt_interface_tabs_filter_international_choices,
+                      selected = NULL)
+    
+    updatePickerInput(session = session, inputId = "region_redlist_filters",
+                      choices = txt_interface_tabs_filter_regionalrl_choices,
+                      selected = NULL)
+    
+    updatePickerInput(session = session, inputId = "kingdom_filters",
+                      choices = txt_interface_tabs_filter_kingdom_choices,
+                      selected = NULL)
+    
+    updateCheckboxInput(session = session, inputId = "invasive", value = FALSE)
+  })
   
   # render result of request in tab "Попередній перегляд на мапі" ####
   intern_filt_present <- reactive( vector_conventions %in% input$international_filters )
@@ -781,7 +823,8 @@ server = function(input, output, session) {
                        (region_filt_present()[25] & ЧС_Київ == "yes") |
                        (region_filt_present()[26] & ЧС_Севастополь == "yes") |
                        (input$invasive & Invasive == "yes")
-              ) 
+              ) %>%
+              filter(kingdom %in% input$kingdom_filters)
     )
   })
   

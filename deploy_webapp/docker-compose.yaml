@@ -2,15 +2,18 @@ version: '1.0'
 
 services:
   webgbifviewer:
-    container_name: biodiversity-viewer
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: antonbiatov/biodiversity_viewer_shiny_server:1
+    # container_name: biodiversity-viewer
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    # 
     volumes:
-      - .:/usr/src/app  # need to correct
+    #   - .:/usr/src/app  # need to correct
+      - /home/gbif_data:/srv/shiny-server/gbif_data
     ports:
       - "3838:3838"
-    restart: on-failure
+    restart: always # on-failure
 
-  volumes:
-    gbif_data:
+  # volumes:
+  #   gbif_data:
