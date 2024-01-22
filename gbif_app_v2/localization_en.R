@@ -155,6 +155,13 @@ txt_interface_tabs_reports_title <- "Generating of reports"
 
 txt_interface_tabs_reports_h2 <- "Summary statistics"
 
+## "About" tab
+
+txt_interface_tabs_about_title <- "About"
+
+txt_interface_tabs_about_link <- "about_en.md"
+# txt_interface_tabs_about_link <- "about_en.html"
+
 ## Controls and buttons labels ####
 
 txt_apply_filters_button <- "Apply filters"
