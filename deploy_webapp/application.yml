@@ -1,20 +1,23 @@
 proxy:
+  title: Biodiversity Viewer
   port: 8080
   authentication: simple
   admin-groups: admins
   users:
   - name: admin
-    password: admin
+    password: w00dmenkv
     groups: admins
   docker:
       internal-networking: true
   specs:
   - id: biodiversity_viewer
-    display-name: Euler's number
-    container-cmd: ["R", "-e", "shiny::runApp(appDir='/home/app')"]
+    display-name: Biodiversity Viewer
+    container-cmd: ["R", "-e", "shiny::runApp(appDir='/home/app', host='0.0.0.0', port=3838)"]
     container-image: biodiversity_viewer_shiny_app
-    access-groups: admins
-    container-network: sp-example-net
+    container-volumes: [ "gbif_data:/home/app/gbif_data" ]
+    port: 3838
+    access-groups: admins  # [admins, guests]
+    container-network: shinyproxy-net
 
 logging:
   file:

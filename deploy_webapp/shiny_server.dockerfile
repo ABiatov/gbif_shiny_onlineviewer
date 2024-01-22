@@ -1,6 +1,6 @@
 FROM rocker/shiny-verse:4.3.2
 
-LABEL org.opencontainers.image.title="GBIF Viewer. Module: Web Viewer - Shiny Server" \
+LABEL org.opencontainers.image.title="Biodiversity Viewer. Module: Web Viewer - Shiny Server" \
       org.opencontainers.image.version="1.0" \
       org.opencontainers.image.created="2023-11-15" \
       org.opencontainers.image.authors="Anton Biatov (GitHub @ABiatov), Oleh Prylutskyi (GitHub @olehprylutskyi), Yehor Yatsiuk " \
@@ -9,7 +9,7 @@ LABEL org.opencontainers.image.title="GBIF Viewer. Module: Web Viewer - Shiny Se
       org.opencontainers.image.url="https://github.com/ABiatov/gbif_shiny_onlineviewer/deploy_datadump_creator/" 
 
 RUN apt-get update -qq \
-    # && apt-get upgrade -y  \
+    && apt-get upgrade -y  \
     && apt-get install -y --no-install-recommends \
       libxml2-dev \
       libudunits2-dev \

@@ -26,9 +26,15 @@ Run biodiversityviewer docker image
 
 ```bash
 
-docker run --rm -d --name shinyserver -p 3838:3838 -v "$(pwd)/shiny_server_log:/var/log/shiny-server" -v "gbif_data:/srv/shiny-server/gbif_data" biodiversity_viewer_shiny_server
+docker run -d --name shinyserver -p 3838:3838 -v "gbif_data:/srv/shiny-server/gbif_data" biodiversity_viewer_shiny_server
 
-# TODO добавить монтирование докер тома с данными
+```
+
+or
+
+```bash
+
+docker run -d --name shinyserver -p 3838:3838 -v "gbif_data:/srv/shiny-server/gbif_data" antonbiatov/biodiversity_viewer_shiny_server:latest
 
 ```
 
@@ -36,6 +42,19 @@ docker run --rm -d --name shinyserver -p 3838:3838 -v "$(pwd)/shiny_server_log:/
 ## ShinyProxy
 
 ![Shinyproxy workflow](Biodiversity_viewer_shinyproxy_scheme.png)
+
+### Configure docker 
+you need to configure host docker [https://www.shinyproxy.io/documentation/getting-started/](https://www.shinyproxy.io/documentation/getting-started/) depende on type of operation system.
+
+For example on Windows:
+
+```
+sc config docker binpath= "C:/Program Files/Docker/Docker/resources/dockerd.exe --run-service -H tcp://127.0.0.1:2375"
+
+```
+
+
+
 
 ### Build Shiny Docker image to run in ShinyProxy
 
@@ -49,7 +68,15 @@ Test run shiny app
 
 ```bash
 
-docker run --rm -d --name biodiversityviewershinyapp -p 3838:3838 biodiversity_viewer_shiny_app
+docker run --rm -d --name biodiversityviewershinyapp -p 3838:3838 -v "gbif_data:/home/app/gbif_data" biodiversity_viewer_shiny_app
+
+```
+
+### Create shinyproxy network
+
+```bash
+
+docker network create shinyproxy-net
 
 ```
 
@@ -61,11 +88,12 @@ docker build --file ./shinyproxy.dockerfile -t biodiversity_viewer_shinyproxy .
 
 ```
 
+
 Test run shinyproxy
 
 ```bash
 
-docker run --rm -it --name shinyproxy -p 8080:8080 biodiversity_viewer_shinyproxy
+docker run --rm -it --name shinyproxy -v "//var/run/docker.sock:/var/run/docker.sock" --net shinyproxy-net -p 8080:8080 biodiversity_viewer_shinyproxy
 
 ```
 
