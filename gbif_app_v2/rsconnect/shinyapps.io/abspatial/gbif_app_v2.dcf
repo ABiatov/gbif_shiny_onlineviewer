@@ -5,9 +5,9 @@ account: abspatial
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 10543289
-bundleId: 8172562
+bundleId: 8212566
 url: https://abspatial.shinyapps.io/gbif_app_v2/
 version: 1
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: app1.0.R|app1.1.R|app1.2.R|app2.1.R|app2.2.R|app2.R|index.html
+ignoredFiles: app1.0.R|app1.1.R|app1.2.R|app2.1.R|app2.2.R|app2.R|index.html|www/favicon - Copy.ico

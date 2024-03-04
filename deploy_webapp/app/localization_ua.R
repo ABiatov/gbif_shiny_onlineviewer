@@ -154,6 +154,13 @@ txt_interface_tabs_reports_title <- "Генерування звітів"
 
 txt_interface_tabs_reports_h2 <- "Зведена статистика"
 
+## "About" tab
+
+txt_interface_tabs_about_title <- "Про застосунок"
+
+txt_interface_tabs_about_link <- "about_ua.md"
+# txt_interface_tabs_about_link <- "about_ua.html"
+
 ## Controls and buttons labels ####
 
 txt_apply_filters_button <- "Застосувати фільтри"
