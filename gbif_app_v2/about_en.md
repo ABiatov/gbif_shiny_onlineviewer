@@ -62,7 +62,7 @@ Biodiversity Viewer: an open web-based biodiversity conservation decision-making
 
 
 # Information for developers
-Biodiversity Viewer is a Shiny-app, that interacts with the GBIF database through its [API](), with the help of tools from the pack [rgbif](https://www.gbif.org/uk/tool/81747/rgbif). The source code is posted on [Github](https://github.com/ABiatov/gbif_shiny_onlineviewer/), where you can also find technical documentation.
+Biodiversity Viewer is a Shiny-app, that interacts with the GBIF database through its [API](https://techdocs.gbif.org/en/openapi/), with the help of tools from the pack [rgbif](https://www.gbif.org/uk/tool/81747/rgbif). The source code is posted on [Github](https://github.com/ABiatov/gbif_shiny_onlineviewer/), where you can also find technical documentation.
 
 # Contact us
 If you want to report a bug or suggest an improvement, leave a message in the section [Issues](https://github.com/ABiatov/gbif_shiny_onlineviewer/issues) (registration on Github is required). 

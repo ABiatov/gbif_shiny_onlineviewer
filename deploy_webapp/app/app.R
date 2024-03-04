@@ -34,6 +34,7 @@ library(data.table)
 library(openxlsx)
 library(openxlsx2)
 library(rmarkdown)
+library(markdown)
 library(tinytex)
 library(knitr) # to render table in docx
 library(lubridate) # for paring date to GBIF cite
@@ -124,7 +125,7 @@ ui = fluidPage(
   ),
   # App title 
   titlePanel(
-    title = span(img(src = "icon-2.png", height = 33), "Biodiversity Viewer"), # icon-2.png in www folder
+    title = span(img(src = "icon-logo.png", height = 33), "Biodiversity Viewer"), # icon-2.png in www folder
     windowTitle = "Biodiversity Viewer" # favicon from www/favicon.ico has to load automatically
   ),
   # Tabs
@@ -220,12 +221,12 @@ ui = fluidPage(
                            ),
                            hr(),
                            checkboxInput("invasive", invasive_alien_species, FALSE),
-                           actionButton("clear_filters", txt_clear_filters_button, icon("brush"), class = "btn-success", disabled = ''), # change icon
                            hr(),
                            actionButton("refresh_filters", txt_apply_filters_button, icon("refresh"), class = "btn-success", disabled = ''),
-                           
+                           hr(),
+                           actionButton("clear_filters", txt_clear_filters_button, icon("brush"), class = "btn-success", disabled = '',
+                                        style="color: #fff; background-color: #609dd2; border-color: #4c91cd")
                          ),
-                         
                          
                          mainPanel(
                            leafletOutput("map2",  width = "100%", height="85vh"),
@@ -321,7 +322,12 @@ ui = fluidPage(
                        p(txt_about_gbif_viewer_noFormat
                          # class = "footer-class"
                        )
-              )
+              ),
+					   ## Tab - About ####
+					   tabPanel(txt_interface_tabs_about_title,
+					            includeMarkdown(txt_interface_tabs_about_link)
+					            # includeHTML(txt_interface_tabs_about_link)
+					   )
 
   ),
   conditionalPanel(condition="$('html').hasClass('shiny-busy')",

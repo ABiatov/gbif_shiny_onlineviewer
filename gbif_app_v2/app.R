@@ -343,12 +343,17 @@ server = function(input, output, session) {
 
   ## create the leaflet map ####
   main_map <-  leaflet() %>%
-    addTiles(group = "OpenStreetMap") %>%
+    addTiles(
+      group = "Visicom map",
+      urlTemplate = "https://tms.visicom.rest/2.0.0/world,ua/base/{z}/{x}/{-y}.png",
+      attribution = 'Картографічні дані &copy; <a href="https://maps.visicom.ua" target="_blank">2023, АТ «Візіком»</a>',
+      layerId = NULL
+    ) %>%
     addEsriBasemapLayer(esriBasemapLayers$Imagery,
                         autoLabels = TRUE,
                         group = "ESRI imagery with labels") %>%
     addLayersControl(
-      baseGroups = c("ESRI imagery with labels", "OpenStreetMap")
+      baseGroups = c("ESRI imagery with labels", "Visicom map")
     ) %>%
     # addSearchOSM() %>% 
     leafem::addMouseCoordinates() %>%
@@ -385,12 +390,17 @@ server = function(input, output, session) {
   map <- leafletProxy("map", session)
   
   main_map2 <-  leaflet() %>%
-    addTiles(group = "OpenStreetMap") %>%
+    addTiles(
+      group = "Visicom map",
+      urlTemplate = "https://tms.visicom.rest/2.0.0/world,ua/base/{z}/{x}/{-y}.png",
+      attribution = 'Картографічні дані &copy; <a href="https://maps.visicom.ua" target="_blank">2023, АТ «Візіком»</a>',
+      layerId = NULL
+    ) %>%
     addEsriBasemapLayer(esriBasemapLayers$Imagery,
                         autoLabels = TRUE,
                         group = "ESRI imagery with labels") %>%
     addLayersControl(
-      baseGroups = c("ESRI imagery with labels", "OpenStreetMap")
+      baseGroups = c("ESRI imagery with labels", "Visicom map")
     ) %>%
     leafem::addMouseCoordinates()
 
