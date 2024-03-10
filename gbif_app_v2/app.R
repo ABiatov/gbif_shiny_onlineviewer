@@ -14,6 +14,7 @@ gc()
 # Import libs ####
 # library(tidyverse)
 library(dplyr)
+# library(tmap)
 require(ggplot2)
 library(basemapR)
 library(shiny)
@@ -1546,7 +1547,7 @@ server = function(input, output, session) {
   output$plot_map = renderPlot({
     ggplot()+
       base_map(bbox = st_bbox(reaktive_bufered_polygon()),
-               basemap = 'mapnik',
+               basemap = 'google-terrain',
                increase_zoom = 2) +
       geom_sf(data=sf_filteredData(), aes(color=kingdom),size=2)+ # TODO сюда идут нефильтрованные данные. Возможно надо создать отдельную промежуточную переменную в которую будут писаться фильтрованные данные перед отправкой сюда
       scale_colour_manual(values = kingdom_colors, name=NULL ) +
@@ -1555,8 +1556,8 @@ server = function(input, output, session) {
       theme_minimal()+
       theme(axis.text = element_blank())+
       theme(legend.position = "bottom",
-            legend.margin=margin())+
-      labs(caption = "Basemap attribution: © OpenStreetMap contributors")
+            legend.margin=margin()) # +
+      # labs(caption = "Basemap attribution: © OpenStreetMap contributors")
   })
   
 

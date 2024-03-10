@@ -17,7 +17,7 @@ GBIF.org (`r formatted_gbif_dataset_date`) GBIF Occurrence Download [`r gbif_doi
 ```{r, echo = FALSE}
     ggplot() +
       base_map(bbox = st_bbox(reaktive_bufered_polygon()),
-               basemap = 'mapnik',
+               basemap = 'google-terrain',
                increase_zoom = 2) +
       geom_sf(data = sf_filteredData(), aes(color = kingdom), size = 2) +
       scale_colour_manual(values = kingdom_colors, name=NULL ) +
@@ -26,8 +26,8 @@ GBIF.org (`r formatted_gbif_dataset_date`) GBIF Occurrence Download [`r gbif_doi
       theme_minimal() +
       theme(axis.text = element_blank()) +
       theme(legend.position = "bottom",
-            legend.margin = margin()) +
-      labs(caption = "Basemap attribution: © OpenStreetMap contributors")
+            legend.margin = margin()) # +
+      # labs(caption = "Basemap attribution: © OpenStreetMap contributors")
 ```
 
 # `r txt_report_statistics`
