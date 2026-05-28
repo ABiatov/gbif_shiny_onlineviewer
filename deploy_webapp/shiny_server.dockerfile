@@ -5,7 +5,7 @@ LABEL org.opencontainers.image.title="Biodiversity Viewer. Module: Web Viewer - 
       org.opencontainers.image.created="2023-11-15" \
       org.opencontainers.image.authors="Anton Biatov (GitHub @ABiatov), Oleh Prylutskyi (GitHub @olehprylutskyi), Yehor Yatsiuk " \
       org.opencontainers.image.vendor="Ukrainian Nature Conservation Group (UNCG Ukraine) & Netherlands Biodiversity Information Facility (NLBIF)" \
-      org.opencontainers.image.licenses="Creative Commons Attribution 4.0 International (CC-BY-4.0)" \
+      org.opencontainers.image.licenses="MIT" \
       org.opencontainers.image.url="https://github.com/ABiatov/gbif_shiny_onlineviewer/deploy_datadump_creator/" 
 
 RUN apt-get update -qq \
