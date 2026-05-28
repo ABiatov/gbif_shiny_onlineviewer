@@ -1,10 +1,15 @@
 # gbif_shiny_onlineviewer
 
-**GBIF Viewer**: an open web-based biodiversity conservation decision-making tool for policy and governance. Спільний проєкт The [Habitat Foundation](https://thehabitatfoundation.org/) та [Української Природоохоронної Групи](https://uncg.org.ua/), за підтримки [NLBIF: The Netherlands Biodiversity Information Facility](https://www.nlbif.nl/), nlbif2022.014
+**GBIF Viewer**: an open web-based biodiversity conservation decision-making tool for policy and governance. Спільний проєкт The [Habitat Foundation](https://thehabitatfoundation.org/) та [NGO “Ukrainian Nature Conservation Group”](https://uncg.org.ua/), за підтримки [NLBIF: The Netherlands Biodiversity Information Facility](https://www.nlbif.nl/), nlbif2022.014
 
 
-The GBIF Viewer consists of 2 components: a data dump creator and a web-viewer. There must be some kind of file storage through which data must be transferred between these components.
+The GBIF Viewer consists of 2 components: a [data dump creator](https://github.com/olehprylutskyi/GBIF_occurence_download) and a [web-viewer](https://github.com/ABiatov/gbif_shiny_onlineviewer). There must be some kind of file storage through which data must be transferred between these components.
 The storage role for the data dump can be a Docker volume or a folder on the host server or cloud storage. This storage must be mounted to the container.
+
+## Documentation
+
+- [Code_Explanation.md](Code_Explanation.md) - code walkthrough for `gbif_app_v2`, including architecture, data flow, risks, and operational notes.
+- [further_improvement.md](further_improvement.md) - improvement, migration, and scaling plan for the application.
 
 
 ## Folders in this repository
@@ -75,5 +80,13 @@ cd deploy_webapp
 
 ```
 
+## License
 
+This repository is released under the [MIT License](LICENSE).
+
+Code authors:
+
+- Anton Biatov ([GitHub](https://github.com/ABiatov))
+- Yehor Yatsiuk ([ResearchGate](https://www.researchgate.net/profile/Yehor-Yatsiuk))
+- Oleh Prylutskyi ([GitHub](https://github.com/olehprylutskyi))
 

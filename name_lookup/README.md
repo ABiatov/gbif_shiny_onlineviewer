@@ -1,4 +1,6 @@
 # GBIF_occurence_download
+The `name_lookup/` directory is a copy of the [olehprylutskyi/GBIF_occurence_download](https://github.com/olehprylutskyi/GBIF_occurence_download) repository.
+
 Pipeline for download occurrences for a series of scientific names, including taxonomic matching and problem resolving.
 
 ![Workflow](https://github.com/olehprylutskyi/GBIF_occurence_download/blob/main/gbif_occ_downloader_workflow.png)
